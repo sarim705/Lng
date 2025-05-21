@@ -1,5 +1,6 @@
+// side-bar.component.ts
 import { AppWorker } from './../../../core/workers/app.worker';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { SideBarService } from './side-bar.service';
 import { CommonModule } from '@angular/common';
@@ -24,11 +25,33 @@ export class SideBarComponent {
   ) {}
 
   isSidebarOpen = false;
+  isMobile = false;
 
-toggleSidebar() {
-  this.isSidebarOpen = !this.isSidebarOpen;
-}
+  ngOnInit() {
+    this.checkScreenSize();
+  }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.checkScreenSize();
+  }
+
+  checkScreenSize() {
+    this.isMobile = window.innerWidth < 992;
+    if (!this.isMobile) {
+      this.isSidebarOpen = false;
+    }
+  }
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  closeSidebar() {
+    if (this.isMobile) {
+      this.isSidebarOpen = false;
+    }
+  }
 
   logout = async () => {
     let confirm = await swalHelper.confirmation(

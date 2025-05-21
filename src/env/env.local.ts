@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  baseURL: 'http://localhost:2333',
+  baseURL: 'https://7vgdkhhk-2333.inc1.devtunnels.ms',
   route: 'admin',
  
-  imageUrl:'http://localhost:2333'
+  imageUrl:'https://7vgdkhhk-2333.inc1.devtunnels.ms/'
 };

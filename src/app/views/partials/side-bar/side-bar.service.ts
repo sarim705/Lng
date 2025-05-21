@@ -72,11 +72,11 @@ export class SideBarService {
           link: 'referralReport',
           icon: 'share', // Feather: Giving referrals
         },
-        {
+        /*{
           title: 'Testimonial Report',
           link: 'testimonialReport',
           icon: 'message-square', // Feather: Testimonials/comments
-        },
+        },*/,
         {
           title: 'Referral Recieved Report',
           link: 'referralReportRecieved',
@@ -87,6 +87,7 @@ export class SideBarService {
           link: 'oneTooneReport',
           icon: 'user-check', // Feather: One-to-one interactions
         },
+        
         {
           title: 'Tyfcb Report',
           link: 'tyfcb',
@@ -102,11 +103,11 @@ export class SideBarService {
           link: 'attendanceRecord',
           icon: 'book', // Feather: Detailed attendance records
         },
-        {
+        /*{
           title: 'Referral Points Point',
           link: 'referralPoints',
           icon: 'star', // Feather: Points/rewards
-        },
+        }*/,
       ],
     },
   ];
