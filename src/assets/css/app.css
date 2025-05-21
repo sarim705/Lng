@@ -4999,7 +4999,7 @@ fieldset:disabled .btn {
 }
 
 .card-header {
-  background-color: var(--bs-card-cap-bg);
+  background-color: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
   border-bottom: var(--bs-card-border-width) solid var(--bs-card-border-color);
   color: var(--bs-card-cap-color);
   margin-bottom: 0;
