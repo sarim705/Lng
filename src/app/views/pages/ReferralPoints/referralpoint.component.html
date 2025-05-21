@@ -1,0 +1,180 @@
+<div class="container-fluid">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0 fw-bold">
+          <i class="bi bi-trophy me-2"></i>Point History
+        </h4>
+        <div class="export-buttons">
+          <button class="btn btn-sm btn-light me-2" [disabled]="loading || exporting || !points.docs || points.docs.length === 0" (click)="exportToExcel()">
+            <i class="bi bi-file-excel me-1"></i>Export Excel
+          </button>
+          <button class="btn btn-sm btn-light" [disabled]="loading || exporting || !points.docs || points.docs.length === 0" (click)="exportToPDF()">
+            <i class="bi bi-file-pdf me-1"></i>Export PDF
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+            <div class="me-2" style="min-width: 200px;">
+              <label for="chapterSelect" class="form-label mb-1">Chapter</label>
+              <ng-select 
+                id="chapterSelect"
+                [items]="chapters"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="--Select--"
+                [(ngModel)]="filters.chapter"
+                (change)="onFilterChange()">
+              </ng-select>
+            </div>
+            <div class="me-2" style="min-width: 200px;">
+              <label for="userSelect" class="form-label mb-1">User</label>
+              <ng-select 
+                id="userSelect"
+                [items]="users"
+                bindLabel="name"
+                bindValue="_id"
+                placeholder="--Select--"
+                [(ngModel)]="filters.userId"
+                (change)="onFilterChange()"
+                [typeahead]="userSearchSubject"
+                (search)="onUserSearch($event)">
+              </ng-select>
+            </div>
+            <div class="me-2" style="min-width: 150px;">
+              <label for="monthSelect" class="form-label mb-1">Month</label>
+              <ng-select 
+                id="monthSelect"
+                [items]="months"
+                bindLabel="name"
+                bindValue="value"
+                placeholder="--Select--"
+                [(ngModel)]="filters.month"
+                (change)="onFilterChange()">
+              </ng-select>
+            </div>
+            <div class="me-2" style="min-width: 150px;">
+              <label for="yearSelect" class="form-label mb-1">Year</label>
+              <ng-select 
+                id="yearSelect"
+                [items]="years"
+                placeholder="--Select--"
+                [(ngModel)]="filters.year"
+                (change)="onFilterChange()">
+              </ng-select>
+            </div>
+            <div class="mt-4">
+              <button class="btn btn-outline-secondary" (click)="resetFilters()">
+                <i class="bi bi-x-circle me-1"></i>Reset
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="ms-2">
+              <label for="limitSelect" class="form-label mb-1">Items per page</label>
+              <ng-select 
+                id="limitSelect"
+                [items]="[10, 25, 50, 100]" 
+                [(ngModel)]="filters.limit" 
+                (change)="onFilterChange()" 
+                placeholder="Items per page">
+              </ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+       
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div *ngIf="exporting" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.3); z-index: 1050;">
+        <div class="bg-white p-4 rounded shadow-lg text-center">
+          <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Exporting...</span>
+          </div>
+          <p class="mb-0">Preparing export file...</p>
+        </div>
+      </div>
+  
+      <div class="table-responsive" *ngIf="!loading && points.docs && points.docs.length > 0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="py-3">Sr No</th>
+              <th class="py-3"> Members Full Name </th>
+              <th class="py-3">Attendance Regular Point</th>
+              <th class="py-3">Induction Points</th>
+              <th class="py-3">Referral Point</th>
+              <th class="py-3">One to One Point</th>
+              <th class="py-3">TYFCB Point</th>
+              <th class="py-3">Events Attendance Point</th>
+              <th class="py-3">Visitor Point</th>
+              <th class="py-3">Total Point</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr *ngFor="let point of points.docs; let i = index" class="border-bottom">
+              <td class="py-3">{{ (points.page - 1) * points.limit + i + 1 }}</td>
+              <td class="py-3">
+                <div class="d-flex align-items-center">
+                  <div *ngIf="point.profilePic" class="me-2">
+                    <img [src]="getProfilePicUrl(point.profilePic)" class="rounded-circle border border-2 border-white shadow-sm" width="32" height="32" alt="Profile picture">
+                  </div>
+                  <div *ngIf="!point.profilePic" class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                    style="width: 32px; height: 32px; color: white;">
+                    {{point.name ? point.name.charAt(0).toUpperCase() : 'U'}}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark">{{point.name || 'Unknown'}}</div>
+                    <small class="text-muted d-block">{{point.chapter_name || 'N/A'}}</small>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3">{{point.leaderboardPoints?.attendance_regular || 0}}</td>
+              <td class="py-3">{{point.leaderboardPoints?.induction || 0}}</td>
+              <td class="py-3">{{point.leaderboardPoints?.referal || 0}}</td>
+              <td class="py-3">{{point.leaderboardPoints?.one_to_one || 0}}</td>
+              <td class="py-3">{{point.leaderboardPoints?.tyfcb || 0}}</td>
+              <td class="py-3">{{point.leaderboardPoints?.event_attendance || 0}}</td>
+              <td class="py-3">{{point.leaderboardPoints?.visitor || 0}}</td>
+              <td class="py-3">{{point.totalPointsSum || 0}}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+          <div *ngIf="points.docs && points.docs.length > 0" class="text-muted">
+            Showing {{ (points.page - 1) * points.limit + 1 }} to 
+            {{ Math.min(points.page * points.limit, points.totalDocs) }} 
+            of {{ points.totalDocs }} entries
+          </div>
+          
+          <pagination-controls 
+            [id]="paginationConfig.id"
+            [maxSize]="5"
+            [responsive]="true"
+            (pageChange)="onPageChange($event)"
+            previousLabel="Previous"
+            nextLabel="Next"
+            [directionLinks]="true">
+          </pagination-controls>
+        </div>
+      </div>
+  
+      <div *ngIf="!loading && (!points.docs || points.docs.length === 0)" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-trophy fs-1 text-muted mb-3"></i>
+          <h5>No Point History Found</h5>
+          <p class="text-muted">Try adjusting your filter criteria.</p>
+          <button class="btn btn-outline-primary rounded-pill mt-3" (click)="resetFilters()">
+            <i class="bi bi-arrow-repeat me-2"></i>Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,14 @@
+<div class="d-flex">
+  <div class="bg-primary vh-100 position-sticky" style="top: 0;">
+    <app-side-bar></app-side-bar>
+  </div>
+  <div class="main flex-grow-1 position-relative" style="overflow-x: hidden; overflow-y: auto;">
+    <app-header></app-header>
+    <main class="content p-3">
+      <router-outlet></router-outlet>
+    </main>
+    <div class="position-absolute w-100 bottom-0 right-0">
+      <app-footer></app-footer>
+    </div>
+  </div>
+</div>

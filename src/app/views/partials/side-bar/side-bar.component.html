@@ -1,0 +1,56 @@
+<!-- Sidebar Toggle Button for Mobile -->
+<button class="btn btn-0primary d-lg-none" type="button" (click)="toggleSidebar()">
+  ☰ Menu
+</button>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="sidebar js-sidebar" [class.active]="isSidebarOpen">
+  <div class="sidebar-content js-simplebar">
+    <!-- Brand Logo -->
+    <a class="sidebar-brand text-truncate" >
+      <div class="p-3 text-center" style="background: aliceblue; color: #126f8a;">
+        <h5 class="mb-0">LNG Application</h5>
+      </div>
+    </a>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar-nav vh-100 overflow-auto">
+      <ul class="list-unstyled">
+        <ng-container *ngFor="let module of sideBarService.list">
+        
+          <li class="sidebar-item" *ngFor="let item of module.menus; let i = index">
+            <ng-container *ngIf="!item.menu">
+              <a class="sidebar-link user-select-none" [routerLink]="item.link" [queryParams]="item.query || {}">
+                <i class="align-middle" [attr.data-feather]="item?.icon"></i>
+                <span class="align-middle">{{ item.title }}</span>
+              </a>
+            </ng-container>
+            <!-- <ng-container *ngIf="item.menu">
+              <a class="sidebar-link user-select-none" (click)="sideBarService.toggleSubMenu(i)">
+                <i class="align-middle" [attr.data-feather]="item?.icon"></i>
+                <span class="align-middle">{{ item.title }}</span>
+                <i class="ri-arrow-down-s-fill" [class.rotate-icon]="sideBarService.activeSubMenuIndex === i"></i>
+              </a>
+              <ul class="sub-menu ps-4" *ngIf="sideBarService.activeSubMenuIndex === i">
+                <li class="sidebar-item" *ngFor="let submenu of item.menu">
+                  <a class="sidebar-link user-select-none" (click)="sideBarService.onNavSwitch(submenu.link)">
+                    <i class="ri-arrow-right-line me-1"></i>{{ submenu.title }}
+                  </a>
+                </li>
+              </ul>
+            </ng-container> -->
+          </li>
+        </ng-container>
+
+        <!-- Extra Section -->
+        <li class="sidebar-header">Extra & Tools</li>
+        <li class="sidebar-item">
+          <a class="sidebar-link user-select-none" (click)="logout()">
+            <i class="align-middle" data-feather="log-out"></i>
+            <span class="align-middle">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

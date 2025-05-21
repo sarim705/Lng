@@ -1,0 +1,187 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+          <h4 class="mb-0 fw-bold">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard Overview
+          </h4>
+          <button class="btn btn-light rounded-pill px-4" (click)="loadDashboardCounts()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+          </button>
+        </div>
+        
+        <div class="card-body">
+          <div *ngIf="loading" class="text-center my-5 py-5">
+            <div class="spinner-grow text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          
+          <div *ngIf="!loading" class="row g-4">
+            <!-- Users Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-people-fill fs-4 text-primary"></i>
+                    </div>
+                    <h5 class="mb-0">Users</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center ">{{counts.users}}</h2>
+                  <p class="text-muted small text-center mt-2">Total registered users</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Admins Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-danger bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-shield-fill fs-4 text-danger"></i>
+                    </div>
+                    <h5 class="mb-0">Admins</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.admins}}</h2>
+                  <p class="text-muted small text-center mt-2">System administrators</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Asks Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-question-circle-fill fs-4 text-success"></i>
+                    </div>
+                    <h5 class="mb-0">Asks</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.asks}}</h2>
+                  <p class="text-muted small mt-2 text-center">Total user inquiries</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Referrals Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-info bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-share-fill fs-4 text-info"></i>
+                    </div>
+                    <h5 class="mb-0">Referrals</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.referrals}}</h2>
+                  <p class="text-muted small text-center mt-2">Total system referrals</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- TYFCBs Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-chat-square-text-fill fs-4 text-warning"></i>
+                    </div>
+                    <h5 class="mb-0">TYFCBs</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.tyfcbs}}</h2>
+                  <p class="text-muted small text-center mt-2">Thank You Feedback</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- One-to-Ones Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-person-lines-fill fs-4 text-primary"></i>
+                    </div>
+                    <h5 class="mb-0">One-to-Ones</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.oneToOnes}}</h2>
+                  <p class="text-muted small text-center mt-2">Individual sessions</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Testimonials Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-star-fill fs-4 text-success"></i>
+                    </div>
+                    <h5 class="mb-0">Testimonials</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.testimonials}}</h2>
+                  <p class="text-muted small text-center mt-2">User testimonials</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Testimonial Requests Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-danger bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-file-earmark-text-fill fs-4 text-danger"></i>
+                    </div>
+                    <h5 class="mb-0">Testimonial Requests</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.testimonialReqs}}</h2>
+                  <p class="text-muted small text-center mt-2">Pending requests</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Banners Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-info bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-images fs-4 text-info"></i>
+                    </div>
+                    <h5 class="mb-0">Banners</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.banners}}</h2>
+                  <p class="text-muted small text-center mt-2">Active banners</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Events Card -->
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-3 me-3">
+                      <i class="bi bi-calendar-event-fill fs-4 text-warning"></i>
+                    </div>
+
+                    <h5 class="mb-0">Events</h5>
+                  </div>
+                  <h2 class="mb-0 fw-bold text-center">{{counts.events}}</h2>
+                  <p class="text-muted small text-center mt-2">Scheduled events</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
