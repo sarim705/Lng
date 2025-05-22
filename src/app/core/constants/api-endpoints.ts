@@ -9,6 +9,7 @@ class ApiEndpoints {
   public GET_USERS: string = `${this.PATH}/users`;
   public UPDATE_USER_STATUS: string = `${this.PATH}/status`;
   public DELETE_USER: string = `${this.PATH}/delete`;
+  
   public GET_USER_DETAILS: string = `${this.PATH}/details`;
   public GET_ALL_COUNTRIES: string= `${this.PATH}/getAllCountries`
     public CREATE_COUNTRY: string= `${this.PATH}/createCountry`

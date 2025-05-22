@@ -34,7 +34,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     city: '',
     state: '',
     country: '',
-    sponseredBy: ''
+    sponseredBy: '',
+    keywords:''
   };
 
   countries: Country[] = [];
@@ -55,6 +56,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   citiesLoaded: boolean = false;
   chaptersLoaded: boolean = false;
   usersLoaded: boolean = false;
+
+  // Add meetingRoles array to fix the error
+  meetingRoles = [
+    { name: 'Leader', value: 'Leader' },
+    { name: 'Member', value: 'Member' }
+  ];
 
   private searchSubject = new Subject<string>();
   registerModal: any;
@@ -239,7 +246,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
              this.registerForm.mobile_number &&
              this.registerForm.chapter_name &&
              this.registerForm.meeting_role &&
-             this.registerForm.date_of_birth &&
+            
              this.registerForm.city &&
              this.registerForm.state &&
              this.registerForm.country);
@@ -253,11 +260,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       chapter_name: '',
       meeting_role: '',
       profilePic: null,
-      date_of_birth: '',
+     
       city: '',
       state: '',
       country: '',
-      sponseredBy: ''
+      sponseredBy: '',
+      keywords: ''
     };
   }
 

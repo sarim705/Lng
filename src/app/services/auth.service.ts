@@ -2119,6 +2119,7 @@ export class VisitorService {
       sponseredBy: string;
       status: boolean;
       createdAt: string;
+      keywords: string;
     }
     
     @Injectable({

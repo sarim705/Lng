@@ -1,175 +1,184 @@
 <div class="container-fluid">
-    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
-        <h4 class="mb-0 fw-bold">
-          <i class="bi bi-person-plus me-2"></i>User Registration
-        </h4>
-        <button class="btn btn-light rounded-pill px-4" (click)="openRegisterModal()">
-          <i class="bi bi-plus-circle me-2"></i>Register New User
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-person-plus me-2"></i>User Registration
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openRegisterModal()">
+        <i class="bi bi-plus-circle me-2"></i>Register New User
+      </button>
+    </div>
+    <div class="card-body p-4">
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      <div *ngIf="!loading" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-person-plus fs-1 text-muted mb-3"></i>
+          <h5>Register New User</h5>
+          <p class="text-muted">Click the button above to register a new user through the admin panel.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal fade" id="registerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="registerModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="registerModalTitle">
+          <i class="bi bi-person-plus me-2"></i>Register New User
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="name" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="name" placeholder="Enter full name"
+                [(ngModel)]="registerForm.name" name="name" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" placeholder="Enter email"
+                [(ngModel)]="registerForm.email" name="email" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="mobile_number" class="form-label">Mobile Number</label>
+              <input type="tel" class="form-control" id="mobile_number" placeholder="Enter mobile number"
+                [(ngModel)]="registerForm.mobile_number" name="mobile_number" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="meeting_role" class="form-label">Meeting Role</label>
+              <ng-select
+                id="meeting_role"
+                [items]="meetingRoles"
+                bindLabel="name"
+                bindValue="value"
+                placeholder="Select meeting role"
+                [(ngModel)]="registerForm.meeting_role"
+                name="meeting_role"
+                required>
+              </ng-select>
+            </div>
+          </div>
+      
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="keywords" class="form-label">keywords</label>
+              <input type="text" class="form-control" id="keywords" placeholder="Enter keywords"
+                [(ngModel)]="registerForm.keywords" name="keywords">
+            </div>
+          
+            <div class="col-md-6 mb-3">
+              <label for="country" class="form-label">Country</label>
+              <ng-select
+                id="country"
+                [items]="countries"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="Select country"
+                [(ngModel)]="registerForm.country"
+                name="country"
+                required
+                [loading]="countriesLoading">
+              </ng-select>
+              <div *ngIf="countriesLoading" class="text-muted mt-1 small">Loading countries...</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="state" class="form-label">State</label>
+              <ng-select
+                id="state"
+                [items]="states"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="Select state"
+                [(ngModel)]="registerForm.state"
+                name="state"
+                required
+                [loading]="statesLoading">
+              </ng-select>
+              <div *ngIf="statesLoading" class="text-muted mt-1 small">Loading states...</div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="city" class="form-label">City</label>
+              <ng-select
+                id="city"
+                [items]="cities"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="Select city"
+                [(ngModel)]="registerForm.city"
+                name="city"
+                required
+                [loading]="citiesLoading">
+              </ng-select>
+              <div *ngIf="citiesLoading" class="text-muted mt-1 small">Loading cities...</div>    
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="chapter_name" class="form-label">Chapter</label>
+              <ng-select
+                id="chapter_name"
+                [items]="chapters"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="Select chapter"
+                [(ngModel)]="registerForm.chapter_name"
+                name="chapter_name"
+                required
+                [loading]="chaptersLoading">
+              </ng-select>
+              <div *ngIf="chaptersLoading" class="text-muted mt-1 small">Loading chapters...</div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="profilePic" class="form-label">Profile Picture</label>
+              <input type="file" class="form-control" id="profilePic" (change)="onFileChange($event)"
+                accept="image/*" name="profilePic">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="sponseredBy" class="form-label">Sponsored By</label>
+            <ng-select
+              id="sponseredBy"
+              [items]="users"
+              bindLabel="name"
+              bindValue="_id"
+              placeholder="Search and select sponsor"
+              [(ngModel)]="registerForm.sponseredBy"
+              name="sponseredBy"
+              [loading]="usersLoading"
+              [searchable]="true">
+            </ng-select>
+            <div *ngIf="usersLoading" class="text-muted mt-1 small">Loading sponsors...</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="registerUser()"
+          [disabled]="loading || !registerForm.name || !registerForm.email || !registerForm.mobile_number || !registerForm.chapter_name || !registerForm.meeting_role ||  !registerForm.city || !registerForm.state || !registerForm.country">
+          <i class="bi bi-save me-1"></i>Register
         </button>
       </div>
-      <div class="card-body p-4">
-        <div *ngIf="loading" class="text-center my-5 py-5">
-          <div class="spinner-grow text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <div *ngIf="!loading" class="text-center my-5 py-4 px-4">
-          <div class="empty-state">
-            <i class="bi bi-person-plus fs-1 text-muted mb-3"></i>
-            <h5>Register New User</h5>
-            <p class="text-muted">Click the button above to register a new user through the admin panel.</p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
-  
-  <!-- Register Modal -->
-  <div class="modal fade" id="registerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
-    aria-labelledby="registerModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-        <div class="modal-header bg-light">
-          <h5 class="modal-title" id="registerModalTitle">
-            <i class="bi bi-person-plus me-2"></i>Register New User
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <form>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="name" placeholder="Enter full name"
-                  [(ngModel)]="registerForm.name" name="name" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" placeholder="Enter email"
-                  [(ngModel)]="registerForm.email" name="email" required>
-              </div>
-            </div>
-  
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="mobile_number" class="form-label">Mobile Number</label>
-                <input type="tel" class="form-control" id="mobile_number" placeholder="Enter mobile number"
-                  [(ngModel)]="registerForm.mobile_number" name="mobile_number" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="chapter_name" class="form-label">Chapter</label>
-                <ng-select
-                  id="chapter_name"
-                  [items]="chapters"
-                  bindLabel="name"
-                  bindValue="name"
-                  placeholder="Select chapter"
-                  [(ngModel)]="registerForm.chapter_name"
-                  name="chapter_name"
-                  required
-                  [loading]="chaptersLoading">
-                </ng-select>
-                <div *ngIf="chaptersLoading" class="text-muted mt-1 small">Loading chapters...</div>
-              </div>
-            </div>
-  
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="meeting_role" class="form-label">Meeting Role</label>
-                <input type="text" class="form-control" id="meeting_role" placeholder="Enter meeting role"
-                  [(ngModel)]="registerForm.meeting_role" name="meeting_role" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="profilePic" class="form-label">Profile Picture</label>
-                <input type="file" class="form-control" id="profilePic" (change)="onFileChange($event)"
-                  accept="image/*" name="profilePic">
-              </div>
-            </div>
-  
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="date_of_birth" class="form-label">Date of Birth</label>
-                <input type="date" class="form-control" id="date_of_birth"
-                  [(ngModel)]="registerForm.date_of_birth" name="date_of_birth" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="country" class="form-label">Country</label>
-                <ng-select
-                  id="country"
-                  [items]="countries"
-                  bindLabel="name"
-                  bindValue="name"
-                  placeholder="Select country"
-                  [(ngModel)]="registerForm.country"
-                  name="country"
-                  required
-                  [loading]="countriesLoading">
-                </ng-select>
-                <div *ngIf="countriesLoading" class="text-muted mt-1 small">Loading countries...</div>
-             
-              </div>
-            </div>
-  
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="state" class="form-label">State</label>
-                <ng-select
-                  id="state"
-                  [items]="states"
-                  bindLabel="name"
-                  bindValue="name"
-                  placeholder="Select state"
-                  [(ngModel)]="registerForm.state"
-                  name="state"
-                  required
-                  [loading]="statesLoading">
-                </ng-select>
-                <div *ngIf="statesLoading" class="text-muted mt-1 small">Loading states...</div>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="city" class="form-label">City</label>
-                <ng-select
-                  id="city"
-                  [items]="cities"
-                  bindLabel="name"
-                  bindValue="name"
-                  placeholder="Select city"
-                  [(ngModel)]="registerForm.city"
-                  name="city"
-                  required
-                  [loading]="citiesLoading">
-                </ng-select>
-                <div *ngIf="citiesLoading" class="text-muted mt-1 small">Loading cities...</div>    
-              </div>
-            </div>
-  
-            <div class="mb-3">
-              <label for="sponseredBy" class="form-label">Sponsored By</label>
-              <ng-select
-                id="sponseredBy"
-                [items]="users"
-                bindLabel="name"
-                bindValue="_id"
-                placeholder="Search and select sponsor"
-                [(ngModel)]="registerForm.sponseredBy"
-                name="sponseredBy"
-                [loading]="usersLoading"
-                [searchable]="true">
-              </ng-select>
-              <div *ngIf="usersLoading" class="text-muted mt-1 small">Loading sponsors...</div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-            <i class="bi bi-x-circle me-1"></i>Cancel
-          </button>
-          <button type="button" class="btn btn-primary rounded-pill" (click)="registerUser()"
-            [disabled]="loading || !registerForm.name || !registerForm.email || !registerForm.mobile_number || !registerForm.chapter_name || !registerForm.meeting_role || !registerForm.date_of_birth || !registerForm.city || !registerForm.state || !registerForm.country">
-            <i class="bi bi-save me-1"></i>Register
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>

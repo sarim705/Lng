@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  baseURL: 'https://lng.itfuturz.in',
+  baseURL: `http://localhost:2027`,
   route: 'admin',
  
-  imageUrl:'https://lng.itfuturz.in'
+  imageUrl:'http://localhost:2027/'
 };
