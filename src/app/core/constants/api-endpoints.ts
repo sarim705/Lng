@@ -55,7 +55,7 @@ public  GET_ALL_EVENTS: string= `${this.PATH}/getAllEvents`
         public DELETE_CHAPTER :string= `${this.PATH}/deleteChapter`
         public GET_ALL_CHAPTERS :string= `${this.PATH}/getChapters`
 
-        public  CREATE_CATEGORY:string=`${this.PATH}createCategory`
+        public  CREATE_CATEGORY:string=`${this.PATH}/createCategory`
  public  GET_CATEGORIES:string=`${this.PATH}/getCategories`
   public   UPDATE_CATEGORY:string=`${this.PATH}/updateCategory`
 public   DELETE_CATEGORY  :string=`${this.PATH}/deleteCategory`
@@ -81,6 +81,7 @@ public GET_ALL_VISITORS:string=`${this.PATH}/getAllVisitors`
 public UPDATE_VISITOR:string=`${this.PATH}/updateVisitor`
 public REFERRAL_RECEIVED:string=`${this.PATH}/referrals/received`
 public REFERRAL_GIVEN:string=`${this.PATH}/referrals/given`
+public GET_CHAPTER_BY_CITY:string=`${this.PATH}/getChapterByCity`
 
 
 

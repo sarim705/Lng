@@ -127,13 +127,12 @@ export class TestimonialsComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.filters.page = 1; // Reset to first page when filters change
-    this.paginationConfig.currentPage = 1; // Also reset pagination config
-    this.filterSubject.next();
+    this.filters.page = 1; 
+    this.paginationConfig.currentPage = 1; 
   }
 
   onPageChange(page: number): void {
-    // Set both page values to ensure consistency
+    
     this.filters.page = page;
     this.paginationConfig.currentPage = page;
     this.fetchTestimonials();
@@ -147,18 +146,18 @@ export class TestimonialsComponent implements OnInit {
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
-    // Reset pagination config as well
+    
     this.paginationConfig.currentPage = 1;
     this.fetchTestimonials();
   }
 
-  // Helper method to get profile pic URL
+  
   getProfilePicUrl(picPath: string): string {
     if (!picPath) return 'assets/images/default-avatar.png';
     return `${environment. imageUrl}/${picPath}`;
   }
 
-  // Helper method to format date for display
+  
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -171,7 +170,7 @@ export class TestimonialsComponent implements OnInit {
     });
   }
 
-  // Helper method to format date for input fields
+ 
   formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

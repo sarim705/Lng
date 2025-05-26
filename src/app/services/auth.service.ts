@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import { swalHelper } from '../core/constants/swal-helper';
 import { apiEndpoints } from '../core/constants/api-endpoints';
@@ -18,6 +19,22 @@ export interface AdminLoginResponse {
     createdAt: string;
     __v: number;
   };
+}
+
+export interface Chapter {
+  _id: string;
+  name: string;
+  city_id?: string;
+  city_name: string;
+  status: boolean;
+  createdAt: string;
+  __v: number;
+}
+
+export interface ChapterResponse1 {
+  status: number;
+  message: string;
+  data: Chapter[];
 }
 
 export interface CountryResponse {
@@ -508,15 +525,30 @@ export class StateService {
     }
   }
 }
-
 export interface DashboardCounts {
   users: number;
   admins: number;
   asks: number;
-  referrals: number;
-  tyfcbs: number;
-  oneToOnes: number;
-  testimonials: number;
+  referrals: {
+    given: number;
+    received: number;
+    total: number;
+  };
+  tyfcbs: {
+    given: number;
+    received: number;
+    total: number;
+  };
+  oneToOnes: {
+    initiated: number;
+    participated: number;
+    total: number;
+  };
+  testimonials: {
+    given: number;
+    received: number;
+    total: number;
+  };
   testimonialReqs: number;
   banners: number;
   events: number;
@@ -528,47 +560,82 @@ export interface DashboardResponse {
   data: DashboardCounts;
 }
 
+
+
+
 @Injectable({
   providedIn: 'root',
 })
 export class DashboardService {
   private headers: any = [];
 
-  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+  constructor(
+    private apiManager: ApiManager,
+    private storage: AppStorage,
+    private cityService: CityService
+  ) {}
 
   private getHeaders = () => {
     this.headers = [];
     let token = this.storage.get(common.TOKEN);
-
     if (token != null) {
       this.headers.push({ Authorization: `Bearer ${token}` });
     }
   };
 
-  async getDashboardCounts(): Promise<DashboardResponse> {
+  async getDashboardCounts(filters: {
+    city?: string;
+    chapter?: string;
+    fromDate?: string;
+    toDate?: string;
+  } = {}): Promise<DashboardResponse> {
     try {
       this.getHeaders();
+      const queryParams = new URLSearchParams();
+      if (filters.city) queryParams.append('city', filters.city);
+      if (filters.chapter) queryParams.append('chapter', filters.chapter);
+      if (filters.fromDate) queryParams.append('fromDate', filters.fromDate);
+      if (filters.toDate) queryParams.append('toDate', filters.toDate);
+
+      const url = `${apiEndpoints.GET_DASHBOARD_COUNTS}?${queryParams.toString()}`;
 
       const response = await this.apiManager.request(
         {
-          url: apiEndpoints.GET_DASHBOARD_COUNTS,
+          url,
           method: 'GET',
         },
         null,
         this.headers
       );
-      
-      
 
       return response;
-      
     } catch (error) {
       console.error('Dashboard API Error:', error);
       swalHelper.showToast('Failed to fetch dashboard data', 'error');
       throw error;
     }
   }
-}
+
+
+  async getChaptersByCity(cityName: string): Promise<ChapterResponse1> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_CHAPTER_BY_CITY,
+          method: 'POST',
+        },
+        { city_name: cityName },
+        this.headers
+      );
+      return response;
+    } catch (error) {
+      console.error('Get Chapters By City Error:', error);
+      swalHelper.showToast('Failed to fetch chapters', 'error');
+      throw error;
+    }
+  }
+  }
 export interface EventResponse {
   docs: Event[];
   totalDocs: string | number;
@@ -818,13 +885,14 @@ export class EventService {
     hasNextPage: boolean;
     prevPage: number | null;
     nextPage: number | null;
+    
   }
   
   export interface Chapter {
     _id: string;
     name: string;
     city_id?: string;
-    city_name?: string;
+    city_name: string;
     status: boolean;
     createdAt: string;
     __v: number;
@@ -846,6 +914,7 @@ export class EventService {
         this.headers.push({ Authorization: `Bearer ${token}` });
       }
     };
+    
   
     async getAllChapters(data: { page: number; limit: number; search: string }): Promise<ChapterResponse> {
       try {
@@ -1952,7 +2021,12 @@ export class VisitorService {
       swalHelper.showToast('Failed to update visitor', 'error');
       throw error;
     }
-  }}
+  }
+
+
+
+}
+
   
   export interface UserData {
     name: string;

@@ -15,102 +15,103 @@ export class SideBarService {
         {
           title: 'Dashboard',
           link: 'dashboard',
-          icon: 'home', // Feather: Home page/dashboard
+          icon: 'home', // Dashboard
         },
         {
           title: 'Registeration',
           link: 'registerComponent',
-          icon: 'user-plus', // Feather: Adding a new user/registration
+          icon: 'user-plus', // User registration
         },
         {
           title: 'All Members',
           link: 'users',
-          icon: 'users', // Feather: Multiple users/members
+          icon: 'users', // Members list
         },
         {
           title: 'Countries',
           link: 'country',
-          icon: 'globe', // Feather: Global/countries
+          icon: 'globe', // Global map
         },
         {
           title: 'States',
           link: 'states',
-          icon: 'map', // Feather: Regional divisions
+          icon: 'map', // Geographic divisions
         },
         {
           title: 'City',
           link: 'city',
-          icon: 'map-pin', // Feather: Specific locations/cities
+          icon: 'map-pin', // Location point
         },
         {
           title: 'Chapter',
           link: 'chapter',
-          icon: 'bookmark', // Feather: Organized groups/chapters
+          icon: 'layers', // Groupings or levels
         },
         {
           title: 'Category',
           link: 'category',
-          icon: 'tag', // Feather: Categorization/tags
+          icon: 'tag', // Categories or labels
         },
         {
           title: 'LeaderBoard',
           link: 'leaderboard',
-          icon: 'award', // Feather: Rankings/achievements
+          icon: 'award', // Recognition
         },
         {
           title: 'Events',
           link: 'events',
-          icon: 'calendar', // Feather: Events/schedule
+          icon: 'calendar', // Event planning
         },
         {
           title: 'Attendence',
           link: 'attendence',
-          icon: 'check-square', // Feather: Tracking attendance
+          icon: 'check-square', // Checkbox tracking
         },
         {
           title: 'Referral Given Report',
           link: 'referralReport',
-          icon: 'share', // Feather: Giving referrals
+          icon: 'corner-up-right', // Giving referrals
         },
-        /*{
-          title: 'Testimonial Report',
-          link: 'testimonialReport',
-          icon: 'message-square', // Feather: Testimonials/comments
-        },*/,
         {
           title: 'Referral Recieved Report',
           link: 'referralReportRecieved',
-          icon: 'download', // Feather: Receiving referrals
+          icon: 'corner-down-left', // Receiving referrals
+        },
+        {
+          title: 'Testimonial Report',
+          link: 'testimonialReport',
+          icon: 'message-square', // Comments or feedback
         },
         {
           title: 'One To one Report',
           link: 'oneTooneReport',
-          icon: 'user-check', // Feather: One-to-one interactions
+          icon: 'user-check', // 1-to-1 interactions
         },
-        
         {
           title: 'Tyfcb Report',
           link: 'tyfcb',
-          icon: 'trending-up', // Feather: Business analytics (assuming TYFCB is "Thank You For Closing Business")
+          icon: 'trending-up', // Business metrics
         },
         {
           title: 'Visitors Report',
           link: 'VisitorsReport',
-          icon: 'user', // Feather: Visitor tracking
+          icon: 'user', // Individual visitor
         },
         {
           title: 'Attendance Record',
           link: 'attendanceRecord',
-          icon: 'book', // Feather: Detailed attendance records
+          icon: 'clipboard', // Detailed records
         },
-        /*{
-          title: 'Referral Points Point',
+        {
+          title: 'Users Points Table',
           link: 'referralPoints',
-          icon: 'star', // Feather: Points/rewards
-        }*/,
+          icon: 'star', // Points, rewards
+        },
       ],
     },
   ];
+  
+    
 
   isMobile: boolean = false;
   activeSubMenuIndex: number | null = null;

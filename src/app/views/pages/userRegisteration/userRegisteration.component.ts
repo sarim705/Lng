@@ -8,6 +8,7 @@ import { StateService, State } from '../../../services/auth.service';
 import { CityService, City } from '../../../services/auth.service';
 import { ChapterService, Chapter } from '../../../services/auth.service';
 import { AuthService } from '../../../services/auth.service';
+import { DashboardService } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
 import { debounceTime, Subject } from 'rxjs';
 
@@ -18,7 +19,7 @@ declare var bootstrap: any;
   selector: 'app-register',
   standalone: true,
   imports: [CommonModule, FormsModule, NgSelectModule],
-  providers: [RegisterUserAuthService, CountryService, StateService, CityService, ChapterService, AuthService],
+  providers: [RegisterUserAuthService, CountryService, StateService, CityService, ChapterService, AuthService, DashboardService],
   templateUrl: './userRegisteration.component.html',
   styleUrls: ['./userRegisteration.component.css']
 })
@@ -57,6 +58,28 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   chaptersLoaded: boolean = false;
   usersLoaded: boolean = false;
 
+  // Track which fields have been touched/interacted with
+  touchedFields: any = {
+    name: false,
+    email: false,
+    mobile_number: false,
+    country: false,
+    state: false,
+    city: false,
+    chapter_name: false
+  };
+
+  // Validation error messages
+  validationErrors: any = {
+    name: '',
+    email: '',
+    mobile_number: '',
+    country: '',
+    state: '',
+    city: '',
+    chapter_name: ''
+  };
+
   // Add meetingRoles array to fix the error
   meetingRoles = [
     { name: 'Leader', value: 'Leader' },
@@ -73,6 +96,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     private cityService: CityService,
     private chapterService: ChapterService,
     private authService: AuthService,
+    private dashboardService: DashboardService,
     private cdr: ChangeDetectorRef
   ) {
     this.searchSubject.pipe(debounceTime(500)).subscribe(() => {
@@ -84,7 +108,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.fetchCountries();
     this.fetchStates();
     this.fetchCities();
-    this.fetchChapters();
     this.fetchUsers();
   }
 
@@ -157,20 +180,22 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async fetchChapters(): Promise<void> {
+  async fetchChaptersByCity(cityName: string): Promise<void> {
+    if (!cityName) {
+      this.chapters = [];
+      return;
+    }
+
     this.chaptersLoading = true;
     this.chaptersLoaded = false;
     try {
-      const response = await this.chapterService.getAllChapters({
-        page: 1,
-        limit: 1000,
-        search: ''
-      });
-      this.chapters = response.docs;
+      const response = await this.dashboardService.getChaptersByCity(cityName);
+      this.chapters = response.data || response.data || [];
       this.chaptersLoaded = true;
     } catch (error) {
-      console.error('Error fetching chapters:', error);
+      console.error('Error fetching chapters by city:', error);
       swalHelper.showToast('Failed to fetch chapters', 'error');
+      this.chapters = [];
     } finally {
       this.chaptersLoading = false;
       this.cdr.detectChanges();
@@ -197,6 +222,181 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onCityChange(): void {
+    this.registerForm.chapter_name = '';
+    this.validationErrors.chapter_name = '';
+    this.touchedFields.chapter_name = false; // Reset touched state for chapter
+    
+    if (this.registerForm.city) {
+      this.fetchChaptersByCity(this.registerForm.city);
+    } else {
+      this.chapters = [];
+    }
+  }
+
+  onMobileInput(event: any): void {
+    const input = event.target;
+    let value = input.value.replace(/\D/g, '');
+    
+    if (value.length > 10) {
+      value = value.substring(0, 10);
+    }
+    
+    this.registerForm.mobile_number = value;
+    input.value = value;
+    
+    // Mark as touched and validate
+    this.touchedFields.mobile_number = true;
+    if (value.length === 10) {
+      this.validationErrors.mobile_number = '';
+    } else if (value.length > 0) {
+      this.validateMobileNumber();
+    }
+  }
+
+  // Enhanced validation methods that only show errors for touched fields
+  validateName(): boolean {
+    if (!this.touchedFields.name) {
+      return true; // Don't validate untouched fields
+    }
+
+    const name = this.registerForm.name.trim();
+    if (!name) {
+      this.validationErrors.name = 'Full name is required';
+      return false;
+    }
+    if (name.length < 2) {
+      this.validationErrors.name = 'Full name must be at least 2 characters';
+      return false;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name)) {
+      this.validationErrors.name = 'Full name can only contain letters and spaces';
+      return false;
+    }
+    this.validationErrors.name = '';
+    return true;
+  }
+
+  validateEmail(): boolean {
+    if (!this.touchedFields.email) {
+      return true;
+    }
+
+    const email = this.registerForm.email.trim();
+    if (!email) {
+      this.validationErrors.email = 'Email is required';
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.validationErrors.email = 'Please enter a valid email address';
+      return false;
+    }
+    this.validationErrors.email = '';
+    return true;
+  }
+
+  validateMobileNumber(): boolean {
+    if (!this.touchedFields.mobile_number) {
+      return true;
+    }
+
+    const mobile = this.registerForm.mobile_number;
+    if (!mobile) {
+      this.validationErrors.mobile_number = 'Mobile number is required';
+      return false;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      this.validationErrors.mobile_number = 'Mobile number must be exactly 10 digits';
+      return false;
+    }
+    this.validationErrors.mobile_number = '';
+    return true;
+  }
+
+  validateCountry(): boolean {
+    if (!this.touchedFields.country) {
+      return true;
+    }
+
+    if (!this.registerForm.country) {
+      this.validationErrors.country = 'Country is required';
+      return false;
+    }
+    this.validationErrors.country = '';
+    return true;
+  }
+
+  validateState(): boolean {
+    if (!this.touchedFields.state) {
+      return true;
+    }
+
+    if (!this.registerForm.state) {
+      this.validationErrors.state = 'State is required';
+      return false;
+    }
+    this.validationErrors.state = '';
+    return true;
+  }
+
+  validateCity(): boolean {
+    if (!this.touchedFields.city) {
+      return true;
+    }
+
+    if (!this.registerForm.city) {
+      this.validationErrors.city = 'City is required';
+      return false;
+    }
+    this.validationErrors.city = '';
+    return true;
+  }
+
+  validateChapter(): boolean {
+    if (!this.touchedFields.chapter_name) {
+      return true;
+    }
+
+    if (!this.registerForm.chapter_name) {
+      this.validationErrors.chapter_name = 'Chapter is required';
+      return false;
+    }
+    this.validationErrors.chapter_name = '';
+    return true;
+  }
+
+  // Updated onFieldBlur method
+  onFieldBlur(fieldName: string): void {
+    // Mark field as touched
+    this.touchedFields[fieldName] = true;
+    
+    // Then validate
+    switch (fieldName) {
+      case 'name':
+        this.validateName();
+        break;
+      case 'email':
+        this.validateEmail();
+        break;
+      case 'mobile_number':
+        this.validateMobileNumber();
+        break;
+      case 'country':
+        this.validateCountry();
+        break;
+      case 'state':
+        this.validateState();
+        break;
+      case 'city':
+        this.validateCity();
+        break;
+      case 'chapter_name':
+        this.validateChapter();
+        break;
+    }
+  }
+
   onFileChange(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -206,15 +406,17 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   async registerUser(): Promise<void> {
     try {
-      if (!this.validateForm()) {
-        swalHelper.showToast('Please fill all required fields', 'warning');
+      // Mark all required fields as touched before final validation
+      this.markAllRequiredFieldsAsTouched();
+      
+      if (!this.validateFormForSubmission()) {
+        swalHelper.showToast('Please fix all validation errors', 'warning');
         return;
       }
 
       this.loading = true;
       const formData = new FormData();
       
-      // Append form fields
       Object.keys(this.registerForm).forEach(key => {
         if (key === 'profilePic' && this.registerForm[key]) {
           formData.append(key, this.registerForm[key]);
@@ -240,16 +442,110 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // Mark all required fields as touched for final validation
+  markAllRequiredFieldsAsTouched(): void {
+    this.touchedFields.name = true;
+    this.touchedFields.email = true;
+    this.touchedFields.mobile_number = true;
+    this.touchedFields.country = true;
+    this.touchedFields.state = true;
+    this.touchedFields.city = true;
+    this.touchedFields.chapter_name = true;
+  }
+
+  // Validation for form submission (validates all fields regardless of touched state)
+  validateFormForSubmission(): boolean {
+    const name = this.registerForm.name.trim();
+    const email = this.registerForm.email.trim();
+    const mobile = this.registerForm.mobile_number;
+    
+    let isValid = true;
+
+    // Validate name
+    if (!name) {
+      this.validationErrors.name = 'Full name is required';
+      isValid = false;
+    } else if (name.length < 2) {
+      this.validationErrors.name = 'Full name must be at least 2 characters';
+      isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+      this.validationErrors.name = 'Full name can only contain letters and spaces';
+      isValid = false;
+    } else {
+      this.validationErrors.name = '';
+    }
+
+    // Validate email
+    if (!email) {
+      this.validationErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.validationErrors.email = 'Please enter a valid email address';
+      isValid = false;
+    } else {
+      this.validationErrors.email = '';
+    }
+
+    // Validate mobile
+    if (!mobile) {
+      this.validationErrors.mobile_number = 'Mobile number is required';
+      isValid = false;
+    } else if (!/^\d{10}$/.test(mobile)) {
+      this.validationErrors.mobile_number = 'Mobile number must be exactly 10 digits';
+      isValid = false;
+    } else {
+      this.validationErrors.mobile_number = '';
+    }
+
+    // Validate country
+    if (!this.registerForm.country) {
+      this.validationErrors.country = 'Country is required';
+      isValid = false;
+    } else {
+      this.validationErrors.country = '';
+    }
+
+    // Validate state
+    if (!this.registerForm.state) {
+      this.validationErrors.state = 'State is required';
+      isValid = false;
+    } else {
+      this.validationErrors.state = '';
+    }
+
+    // Validate city
+    if (!this.registerForm.city) {
+      this.validationErrors.city = 'City is required';
+      isValid = false;
+    } else {
+      this.validationErrors.city = '';
+    }
+
+    // Validate chapter
+    if (!this.registerForm.chapter_name) {
+      this.validationErrors.chapter_name = 'Chapter is required';
+      isValid = false;
+    } else {
+      this.validationErrors.chapter_name = '';
+    }
+
+    return isValid && this.registerForm.meeting_role;
+  }
+
   validateForm(): boolean {
-    return !!(this.registerForm.name &&
-             this.registerForm.email &&
-             this.registerForm.mobile_number &&
-             this.registerForm.chapter_name &&
-             this.registerForm.meeting_role &&
-            
-             this.registerForm.city &&
-             this.registerForm.state &&
-             this.registerForm.country);
+    // For the button disable/enable, check if form is valid without showing errors
+    const name = this.registerForm.name.trim();
+    const email = this.registerForm.email.trim();
+    const mobile = this.registerForm.mobile_number;
+    
+    return name && name.length >= 2 && /^[a-zA-Z\s]+$/.test(name) &&
+           email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+           mobile && /^\d{10}$/.test(mobile) &&
+           this.registerForm.country &&
+           this.registerForm.state &&
+           this.registerForm.city &&
+           this.registerForm.chapter_name &&
+           this.registerForm.meeting_role;
   }
 
   resetForm(): void {
@@ -260,13 +556,37 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       chapter_name: '',
       meeting_role: '',
       profilePic: null,
-     
+      date_of_birth: '',
       city: '',
       state: '',
       country: '',
       sponseredBy: '',
       keywords: ''
     };
+
+    // Reset validation errors
+    this.validationErrors = {
+      name: '',
+      email: '',
+      mobile_number: '',
+      country: '',
+      state: '',
+      city: '',
+      chapter_name: ''
+    };
+
+    // Reset touched fields
+    this.touchedFields = {
+      name: false,
+      email: false,
+      mobile_number: false,
+      country: false,
+      state: false,
+      city: false,
+      chapter_name: false
+    };
+
+    this.chapters = [];
   }
 
   showModal(): void {

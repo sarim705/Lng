@@ -109,18 +109,18 @@
                 <div class="d-flex align-items-center">
                   <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
                     style="width: 32px; height: 32px; color: white;">
-                    {{referral.giver_id?.name ? referral.giver_id.name.charAt(0).toUpperCase() : 'U'}}
+                    {{referral.giver_id.name ? referral.giver_id.name.charAt(0).toUpperCase() : 'U'}}
                   </div>
                   <div>
-                    <div class="fw-bold text-dark">{{referral.giver_id?.name || 'Unknown'}}</div>
-                    <small class="text-muted d-block">{{referral.giver_id?.chapter_name || 'N/A'}}</small>
+                    <div class="fw-bold text-dark">{{referral.giver_id.name || 'Unknown'}}</div>
+                    <small class="text-muted d-block">{{referral.giver_id.chapter_name || 'N/A'}}</small>
                   </div>
                 </div>
               </td>
               <td class="py-3">
                 <div *ngIf="referral.receiver_id">
-                  <div class="fw-bold text-dark">{{referral.receiver_id?.name || 'Unknown'}}</div>
-                  <small class="text-muted d-block">{{referral.receiver_id?.chapter_name || 'N/A'}}</small>
+                  <div class="fw-bold text-dark">{{referral.receiver_id.name || 'Unknown'}}</div>
+                  <small class="text-muted d-block">{{referral.receiver_id.chapter_name || 'N/A'}}</small>
                 </div>
                 <div *ngIf="!referral.receiver_id">
                   <span class="text-muted">External Referral</span>

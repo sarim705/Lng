@@ -40,25 +40,61 @@
         <form>
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="name" class="form-label">Full Name</label>
-              <input type="text" class="form-control" id="name" placeholder="Enter full name"
-                [(ngModel)]="registerForm.name" name="name" required>
+              <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="name" 
+                placeholder="Enter full name"
+                [(ngModel)]="registerForm.name" 
+                name="name" 
+                required
+                (blur)="onFieldBlur('name')"
+                [class.is-invalid]="validationErrors.name">
+              <div class="invalid-feedback" *ngIf="validationErrors.name">
+                {{ validationErrors.name }}
+              </div>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" placeholder="Enter email"
-                [(ngModel)]="registerForm.email" name="email" required>
+              <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+              <input 
+                type="email" 
+                class="form-control" 
+                id="email" 
+                placeholder="Enter email"
+                [(ngModel)]="registerForm.email" 
+                name="email" 
+                required
+                (blur)="onFieldBlur('email')"
+                [class.is-invalid]="validationErrors.email">
+              <div class="invalid-feedback" *ngIf="validationErrors.email">
+                {{ validationErrors.email }}
+              </div>
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="mobile_number" class="form-label">Mobile Number</label>
-              <input type="tel" class="form-control" id="mobile_number" placeholder="Enter mobile number"
-                [(ngModel)]="registerForm.mobile_number" name="mobile_number" required>
+              <label for="mobile_number" class="form-label">Mobile Number <span class="text-danger">*</span></label>
+              <input 
+                type="tel" 
+                class="form-control" 
+                id="mobile_number" 
+                placeholder="Enter 10-digit mobile number"
+                [(ngModel)]="registerForm.mobile_number" 
+                name="mobile_number" 
+                required
+                maxlength="10"
+                (input)="onMobileInput($event)"
+                (blur)="onFieldBlur('mobile_number')"
+                [class.is-invalid]="validationErrors.mobile_number">
+              <div class="invalid-feedback" *ngIf="validationErrors.mobile_number">
+                {{ validationErrors.mobile_number }}
+              </div>
+              <small class="text-muted">Numbers only, exactly 10 digits</small>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="meeting_role" class="form-label">Meeting Role</label>
+              <label for="meeting_role" class="form-label">Meeting Role <span class="text-danger">*</span></label>
               <ng-select
                 id="meeting_role"
                 [items]="meetingRoles"
@@ -72,16 +108,15 @@
             </div>
           </div>
       
-
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="keywords" class="form-label">keywords</label>
+              <label for="keywords" class="form-label">Keywords</label>
               <input type="text" class="form-control" id="keywords" placeholder="Enter keywords"
                 [(ngModel)]="registerForm.keywords" name="keywords">
             </div>
           
             <div class="col-md-6 mb-3">
-              <label for="country" class="form-label">Country</label>
+              <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
               <ng-select
                 id="country"
                 [items]="countries"
@@ -91,15 +126,20 @@
                 [(ngModel)]="registerForm.country"
                 name="country"
                 required
-                [loading]="countriesLoading">
+                [loading]="countriesLoading"
+                (blur)="onFieldBlur('country')"
+                [class.is-invalid]="validationErrors.country">
               </ng-select>
+              <div class="invalid-feedback" *ngIf="validationErrors.country">
+                {{ validationErrors.country }}
+              </div>
               <div *ngIf="countriesLoading" class="text-muted mt-1 small">Loading countries...</div>
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="state" class="form-label">State</label>
+              <label for="state" class="form-label">State <span class="text-danger">*</span></label>
               <ng-select
                 id="state"
                 [items]="states"
@@ -109,12 +149,17 @@
                 [(ngModel)]="registerForm.state"
                 name="state"
                 required
-                [loading]="statesLoading">
+                [loading]="statesLoading"
+                (blur)="onFieldBlur('state')"
+                [class.is-invalid]="validationErrors.state">
               </ng-select>
+              <div class="invalid-feedback" *ngIf="validationErrors.state">
+                {{ validationErrors.state }}
+              </div>
               <div *ngIf="statesLoading" class="text-muted mt-1 small">Loading states...</div>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="city" class="form-label">City</label>
+              <label for="city" class="form-label">City <span class="text-danger">*</span></label>
               <ng-select
                 id="city"
                 [items]="cities"
@@ -124,32 +169,49 @@
                 [(ngModel)]="registerForm.city"
                 name="city"
                 required
-                [loading]="citiesLoading">
+                [loading]="citiesLoading"
+                (change)="onCityChange()"
+                (blur)="onFieldBlur('city')"
+                [class.is-invalid]="validationErrors.city">
               </ng-select>
+              <div class="invalid-feedback" *ngIf="validationErrors.city">
+                {{ validationErrors.city }}
+              </div>
               <div *ngIf="citiesLoading" class="text-muted mt-1 small">Loading cities...</div>    
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="chapter_name" class="form-label">Chapter</label>
+              <label for="chapter_name" class="form-label">Chapter <span class="text-danger">*</span></label>
               <ng-select
                 id="chapter_name"
                 [items]="chapters"
                 bindLabel="name"
                 bindValue="name"
-                placeholder="Select chapter"
+                placeholder="Select city first to load chapters"
                 [(ngModel)]="registerForm.chapter_name"
                 name="chapter_name"
                 required
-                [loading]="chaptersLoading">
+                [loading]="chaptersLoading"
+                [disabled]="!registerForm.city"
+                (blur)="onFieldBlur('chapter_name')"
+                [class.is-invalid]="validationErrors.chapter_name">
               </ng-select>
+              <div class="invalid-feedback" *ngIf="validationErrors.chapter_name">
+                {{ validationErrors.chapter_name }}
+              </div>
               <div *ngIf="chaptersLoading" class="text-muted mt-1 small">Loading chapters...</div>
+              <div *ngIf="!registerForm.city" class="text-muted mt-1 small">Please select a city first</div>
+              <div *ngIf="registerForm.city && chapters.length === 0 && !chaptersLoading" class="text-warning mt-1 small">
+                No chapters available for selected city
+              </div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="profilePic" class="form-label">Profile Picture</label>
               <input type="file" class="form-control" id="profilePic" (change)="onFileChange($event)"
                 accept="image/*" name="profilePic">
+              <small class="text-muted">Optional: Upload an image file</small>
             </div>
           </div>
 
@@ -167,6 +229,7 @@
               [searchable]="true">
             </ng-select>
             <div *ngIf="usersLoading" class="text-muted mt-1 small">Loading sponsors...</div>
+            <small class="text-muted">Optional: Select a sponsor</small>
           </div>
         </form>
       </div>
@@ -174,9 +237,14 @@
         <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
           <i class="bi bi-x-circle me-1"></i>Cancel
         </button>
-        <button type="button" class="btn btn-primary rounded-pill" (click)="registerUser()"
-          [disabled]="loading || !registerForm.name || !registerForm.email || !registerForm.mobile_number || !registerForm.chapter_name || !registerForm.meeting_role ||  !registerForm.city || !registerForm.state || !registerForm.country">
-          <i class="bi bi-save me-1"></i>Register
+        <button 
+          type="button" 
+          class="btn btn-primary rounded-pill" 
+          (click)="registerUser()"
+          [disabled]="loading || !validateForm()">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i *ngIf="!loading" class="bi bi-save me-1"></i>
+          {{ loading ? 'Registering...' : 'Register' }}
         </button>
       </div>
     </div>
