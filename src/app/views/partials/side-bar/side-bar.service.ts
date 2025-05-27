@@ -102,11 +102,7 @@ export class SideBarService {
           link: 'attendanceRecord',
           icon: 'clipboard', // Detailed records
         },
-        {
-          title: 'Users Points Table',
-          link: 'referralPoints',
-          icon: 'star', // Points, rewards
-        },
+     
       ],
     },
   ];
