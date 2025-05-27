@@ -37,7 +37,7 @@
               <th class="py-3">Type</th>
               <th class="py-3">Date</th>
               <th class="py-3">Created At</th>
-              <th class="text-end pe-4 py-3">Action</th>
+            
             </tr>
           </thead>
           
@@ -69,11 +69,7 @@
               <td class="py-3">
                 {{formatDate(record.createdAt)}}
               </td>
-              <td class="text-end pe-4 py-3">
-                <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="confirmDeleteAttendance(record._id)">
-                  <i class="bi bi-trash me-1"></i> Delete
-                </button>
-              </td>
+              
             </tr>
           </tbody>
         </table>
