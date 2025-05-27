@@ -36,23 +36,18 @@ export class TyfcbComponent implements OnInit {
   chaptersLoading: boolean = false;
   exporting: boolean = false;
   
-  // Add Math object for use in template
   Math = Math;
   
   filters = {
     page: 1,
     limit: 10,
     chapter_name: '',
-    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))), // Default to last 30 days
+    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
     endDate: this.formatDateForInput(new Date())
   };
   
-  // Pagination configuration
   paginationConfig = {
-    id: 'tyfcb-pagination',
-    itemsPerPage: 10,
-    currentPage: 1,
-    totalItems: 0
+    id: 'tyfcb-pagination'
   };
   
   private filterSubject = new Subject<void>();
@@ -63,10 +58,7 @@ export class TyfcbComponent implements OnInit {
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
-    // Debounce filter changes to prevent too many API calls
-    this.filterSubject.pipe(
-      debounceTime(300)
-    ).subscribe(() => {
+    this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       this.fetchTyfcbs();
     });
   }
@@ -78,9 +70,7 @@ export class TyfcbComponent implements OnInit {
 
   async fetchTyfcbs(): Promise<void> {
     this.loading = true;
-    
     try {
-      // Prepare request params
       const requestParams = {
         page: this.filters.page,
         limit: this.filters.limit,
@@ -88,15 +78,8 @@ export class TyfcbComponent implements OnInit {
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined
       };
-      
       const response = await this.tyfcbService.getAllTyfcbs(requestParams);
       this.tyfcbs = response;
-      
-      // Update pagination config
-      this.paginationConfig.currentPage = this.tyfcbs.page;
-      this.paginationConfig.totalItems = this.tyfcbs.totalDocs;
-      this.paginationConfig.itemsPerPage = this.tyfcbs.limit;
-      
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching TYFCB records:', error);
@@ -108,14 +91,12 @@ export class TyfcbComponent implements OnInit {
 
   async fetchChapters(): Promise<void> {
     this.chaptersLoading = true;
-    
     try {
       const response = await this.chapterService.getAllChapters({
         page: 1,
-        limit: 1000, // Get all chapters for dropdown
+        limit: 1000,
         search: ''
       });
-      
       this.chapters = response.docs;
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -126,15 +107,12 @@ export class TyfcbComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.filters.page = 1; // Reset to first page when filters change
-    this.paginationConfig.currentPage = 1; // Also reset pagination config
+    this.filters.page = 1;
     this.filterSubject.next();
   }
 
   onPageChange(page: number): void {
-    // Set both page values to ensure consistency
     this.filters.page = page;
-    this.paginationConfig.currentPage = page;
     this.fetchTyfcbs();
   }
 
@@ -146,31 +124,26 @@ export class TyfcbComponent implements OnInit {
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
-    // Reset pagination config as well
-    this.paginationConfig.currentPage = 1;
     this.fetchTyfcbs();
   }
 
-  // Helper method to get profile pic URL
   getProfilePicUrl(picPath: string): string {
     if (!picPath) return 'assets/images/default-avatar.png';
     return `${environment.imageUrl}/${picPath}`;
   }
 
-  // Helper method to format date for display
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      year: 'numeric', 
-      month: 'short', 
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   }
 
-  // Helper method to format currency
   formatCurrency(amount: number, currency: string): string {
     if (currency === 'rupee') {
       return `₹${amount.toLocaleString('en-IN')}`;
@@ -181,7 +154,6 @@ export class TyfcbComponent implements OnInit {
     }
   }
 
-  // Helper method to format date for input fields
   formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -189,24 +161,17 @@ export class TyfcbComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Export methods
   async exportToExcel(): Promise<void> {
     try {
       this.exporting = true;
-      
-      // Prepare data for export - get all TYFCBs based on current filters
       const exportParams = {
         chapter_name: this.filters.chapter_name || undefined,
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
-        limit: 10000, // Use a large limit to get all data
+        limit: 10000,
         page: 1
       };
-      
-      // Get all data for export
       const allData = await this.tyfcbService.getAllTyfcbs(exportParams);
-      
-      // Transform data for Excel export
       const exportData = allData.docs.map((tyfcb, index) => {
         return {
           'Sr No': index + 1,
@@ -221,11 +186,7 @@ export class TyfcbComponent implements OnInit {
           'Date': this.formatDate(tyfcb.createdAt)
         };
       });
-      
-      // Generate filename with current date
       const fileName = `TYFCB_Report_${this.formatDateForFileName(new Date())}`;
-      
-      // Call export service
       await this.exportService.exportToExcel(exportData, fileName);
       swalHelper.showToast('Excel file downloaded successfully', 'success');
     } catch (error) {
@@ -239,22 +200,15 @@ export class TyfcbComponent implements OnInit {
   async exportToPDF(): Promise<void> {
     try {
       this.exporting = true;
-      
-    
       const exportParams = {
         chapter_name: this.filters.chapter_name || undefined,
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
-        limit: 10000, 
+        limit: 10000,
         page: 1
       };
-      
       const allData = await this.tyfcbService.getAllTyfcbs(exportParams);
-      
-     
       const fileName = `TYFCB_Report_${this.formatDateForFileName(new Date())}`;
-      
-     
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },
         { header: 'From', dataKey: 'from' },
@@ -264,7 +218,6 @@ export class TyfcbComponent implements OnInit {
         { header: 'Referral Type', dataKey: 'referralType' },
         { header: 'Date', dataKey: 'date' }
       ];
-      
       const data = allData.docs.map((tyfcb, index) => {
         return {
           srNo: index + 1,
@@ -276,20 +229,14 @@ export class TyfcbComponent implements OnInit {
           date: this.formatDate(tyfcb.createdAt)
         };
       });
-      
-    
       const title = 'TYFCB Report';
       let subtitle = 'All TYFCB Records';
-      
       if (this.filters.chapter_name) {
         subtitle = `Chapter: ${this.filters.chapter_name}`;
       }
-      
       if (this.filters.startDate && this.filters.endDate) {
         subtitle += ` | Period: ${this.formatDate(this.filters.startDate)} to ${this.formatDate(this.filters.endDate)}`;
       }
-      
-
       await this.exportService.exportToPDF(columns, data, title, subtitle, fileName);
       swalHelper.showToast('PDF file downloaded successfully', 'success');
     } catch (error) {
@@ -299,8 +246,7 @@ export class TyfcbComponent implements OnInit {
       this.exporting = false;
     }
   }
-  
-  // Helper for file names
+
   private formatDateForFileName(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

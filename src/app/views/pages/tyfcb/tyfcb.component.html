@@ -15,7 +15,6 @@
     </div>
     <div class="card-body p-0">
       <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
-        
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
           <div class="me-2" style="min-width: 200px;">
             <label for="chapterSelect" class="form-label mb-1">Chapter</label>
@@ -99,9 +98,8 @@
             <th class="py-3">Date/time</th>
           </tr>
         </thead>
-        
         <tbody>
-          <tr *ngFor="let tyfcb of tyfcbs.docs; let i = index" class="border-bottom">
+          <tr *ngFor="let tyfcb of tyfcbs.docs | paginate: { id: paginationConfig.id, itemsPerPage: tyfcbs.limit, currentPage: tyfcbs.page, totalItems: tyfcbs.totalDocs }; let i = index" class="border-bottom">
             <td class="py-3">{{ (tyfcbs.page - 1) * tyfcbs.limit + i + 1 }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">

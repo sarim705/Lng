@@ -35,7 +35,6 @@ export class VisitorsComponent implements OnInit {
   loading: boolean = false;
   chaptersLoading: boolean = false;
   exporting: boolean = false;
-  updatingVisitor: boolean = false;
   updatingVisitorId: string | null = null;
   
   // Add Math object for use in template
@@ -45,16 +44,8 @@ export class VisitorsComponent implements OnInit {
     page: 1,
     limit: 10,
     chapterName: '',
-    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))), // Default to last 30 days
+    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
     endDate: this.formatDateForInput(new Date())
-  };
-  
-  // Pagination configuration
-  paginationConfig = {
-    id: 'visitor-pagination',
-    itemsPerPage: 10,
-    currentPage: 1,
-    totalItems: 0
   };
   
   private filterSubject = new Subject<void>();
@@ -65,10 +56,7 @@ export class VisitorsComponent implements OnInit {
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
-    // Debounce filter changes to prevent too many API calls
-    this.filterSubject.pipe(
-      debounceTime(300)
-    ).subscribe(() => {
+    this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       this.fetchVisitors();
     });
   }
@@ -80,9 +68,7 @@ export class VisitorsComponent implements OnInit {
 
   async fetchVisitors(): Promise<void> {
     this.loading = true;
-    
     try {
-      // Prepare request params
       const requestParams = {
         page: this.filters.page,
         limit: this.filters.limit,
@@ -90,15 +76,8 @@ export class VisitorsComponent implements OnInit {
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined
       };
-      
       const response = await this.visitorService.getAllVisitors(requestParams);
       this.visitors = response;
-      
-      // Update pagination config
-      this.paginationConfig.currentPage = this.visitors.page;
-      this.paginationConfig.totalItems = this.visitors.totalDocs;
-      this.paginationConfig.itemsPerPage = this.visitors.limit;
-      
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching visitors:', error);
@@ -110,14 +89,12 @@ export class VisitorsComponent implements OnInit {
 
   async fetchChapters(): Promise<void> {
     this.chaptersLoading = true;
-    
     try {
       const response = await this.chapterService.getAllChapters({
         page: 1,
         limit: 1000, // Get all chapters for dropdown
         search: ''
       });
-      
       this.chapters = response.docs;
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -129,15 +106,13 @@ export class VisitorsComponent implements OnInit {
 
   onFilterChange(): void {
     this.filters.page = 1; // Reset to first page when filters change
-    this.paginationConfig.currentPage = 1; // Also reset pagination config
     this.filterSubject.next();
   }
 
   onPageChange(page: number): void {
-    // Set both page values to ensure consistency
     this.filters.page = page;
-    this.paginationConfig.currentPage = page;
-    this.fetchVisitors();
+    // No need to fetch again, as paginate pipe handles client-side pagination
+    this.cdr.detectChanges();
   }
 
   resetFilters(): void {
@@ -148,8 +123,6 @@ export class VisitorsComponent implements OnInit {
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
-    // Reset pagination config as well
-    this.paginationConfig.currentPage = 1;
     this.fetchVisitors();
   }
 
@@ -158,8 +131,8 @@ export class VisitorsComponent implements OnInit {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      year: 'numeric', 
-      month: 'short', 
+      year: 'numeric',
+      month: 'short',
       day: 'numeric'
     });
   }
@@ -172,17 +145,12 @@ export class VisitorsComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // New method to toggle visitor paid status
+  // Toggle visitor paid status
   async toggleVisitorPaidStatus(visitor: Visitor): Promise<void> {
-    // Set updating state for this specific visitor
     this.updatingVisitorId = visitor._id;
-    
     try {
-      
       const result = await this.visitorService.updateVisitor(visitor._id, { paid: !visitor.paid });
-      
       if (result.success) {
-     
         visitor.paid = !visitor.paid;
         swalHelper.showToast(`Visitor status changed to ${visitor.paid ? 'Paid' : 'Unpaid'}`, 'success');
       } else {
@@ -196,46 +164,34 @@ export class VisitorsComponent implements OnInit {
     }
   }
 
-  // Export methods
+  // Export to Excel
   async exportToExcel(): Promise<void> {
     try {
       this.exporting = true;
-      
-      // Prepare data for export - get all visitors based on current filters
       const exportParams = {
         chapter_name: this.filters.chapterName || undefined,
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
-        limit: 10000, // Use a large limit to get all data
+        limit: 10000,
         page: 1
       };
-      
-      // Get all data for export
       const allData = await this.visitorService.getAllVisitors(exportParams);
-      
-      // Transform data for Excel export
-      const exportData = allData.docs.map((visitor, index) => {
-        return {
-          'Sr No': index + 1,
-          'Title': visitor.eventId?.name || 'N/A',
-          'Visitor Name': visitor.name || 'N/A',
-          'Chapter': visitor.refUserId?.chapter_name || 'N/A',
-          'Company Name': visitor.business_name || 'N/A',
-          'Mobile No': visitor.mobile_number || 'N/A',
-          'Email': visitor.email || 'N/A',
-          'Visitor Address': visitor.address || 'N/A',
-          'PinCode': visitor.pincode || 'N/A',
-          'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
-          'Profession': visitor.business_type || 'N/A',
-          'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
-          'Fees': visitor.fees || 'N/A'
-        };
-      });
-      
-      // Generate filename with current date
+      const exportData = allData.docs.map((visitor, index) => ({
+        'Sr No': index + 1,
+        'Title': visitor.eventId?.name || 'N/A',
+        'Visitor Name': visitor.name || 'N/A',
+        'Chapter': visitor.refUserId?.chapter_name || 'N/A',
+        'Company Name': visitor.business_name || 'N/A',
+        'Mobile No': visitor.mobile_number || 'N/A',
+        'Email': visitor.email || 'N/A',
+        'Visitor Address': visitor.address || 'N/A',
+        'PinCode': visitor.pincode || 'N/A',
+        'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
+        'Profession': visitor.business_type || 'N/A',
+        'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
+        'Fees': visitor.fees || 'N/A'
+      }));
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
-      
-      // Call export service
       await this.exportService.exportToExcel(exportData, fileName);
       swalHelper.showToast('Excel file downloaded successfully', 'success');
     } catch (error) {
@@ -246,26 +202,19 @@ export class VisitorsComponent implements OnInit {
     }
   }
 
+  // Export to PDF
   async exportToPDF(): Promise<void> {
     try {
       this.exporting = true;
-      
-      // Prepare data for export - get all visitors based on current filters
       const exportParams = {
         chapter_name: this.filters.chapterName || undefined,
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
-        limit: 10000, // Use a large limit to get all data
+        limit: 10000,
         page: 1
       };
-      
-      // Get all data for export
       const allData = await this.visitorService.getAllVisitors(exportParams);
-      
-      // Generate filename with current date
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
-      
-      // Define columns and data for PDF
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },
         { header: 'Title', dataKey: 'title' },
@@ -278,35 +227,26 @@ export class VisitorsComponent implements OnInit {
         { header: 'Profession', dataKey: 'profession' },
         { header: 'Visitor Type', dataKey: 'visitorType' }
       ];
-      
-      const data = allData.docs.map((visitor, index) => {
-        return {
-          srNo: index + 1,
-          title: visitor.eventId?.name || 'N/A',
-          visitorName: `${visitor.name || 'N/A'}\n(${visitor.refUserId?.chapter_name || 'N/A'})`,
-          companyName: visitor.business_name || 'N/A',
-          mobileNo: visitor.mobile_number || 'N/A',
-          address: visitor.address || 'N/A',
-          pincode: visitor.pincode || 'N/A',
-          visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
-          profession: visitor.business_type || 'N/A',
-          visitorType: visitor.paid ? 'Paid' : 'Unpaid'
-        };
-      });
-      
-      // Define PDF document title and subtitle
+      const data = allData.docs.map((visitor, index) => ({
+        srNo: index + 1,
+        title: visitor.eventId?.name || 'N/A',
+        visitorName: `${visitor.name || 'N/A'}\n(${visitor.refUserId?.chapter_name || 'N/A'})`,
+        companyName: visitor.business_name || 'N/A',
+        mobileNo: visitor.mobile_number || 'N/A',
+        address: visitor.address || 'N/A',
+        pincode: visitor.pincode || 'N/A',
+        visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
+        profession: visitor.business_type || 'N/A',
+        visitorType: visitor.paid ? 'Paid' : 'Unpaid'
+      }));
       const title = 'Visitors Report';
       let subtitle = 'All Visitors';
-      
       if (this.filters.chapterName) {
         subtitle = `Chapter: ${this.filters.chapterName}`;
       }
-      
       if (this.filters.startDate && this.filters.endDate) {
         subtitle += ` | Period: ${this.formatDate(this.filters.startDate)} to ${this.formatDate(this.filters.endDate)}`;
       }
-      
-      // Call export service
       await this.exportService.exportToPDF(columns, data, title, subtitle, fileName);
       swalHelper.showToast('PDF file downloaded successfully', 'success');
     } catch (error) {
@@ -316,7 +256,7 @@ export class VisitorsComponent implements OnInit {
       this.exporting = false;
     }
   }
-  
+
   // Helper for file names
   private formatDateForFileName(date: Date): string {
     const year = date.getFullYear();

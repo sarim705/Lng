@@ -1,41 +1,52 @@
 <div class="container-fluid">
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-    <div class="card-header bg-primary  d-flex justify-content-between align-items-center py-3" >
-      <h4 class="mb-0 fw-bold ">
-        <i class="bi bi-people-fill me-2 "></i>All Members
+    <div class="card-header bg-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-people-fill me-2"></i>All Members
       </h4>
       <div>
-        <button class="btn btn-light rounded-pill me-2" (click)="exportToExcel()" [disabled]="loading || !users?.docs?.length">
+        <button class="btn btn-light rounded-pill me-2" (click)="exportToExcel()" [disabled]="loading || exporting || !users?.docs?.length">
           <i class="bi bi-file-earmark-excel-fill me-2"></i>Export to Excel
         </button>
-        <button class="btn btn-light rounded-pill" (click)="exportToPDF()" [disabled]="loading || !users?.docs?.length">
+        <button class="btn btn-light rounded-pill" (click)="exportToPDF()" [disabled]="loading || exporting || !users?.docs?.length">
           <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export to PDF
         </button>
       </div>
     </div>
     <div class="card-body p-0">
-      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-        <div class="d-flex w-100 align-items-center">
-          <div class="flex-grow-1 me-2">
-            <input type="text" class="form-control"
-                  placeholder="Search..."
-                  [(ngModel)]="searchQuery"
-                  (input)="onSearch()">
-          </div>
-          <div>
-            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit"></ng-select>
-          </div>
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+        <div class="flex-grow-1 me-2">
+          <input type="text" class="form-control" placeholder="Search..." [(ngModel)]="searchQuery" (input)="onSearch()">
+        </div>
+        <div class="ms-2">
+          <label for="limitSelect" class="form-label mb-1">Items per page</label>
+          <ng-select
+            id="limitSelect"
+            [items]="[10, 25, 50, 100]"
+            [(ngModel)]="payload.limit"
+            (change)="onChange()"
+            placeholder="Items per page">
+          </ng-select>
         </div>
       </div>
     </div>
-     
+
     <div *ngIf="loading" class="text-center my-5 py-5">
       <div class="spinner-grow text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
 
-    <div class="table-responsive" *ngIf="!loading && users.docs.length > 0">
+    <div *ngIf="exporting" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.3); z-index: 1050;">
+      <div class="bg-white p-4 rounded shadow-lg text-center">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Exporting...</span>
+        </div>
+        <p class="mb-0">Preparing export file...</p>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && users?.docs?.length > 0">
       <table class="table table-hover align-middle mb-0">
         <thead class="bg-light">
           <tr>
@@ -47,9 +58,8 @@
             <th class="text-end pe-4 py-3">Action</th>
           </tr>
         </thead>
-        
         <tbody>
-          <tr *ngFor="let user of users?.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: users?.totalDocs}; let i=index" class="border-bottom">
+          <tr *ngFor="let user of users?.docs | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: users?.totalDocs }; let i=index" class="border-bottom">
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
                 <div *ngIf="user.profilePic" class="position-relative">
@@ -92,7 +102,7 @@
             </td>
             <td class="text-end pe-4 py-3">
               <div class="dropdown">
-                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button"
                   data-bs-toggle="dropdown" aria-expanded="false">
                   Actions
                 </button>
@@ -110,13 +120,24 @@
           </tr>
         </tbody>
       </table>
-      
-      <div class="d-flex justify-content-end p-3">
-        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div *ngIf="users?.docs?.length > 0" class="text-muted">
+          Showing {{ (payload.page - 1) * payload.limit + 1 }} to
+          {{ Math.min(payload.page * payload.limit, users.totalDocs) }}
+          of {{ users.totalDocs }} entries
+        </div>
+        <pagination-controls
+          [id]="paginationConfig.id"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true">
+        </pagination-controls>
       </div>
     </div>
 
-    <div *ngIf="!loading && users.length === 0" class="text-center my-5 py-4 px-4">
+    <div *ngIf="!loading && (!users?.docs || users?.docs.length === 0)" class="text-center my-5 py-4 px-4">
       <div class="empty-state">
         <i class="bi bi-search fs-1 text-muted mb-3"></i>
         <h5>No Users Found</h5>
@@ -150,7 +171,7 @@
             <a class="nav-link" [class.active]="activeTab === 'pdf'" (click)="setActiveTab('pdf')" style="cursor: pointer;">PDF</a>
           </li>
         </ul>
- <!-- Profile Tab Content -->
+        <!-- Profile Tab Content -->
         <div *ngIf="activeTab === 'profile'">
           <div class="row">
             <!-- Left Column - Profile Info -->
@@ -159,8 +180,8 @@
                 <div class="card-body text-center">
                   <div class="position-relative d-inline-block">
                     <img *ngIf="selectedUser.profilePic" [src]="imageurl + '/' + selectedUser.profilePic"
-                      class="img-fluid rounded-circle mb-3 shadow-sm border border-3 border-white" 
-                      style="width: 180px; height: 180px; object-fit: cover;" 
+                      class="img-fluid rounded-circle mb-3 shadow-sm border border-3 border-white"
+                      style="width: 180px; height: 180px; object-fit: cover;"
                       alt="User Image" onerror="this.src='assets/images/placeholder-image.png'">
                     <div *ngIf="!selectedUser.profilePic"
                       class="bg-gradient-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm border border-3 border-white"
@@ -170,17 +191,14 @@
                   </div>
                   <h4 class="mb-1 mt-2">{{selectedUser.name || 'Unknown User'}}</h4>
                   <p class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{selectedUser.meeting_role || 'N/A'}}</p>
-                  
                   <div class="mt-2">
                     <span class="badge bg-light text-dark px-3 py-2">Chapter: {{selectedUser.chapter_name|| 'N/A'}}</span>
                   </div>
-              
                   <div class="mt-3" *ngIf="selectedUser.points !== undefined">
                     <span class="badge bg-light text-dark px-3 py-2">Points: {{selectedUser.points}}</span>
                   </div>
                 </div>
               </div>
-
               <!-- Contact Information Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
@@ -209,7 +227,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Introduction Card -->
               <div class="card border-0 shadow-sm rounded-4" *ngIf="selectedUser.introduction_details">
                 <div class="card-header bg-light py-3">
@@ -220,10 +237,9 @@
                 </div>
               </div>
             </div>
-
             <!-- Right Column - Other Details -->
             <div class="col-md-8">
-              <!-- Business Information Card - Expanded -->
+              <!-- Business Information Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4" *ngIf="selectedUser.business && selectedUser.business.length > 0">
                 <div class="card-header bg-light py-3">
                   <h6 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i> Business Information</h6>
@@ -303,7 +319,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Bio Details Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4" *ngIf="selectedUser.bioDetails">
                 <div class="card-header bg-light py-3">
@@ -370,7 +385,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Growth Sheet Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4" *ngIf="selectedUser.growthSheet">
                 <div class="card-header bg-light py-3">
@@ -405,7 +419,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Top Profile Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4" *ngIf="selectedUser.topProfile">
                 <div class="card-header bg-light py-3">
@@ -440,7 +453,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Weekly Presentation Card -->
               <div class="card border-0 shadow-sm rounded-4" *ngIf="selectedUser.weeklyPresentation">
                 <div class="card-header bg-light py-3">
@@ -464,11 +476,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Referrals Tab Content (unchanged) -->
-   
-       
-
         <!-- Referrals Tab Content -->
         <div *ngIf="activeTab === 'referrals'">
           <div class="card border-0 shadow-sm rounded-4 mb-3">
@@ -485,14 +492,12 @@
                   <a class="nav-link" [class.active]="referralTab === 'received'" (click)="setReferralTab('received')" style="cursor: pointer;">Received</a>
                 </li>
               </ul>
-
               <!-- Loading State -->
               <div *ngIf="referralLoading" class="text-center my-5">
                 <div class="spinner-grow text-primary" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
-
               <!-- Given Referrals -->
               <div *ngIf="referralTab === 'given' && !referralLoading">
                 <div *ngIf="referralsGiven.length > 0; else noGivenReferrals">
@@ -508,7 +513,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let referral of referralsGiven">
+                        <tr *ngFor="let referral of referralsGiven | paginate: { id: referralPaginationConfig.givenId, itemsPerPage: referralPayload.limit, currentPage: referralPayload.givenPage, totalItems: referralsGivenTotal }; let i=index">
                           <td>{{referral.receiver_id?.name || 'N/A'}}</td>
                           <td>{{referral.referral_type | titlecase}}</td>
                           <td>{{referral.rating || 'N/A'}}</td>
@@ -525,8 +530,19 @@
                       </tbody>
                     </table>
                   </div>
-                  <div class="d-flex justify-content-end">
-                    <pagination-controls (pageChange)="onGivenReferralPageChange($event)"></pagination-controls>
+                  <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div *ngIf="referralsGiven.length > 0" class="text-muted">
+                      Showing {{ (referralPayload.givenPage - 1) * referralPayload.limit + 1 }} to
+                      {{ Math.min(referralPayload.givenPage * referralPayload.limit, referralsGivenTotal) }}
+                      of {{ referralsGivenTotal }} entries
+                    </div>
+                    <pagination-controls
+                      [id]="referralPaginationConfig.givenId"
+                      (pageChange)="onGivenReferralPageChange($event)"
+                      previousLabel="Previous"
+                      nextLabel="Next"
+                      [directionLinks]="true">
+                    </pagination-controls>
                   </div>
                 </div>
                 <ng-template #noGivenReferrals>
@@ -536,7 +552,6 @@
                   </div>
                 </ng-template>
               </div>
-
               <!-- Received Referrals -->
               <div *ngIf="referralTab === 'received' && !referralLoading">
                 <div *ngIf="referralsReceived.length > 0; else noReceivedReferrals">
@@ -552,7 +567,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let referral of referralsReceived">
+                        <tr *ngFor="let referral of referralsReceived | paginate: { id: referralPaginationConfig.receivedId, itemsPerPage: referralPayload.limit, currentPage: referralPayload.receivedPage, totalItems: referralsReceivedTotal }; let i=index">
                           <td>{{referral.giver_id?.name || 'N/A'}}</td>
                           <td>{{referral.referral_type | titlecase}}</td>
                           <td>{{referral.rating || 'N/A'}}</td>
@@ -569,8 +584,19 @@
                       </tbody>
                     </table>
                   </div>
-                  <div class="d-flex justify-content-end">
-                    <pagination-controls (pageChange)="onReceivedReferralPageChange($event)"></pagination-controls>
+                  <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div *ngIf="referralsReceived.length > 0" class="text-muted">
+                      Showing {{ (referralPayload.receivedPage - 1) * referralPayload.limit + 1 }} to
+                      {{ Math.min(referralPayload.receivedPage * referralPayload.limit, referralsReceivedTotal) }}
+                      of {{ referralsReceivedTotal }} entries
+                    </div>
+                    <pagination-controls
+                      [id]="referralPaginationConfig.receivedId"
+                      (pageChange)="onReceivedReferralPageChange($event)"
+                      previousLabel="Previous"
+                      nextLabel="Next"
+                      [directionLinks]="true">
+                    </pagination-controls>
                   </div>
                 </div>
                 <ng-template #noReceivedReferrals>
@@ -583,7 +609,6 @@
             </div>
           </div>
         </div>
-
         <!-- PDF Tab Content -->
         <div *ngIf="activeTab === 'pdf'">
           <div class="card border-0 shadow-sm rounded-4 mb-3">

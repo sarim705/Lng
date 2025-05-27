@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReferralService, Referral, ReferralResponse } from '../../../services/auth.service';
@@ -30,43 +30,35 @@ export class ReferralsComponent implements OnInit {
     prevPage: null,
     nextPage: null
   };
-  
+
   chapters: Chapter[] = [];
   loading: boolean = false;
   chaptersLoading: boolean = false;
   exporting: boolean = false;
-  
-  // Add Math object for use in template
+
   Math = Math;
-  
+
   filters = {
     page: 1,
     limit: 10,
     chapterName: '',
-    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))), // Default to last 30 days
+    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
     endDate: this.formatDateForInput(new Date())
   };
-  
-  // Pagination configuration
+
   paginationConfig = {
-    id: 'referral-pagination',
-    itemsPerPage: 10,
-    currentPage: 1,
-    totalItems: 0
+    id: 'referral-pagination'
   };
-  
+
   private filterSubject = new Subject<void>();
-  
+
   constructor(
     private referralService: ReferralService,
     private chapterService: ChapterService,
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
-    // Debounce filter changes to prevent too many API calls
-    this.filterSubject.pipe(
-      debounceTime(300)
-    ).subscribe(() => {
+    this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       this.fetchReferrals();
     });
   }
@@ -86,31 +78,39 @@ export class ReferralsComponent implements OnInit {
       if (this.filters.chapterName) requestParams.chapterName = this.filters.chapterName;
       if (this.filters.startDate) requestParams.startDate = this.filters.startDate;
       if (this.filters.endDate) requestParams.endDate = this.filters.endDate;
-  
+
       const response = await this.referralService.getAllReferrals(requestParams);
-      console.log('API Response:', response);
       this.referrals = response;
-      this.paginationConfig.currentPage = this.referrals.page;
-      this.paginationConfig.totalItems = this.referrals.totalDocs;
-      this.paginationConfig.itemsPerPage = this.referrals.limit;
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching referrals:', error);
       swalHelper.showToast('Failed to fetch referrals', 'error');
+      this.referrals = {
+        docs: [],
+        totalDocs: 0,
+        limit: this.filters.limit,
+        page: this.filters.page,
+        totalPages: 0,
+        pagingCounter: 1,
+        hasPrevPage: false,
+        hasNextPage: false,
+        prevPage: null,
+        nextPage: null
+      };
+      this.cdr.detectChanges();
     } finally {
       this.loading = false;
     }
   }
+
   async fetchChapters(): Promise<void> {
     this.chaptersLoading = true;
-    
     try {
       const response = await this.chapterService.getAllChapters({
         page: 1,
-        limit: 1000, // Get all chapters for dropdown
+        limit: 1000,
         search: ''
       });
-      
       this.chapters = response.docs;
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -121,15 +121,12 @@ export class ReferralsComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.filters.page = 1; // Reset to first page when filters change
-    this.paginationConfig.currentPage = 1; // Also reset pagination config
+    this.filters.page = 1;
     this.filterSubject.next();
   }
 
   onPageChange(page: number): void {
-    // Set both page values to ensure consistency
     this.filters.page = page;
-    this.paginationConfig.currentPage = page;
     this.fetchReferrals();
   }
 
@@ -141,25 +138,21 @@ export class ReferralsComponent implements OnInit {
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
-    // Reset pagination config as well
-    this.paginationConfig.currentPage = 1;
     this.fetchReferrals();
   }
 
-  // Helper method to format date for display
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      year: 'numeric', 
-      month: 'short', 
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   }
 
-  // Helper method to format date for input fields
   formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -167,37 +160,31 @@ export class ReferralsComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Export methods
   async exportToExcel(): Promise<void> {
     try {
       this.exporting = true;
       let allData: Referral[] = [];
       let page = 1;
-      const limit = 1000; // Smaller limit to avoid timeouts
-      let response: ReferralResponse | null = null; // Declare response outside the loop
-  
-      // Prepare export parameters
+      const limit = 1000;
+      let response: ReferralResponse;
+
       const exportParams: any = { page, limit };
       if (this.filters.chapterName) exportParams.chapterName = this.filters.chapterName;
       if (this.filters.startDate) exportParams.startDate = this.filters.startDate;
       if (this.filters.endDate) exportParams.endDate = this.filters.endDate;
-  
-      // Fetch all pages
+
       do {
         response = await this.referralService.getAllReferrals(exportParams);
-        console.log('Referral API Response for Excel:', response); // Debug log
         allData = [...allData, ...response.docs];
         page++;
         exportParams.page = page;
       } while (response.hasNextPage);
-  
-      // Check if data is empty
+
       if (!allData || allData.length === 0) {
         swalHelper.showToast('No referrals found for the selected filters', 'warning');
         return;
       }
-  
-      // Transform data for Excel export
+
       const exportData = allData.map((referral, index) => {
         return {
           'Sr No': index + 1,
@@ -213,13 +200,8 @@ export class ReferralsComponent implements OnInit {
           'Date': this.formatDate(referral.createdAt)
         };
       });
-  
-      console.log('Export Data for Excel:', exportData); // Debug log for transformed data
-  
-      // Generate filename with current date
+
       const fileName = `Referrals_Report_${this.formatDateForFileName(new Date())}`;
-  
-      // Call export service
       await this.exportService.exportToExcel(exportData, fileName);
       swalHelper.showToast('Excel file downloaded successfully', 'success');
     } catch (error: any) {
@@ -239,34 +221,27 @@ export class ReferralsComponent implements OnInit {
       this.exporting = true;
       let allData: Referral[] = [];
       let page = 1;
-      const limit = 1000; // Smaller limit to avoid timeouts
-      let response: ReferralResponse; // Declare response variable
-  
-      // Prepare export parameters
+      const limit = 1000;
+      let response: ReferralResponse;
+
       const exportParams: any = { page, limit };
       if (this.filters.chapterName) exportParams.chapterName = this.filters.chapterName;
       if (this.filters.startDate) exportParams.startDate = this.filters.startDate;
       if (this.filters.endDate) exportParams.endDate = this.filters.endDate;
-  
-      // Fetch all pages
+
       do {
         response = await this.referralService.getAllReferrals(exportParams);
-        console.log('Referral API Response:', response); // Log for debugging
         allData = [...allData, ...response.docs];
         page++;
         exportParams.page = page;
       } while (response.hasNextPage);
-  
-      // Check if data is empty
+
       if (!allData || allData.length === 0) {
         swalHelper.showToast('No referrals found for the selected filters', 'warning');
         return;
       }
-  
-      // Generate filename with current date
+
       const fileName = `Referrals_Report_${this.formatDateForFileName(new Date())}`;
-  
-      // Define columns and data for PDF
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },
         { header: 'Referral From', dataKey: 'fromName' },
@@ -274,10 +249,9 @@ export class ReferralsComponent implements OnInit {
         { header: 'Type', dataKey: 'type' },
         { header: 'Referral', dataKey: 'referral' },
         { header: 'Mobile', dataKey: 'mobile' },
-       
         { header: 'Date', dataKey: 'date' }
       ];
-  
+
       const data = allData.map((referral, index) => {
         return {
           srNo: index + 1,
@@ -288,12 +262,10 @@ export class ReferralsComponent implements OnInit {
           type: referral.referral_type === 'inside' ? 'Inside' : 'Outside',
           referral: referral.referral,
           mobile: referral.mobile_number,
-      
           date: this.formatDate(referral.createdAt)
         };
       });
-  
-      // Define PDF document title and subtitle
+
       const title = 'Referrals Report';
       let subtitle = 'All Referrals';
       if (this.filters.chapterName) {
@@ -302,8 +274,7 @@ export class ReferralsComponent implements OnInit {
       if (this.filters.startDate && this.filters.endDate) {
         subtitle += ` | Period: ${this.formatDate(this.filters.startDate)} to ${this.formatDate(this.filters.endDate)}`;
       }
-  
-      // Call export service
+
       await this.exportService.exportToPDF(columns, data, title, subtitle, fileName);
       swalHelper.showToast('PDF file downloaded successfully', 'success');
     } catch (error: any) {
@@ -317,7 +288,7 @@ export class ReferralsComponent implements OnInit {
       this.exporting = false;
     }
   }
-  // Helper for file names
+
   private formatDateForFileName(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

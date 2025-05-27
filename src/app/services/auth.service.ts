@@ -305,7 +305,7 @@ export class AuthService {
       console.log('Sending Request with params:', queryParams);
       const response = await this.apiManager.request(
         {
-          url: apiEndpoints.GET_USERS + queryParams,
+            url: apiEndpoints.GET_USERS + queryParams,
           method: 'GET',
         },
         null,

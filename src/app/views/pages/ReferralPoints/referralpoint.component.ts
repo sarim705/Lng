@@ -66,10 +66,7 @@ export class PointHistoryComponent implements OnInit {
   };
 
   paginationConfig = {
-    id: 'point-history-pagination',
-    itemsPerPage: 10,
-    currentPage: 1,
-    totalItems: 0
+    id: 'point-history-pagination'
   };
 
   userSearchSubject = new Subject<string>();
@@ -111,11 +108,6 @@ export class PointHistoryComponent implements OnInit {
 
       const response = await this.pointHistoryService.getPointHistory(requestParams);
       this.points = response;
-
-      this.paginationConfig.currentPage = this.points.page;
-      this.paginationConfig.totalItems = this.points.totalDocs;
-      this.paginationConfig.itemsPerPage = this.points.limit;
-
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching point history:', error);
@@ -165,7 +157,6 @@ export class PointHistoryComponent implements OnInit {
 
   onFilterChange(): void {
     this.filters.page = 1;
-    this.paginationConfig.currentPage = 1;
     this.filterSubject.next();
   }
 
@@ -178,7 +169,6 @@ export class PointHistoryComponent implements OnInit {
       month: null,
       year: new Date().getFullYear()
     };
-    this.paginationConfig.currentPage = 1;
     this.fetchPoints();
   }
 
@@ -306,7 +296,6 @@ export class PointHistoryComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.filters.page = page;
-    this.paginationConfig.currentPage = page;
     this.fetchPoints();
   }
 }

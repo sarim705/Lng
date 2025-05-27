@@ -43,17 +43,13 @@ export class TestimonialsComponent implements OnInit {
     page: 1,
     limit: 10,
     chapterName: '',
-    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))), // Default to last 30 days
+    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
     endDate: this.formatDateForInput(new Date())
-    
   };
   
   // Pagination configuration
   paginationConfig = {
-    id: 'testimonial-pagination',
-    itemsPerPage: 10,
-    currentPage: 1,
-    totalItems: 0
+    id: 'testimonial-pagination'
   };
   
   private filterSubject = new Subject<void>();
@@ -64,10 +60,7 @@ export class TestimonialsComponent implements OnInit {
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
-    // Debounce filter changes to prevent too many API calls
-    this.filterSubject.pipe(
-      debounceTime(300)
-    ).subscribe(() => {
+    this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       this.fetchTestimonials();
     });
   }
@@ -79,9 +72,7 @@ export class TestimonialsComponent implements OnInit {
 
   async fetchTestimonials(): Promise<void> {
     this.loading = true;
-    
     try {
-      // Prepare request params
       const requestParams = {
         page: this.filters.page,
         limit: this.filters.limit,
@@ -92,12 +83,6 @@ export class TestimonialsComponent implements OnInit {
       
       const response = await this.testimonialService.getAllTestimonials(requestParams);
       this.testimonials = response;
-      
-      // Update pagination config
-      this.paginationConfig.currentPage = this.testimonials.page;
-      this.paginationConfig.totalItems = this.testimonials.totalDocs;
-      this.paginationConfig.itemsPerPage = this.testimonials.limit;
-      
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching testimonials:', error);
@@ -109,14 +94,12 @@ export class TestimonialsComponent implements OnInit {
 
   async fetchChapters(): Promise<void> {
     this.chaptersLoading = true;
-    
     try {
       const response = await this.chapterService.getAllChapters({
         page: 1,
-        limit: 1000, // Get all chapters for dropdown
+        limit: 1000,
         search: ''
       });
-      
       this.chapters = response.docs;
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -127,14 +110,12 @@ export class TestimonialsComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.filters.page = 1; 
-    this.paginationConfig.currentPage = 1; 
+    this.filters.page = 1;
+    this.filterSubject.next();
   }
 
   onPageChange(page: number): void {
-    
     this.filters.page = page;
-    this.paginationConfig.currentPage = page;
     this.fetchTestimonials();
   }
 
@@ -146,18 +127,14 @@ export class TestimonialsComponent implements OnInit {
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
-    
-    this.paginationConfig.currentPage = 1;
     this.fetchTestimonials();
   }
 
-  
   getProfilePicUrl(picPath: string): string {
     if (!picPath) return 'assets/images/default-avatar.png';
-    return `${environment. imageUrl}/${picPath}`;
+    return `${environment.imageUrl}/${picPath}`;
   }
 
-  
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -170,7 +147,6 @@ export class TestimonialsComponent implements OnInit {
     });
   }
 
- 
   formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -178,24 +154,17 @@ export class TestimonialsComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Export methods
   async exportToExcel(): Promise<void> {
     try {
       this.exporting = true;
-      
-      // Prepare data for export - get all testimonials based on current filters
       const exportParams = {
         chapterName: this.filters.chapterName || undefined,
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
-        limit: 10000, // Use a large limit to get all data
+        limit: 10000,
         page: 1
       };
-      
-      // Get all data for export
       const allData = await this.testimonialService.getAllTestimonials(exportParams);
-      
-      // Transform data for Excel export
       const exportData = allData.docs.map((testimonial, index) => {
         return {
           'Sr No': index + 1,
@@ -208,11 +177,7 @@ export class TestimonialsComponent implements OnInit {
           'Date': this.formatDate(testimonial.createdAt)
         };
       });
-      
-      // Generate filename with current date
       const fileName = `Testimonials_Report_${this.formatDateForFileName(new Date())}`;
-      
-      // Call export service
       await this.exportService.exportToExcel(exportData, fileName);
       swalHelper.showToast('Excel file downloaded successfully', 'success');
     } catch (error) {
@@ -226,23 +191,15 @@ export class TestimonialsComponent implements OnInit {
   async exportToPDF(): Promise<void> {
     try {
       this.exporting = true;
-      
-      // Prepare data for export - get all testimonials based on current filters
       const exportParams = {
         chapterName: this.filters.chapterName || undefined,
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
-        limit: 10000, // Use a large limit to get all data
+        limit: 10000,
         page: 1
       };
-      
-      // Get all data for export
       const allData = await this.testimonialService.getAllTestimonials(exportParams);
-      
-      // Generate filename with current date
       const fileName = `Testimonials_Report_${this.formatDateForFileName(new Date())}`;
-      
-      // Define columns and data for PDF
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },
         { header: 'Given By', dataKey: 'givenBy' },
@@ -251,33 +208,26 @@ export class TestimonialsComponent implements OnInit {
         { header: 'Selected', dataKey: 'selected' },
         { header: 'Date', dataKey: 'date' }
       ];
-      
       const data = allData.docs.map((testimonial, index) => {
         return {
           srNo: index + 1,
           givenBy: `${testimonial.giverId?.name || 'Unknown'}\n(${testimonial.giverId?.chapter_name || 'N/A'})`,
           givenTo: testimonial.receiverId ? 
-                 `${testimonial.receiverId?.name || 'Unknown'}\n(${testimonial.receiverId?.chapter_name || 'N/A'})` : 
-                 'General Testimonial',
+            `${testimonial.receiverId?.name || 'Unknown'}\n(${testimonial.receiverId?.chapter_name || 'N/A'})` : 
+            'General Testimonial',
           comments: testimonial.message || 'No comments',
           selected: testimonial.selected ? 'Yes' : 'No',
           date: this.formatDate(testimonial.createdAt)
         };
       });
-      
-      // Define PDF document title and subtitle
       const title = 'Testimonials Report';
       let subtitle = 'All Testimonials';
-      
       if (this.filters.chapterName) {
         subtitle = `Chapter: ${this.filters.chapterName}`;
       }
-      
       if (this.filters.startDate && this.filters.endDate) {
         subtitle += ` | Period: ${this.formatDate(this.filters.startDate)} to ${this.formatDate(this.filters.endDate)}`;
       }
-      
-      // Call export service
       await this.exportService.exportToPDF(columns, data, title, subtitle, fileName);
       swalHelper.showToast('PDF file downloaded successfully', 'success');
     } catch (error) {
@@ -287,8 +237,7 @@ export class TestimonialsComponent implements OnInit {
       this.exporting = false;
     }
   }
-  
-  // Helper for file names
+
   private formatDateForFileName(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

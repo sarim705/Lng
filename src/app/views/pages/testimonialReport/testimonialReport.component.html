@@ -97,9 +97,8 @@
             <th class="py-3">Testimonial Given Date/time</th>
           </tr>
         </thead>
-        
         <tbody>
-          <tr *ngFor="let testimonial of testimonials.docs; let i = index" class="border-bottom">
+          <tr *ngFor="let testimonial of testimonials.docs | paginate: { id: paginationConfig.id, itemsPerPage: testimonials.limit, currentPage: testimonials.page, totalItems: testimonials.totalDocs }; let i = index" class="border-bottom">
             <td class="py-3">{{ (testimonials.page - 1) * testimonials.limit + i + 1 }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">
@@ -145,19 +144,15 @@
           </tr>
         </tbody>
       </table>
-      
-      <!-- Pagination Controls -->
+    
       <div class="d-flex justify-content-between align-items-center p-3 border-top">
         <div *ngIf="testimonials.docs && testimonials.docs.length > 0" class="text-muted">
           Showing {{ (testimonials.page - 1) * testimonials.limit + 1 }} to 
           {{ Math.min(testimonials.page * testimonials.limit, testimonials.totalDocs) }} 
           of {{ testimonials.totalDocs }} entries
         </div>
-        
         <pagination-controls 
           [id]="paginationConfig.id"
-          [maxSize]="5"
-          [responsive]="true"
           (pageChange)="onPageChange($event)"
           previousLabel="Previous"
           nextLabel="Next"
@@ -165,7 +160,6 @@
         </pagination-controls>
       </div>
     </div>
-
     <!-- No Testimonials Found -->
     <div *ngIf="!loading && (!testimonials.docs || testimonials.docs.length === 0)" class="text-center my-5 py-4 px-4">
       <div class="empty-state">

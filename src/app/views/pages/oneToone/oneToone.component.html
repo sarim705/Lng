@@ -100,7 +100,7 @@
         </thead>
         
         <tbody>
-          <tr *ngFor="let oneToOne of oneToOnes.docs; let i = index" class="border-bottom">
+          <tr *ngFor="let oneToOne of oneToOnes.docs | paginate: { id: paginationConfig.id, itemsPerPage: oneToOnes.limit, currentPage: oneToOnes.page, totalItems: oneToOnes.totalDocs }; let i = index" class="border-bottom">
             <td class="py-3">{{ (oneToOnes.page - 1) * oneToOnes.limit + i + 1 }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">
@@ -150,18 +150,14 @@
         </tbody>
       </table>
       
-      <!-- Pagination Controls -->
       <div class="d-flex justify-content-between align-items-center p-3 border-top">
         <div *ngIf="oneToOnes.docs && oneToOnes.docs.length > 0" class="text-muted">
           Showing {{ (oneToOnes.page - 1) * oneToOnes.limit + 1 }} to 
           {{ Math.min(oneToOnes.page * oneToOnes.limit, oneToOnes.totalDocs) }} 
           of {{ oneToOnes.totalDocs }} entries
         </div>
-        
         <pagination-controls 
           [id]="paginationConfig.id"
-          [maxSize]="5"
-          [responsive]="true"
           (pageChange)="onPageChange($event)"
           previousLabel="Previous"
           nextLabel="Next"
@@ -170,7 +166,6 @@
       </div>
     </div>
 
-    <!-- No One-to-One Meetings Found -->
     <div *ngIf="!loading && (!oneToOnes.docs || oneToOnes.docs.length === 0)" class="text-center my-5 py-4 px-4">
       <div class="empty-state">
         <i class="bi bi-people fs-1 text-muted mb-3"></i>
