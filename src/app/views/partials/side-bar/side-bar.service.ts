@@ -53,6 +53,12 @@ export class SideBarService {
           icon: 'tag', // Categories or labels
         },
         {
+          title: 'subCategory',
+          link: 'subcategory',
+          icon: 'list', 
+          // Detailed records
+        },
+        {
           title: 'LeaderBoard',
           link: 'leaderboard',
           icon: 'award', // Recognition
@@ -98,12 +104,7 @@ export class SideBarService {
          icon: 'user', // Individual visitor
         },
 
-        {
-          title: 'subCategory',
-          link: 'subcategory',
-          icon: 'list', 
-          // Detailed records
-        }
+       
        // {
         //  title: 'Attendance Record',
         //  link: 'attendanceRecord',

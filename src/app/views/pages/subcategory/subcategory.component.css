@@ -13,7 +13,7 @@
   
   
   .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%, #4e73df 100%);
     color: white;
   }
   
@@ -22,19 +22,7 @@
     letter-spacing: 0.5px;
   }
   
-  .btn-light {
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    color: #667eea;
-    font-weight: 500;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-light:hover {
-    background: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
+
   
   .form-control {
     border: 1px solid #e1e5e9;
@@ -219,11 +207,7 @@
     border-color: #f1f3f4 !important;
   }
   
-  /* Avatar Circle */
-  .rounded-circle {
-    font-weight: 600;
-    font-size: 16px;
-  }
+  
   
   /* Responsive Design */
   @media (max-width: 768px) {
