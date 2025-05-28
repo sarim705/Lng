@@ -65,36 +65,34 @@ export class AdminLoginComponent implements OnInit {
       });
       return;
     }
-
+  
     this.isLoading = true;
     try {
       const credentials = {
         email: this.loginForm.value.email as string,
         password: this.loginForm.value.password as string
       };
-
+  
       const response = await this.authService.adminLogin(credentials);
       
       if (response && response.token) {
         // Store token and admin details
         this.storage.set(common.TOKEN, response.token);
       
-        
         // Show success message
         swalHelper.showToast('Login successful', 'success');
         
         // Navigate to dashboard
         this.router.navigate(['/dashboard']);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      swalHelper.showToast('Login failed. Please check your credentials.', 'error');
+      // Use the error message from the thrown error
+      swalHelper.showToast(error.message || 'Login failed. Please check your credentials.', 'error');
     } finally {
       this.isLoading = false;
     }
   }
-
-  // Clean up when component is destroyed
   ngOnDestroy(): void {
     // Reset the body background color
     document.body.style.backgroundColor = '';

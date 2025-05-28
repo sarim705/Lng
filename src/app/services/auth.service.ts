@@ -11,6 +11,7 @@ import { HttpParams } from '@angular/common/http';
 export interface AdminLoginResponse {
   success: boolean;
   token: string;
+  message:string;
   admin: {
     _id: string;
     name: string;
@@ -88,7 +89,7 @@ export interface StateResponse {
 export interface State {
   _id: string;
   name: string;
-  country_id: string;
+  country_id?: string;
   country_name?: string;
   status: boolean;
   createdAt: string;
@@ -254,7 +255,6 @@ export class AuthService {
   };
 
   
-
   async adminLogin(credentials: { email: string; password: string }): Promise<AdminLoginResponse> {
     try {
       this.headers = []; // No token needed for login
@@ -268,13 +268,14 @@ export class AuthService {
       );
       
       return response.data || response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Admin Login Error:', error);
-      swalHelper.showToast('Failed to login', 'error');
-      throw error;
+      // Extract the error message from the API response if available
+      const errorMessage = error.response?.data?.message || 'Failed to login';
+      swalHelper.showToast(errorMessage, 'error');
+      throw new Error(errorMessage); // Throw the specific error message
     }
   }
-
   getImageUrl(): string {
     return environment.imageUrl;
   }
@@ -440,48 +441,44 @@ export class StateService {
       throw error;
     }
   }
-
-  async createState(data: { name: string; country_id: string; status: boolean }): Promise<any> {
-    try {
-      this.getHeaders();
-      
-      const response = await this.apiManager.request(
-        {
-          url: apiEndpoints.CREATE_STATE,
-          method: 'POST',
-        },
-        data,
-        this.headers
-      );
-      
-      return response;
-    } catch (error) {
-      console.error('Create State Error:', error);
-      swalHelper.showToast('Failed to create state', 'error');
-      throw error;
+  
+    async createState(data: { name: string; country_name: string; status: boolean }): Promise<any> {
+      try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.CREATE_STATE,
+            method: 'POST',
+          },
+          { name: data.name, country_name: data.country_name, status: data.status },
+          this.headers
+        );
+        return response;
+      } catch (error) {
+        console.error('Create State Error:', error);
+        swalHelper.showToast('Failed to create state', 'error');
+        throw error;
+      }
     }
-  }
-
-  async updateState(id: string, data: { name: string; country_id: string; status: boolean }): Promise<any> {
-    try {
-      this.getHeaders();
-      
-      const response = await this.apiManager.request(
-        {
-          url: `${apiEndpoints.UPDATE_STATE}/${id}`,
-          method: 'PUT',
-        },
-        data,
-        this.headers
-      );
-      
-      return response;
-    } catch (error) {
-      console.error('Update State Error:', error);
-      swalHelper.showToast('Failed to update state', 'error');
-      throw error;
+  
+    async updateState(id: string, data: { name: string; country_name: string; status: boolean }): Promise<any> {
+      try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.UPDATE_STATE}/${id}`,
+            method: 'PUT',
+          },
+          { name: data.name, country_name: data.country_name, status: data.status },
+          this.headers
+        );
+        return response;
+      } catch (error) {
+        console.error('Update State Error:', error);
+        swalHelper.showToast('Failed to update state', 'error');
+        throw error;
+      }
     }
-  }
 
   async getStateById(id: string): Promise<any> {
     try {
@@ -1215,8 +1212,8 @@ export class EventService {
     export interface City {
       _id: string;
       name: string;
-      state_id: string;
-      state_name?: string;
+      state_id?: string;
+      state_name: string;
       status: boolean;
       createdAt: string;
       __v: number;
@@ -1267,7 +1264,7 @@ export class EventService {
         }
       }
     
-      async createCity(data: { name: string; state_id: string; status: boolean }): Promise<any> {
+      async createCity(data: { name: string; state_name: string; status: boolean }): Promise<any> {
         try {
           this.getHeaders();
           
@@ -1288,7 +1285,7 @@ export class EventService {
         }
       }
     
-      async updateCity(id: string, data: { name: string; state_id: string; status: boolean }): Promise<any> {
+      async updateCity(id: string, data: { name: string; state_name: string; status: boolean }): Promise<any> {
         try {
           this.getHeaders();
           

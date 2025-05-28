@@ -41,7 +41,7 @@ export class OneToOneComponent implements OnInit {
   filters = {
     page: 1,
     limit: 10,
-    chapter_name: '',
+    chapter_name: null,
     startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
     endDate: this.formatDateForInput(new Date())
   };
@@ -135,7 +135,7 @@ export class OneToOneComponent implements OnInit {
     this.filters = {
       page: 1,
       limit: 10,
-      chapter_name: '',
+      chapter_name: null,
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
@@ -154,8 +154,7 @@ export class OneToOneComponent implements OnInit {
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+     
     });
   }
 

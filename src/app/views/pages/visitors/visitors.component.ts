@@ -37,15 +37,18 @@ export class VisitorsComponent implements OnInit {
   exporting: boolean = false;
   updatingVisitorId: string | null = null;
   
-  // Add Math object for use in template
   Math = Math;
   
   filters = {
     page: 1,
     limit: 10,
-    chapterName: '',
+    chapterName: null,
     startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
     endDate: this.formatDateForInput(new Date())
+  };
+  
+  paginationConfig = {
+    id: 'visitor-pagination'
   };
   
   private filterSubject = new Subject<void>();
@@ -77,6 +80,28 @@ export class VisitorsComponent implements OnInit {
         endDate: this.filters.endDate || undefined
       };
       const response = await this.visitorService.getAllVisitors(requestParams);
+      console.log('Visitors response:', response);
+
+      // Log each visitor object to debug missing fields
+      response.docs.forEach((visitor, index) => {
+        console.log(`Visitor ${index + 1}:`, {
+          name: visitor.name,
+          business_name: visitor.business_name,
+          address: visitor.address,
+          pincode: visitor.pincode,
+          business_type: visitor.business_type,
+          eventId: visitor.eventId
+        });
+      });
+
+      // Filter out invalid or empty visitor objects
+      response.docs = response.docs.filter(visitor => 
+        visitor && visitor._id && visitor.name
+      );
+
+      // Update totalDocs to reflect the filtered count
+      response.totalDocs = response.docs.length;
+
       this.visitors = response;
       this.cdr.detectChanges();
     } catch (error) {
@@ -92,41 +117,42 @@ export class VisitorsComponent implements OnInit {
     try {
       const response = await this.chapterService.getAllChapters({
         page: 1,
-        limit: 1000, // Get all chapters for dropdown
+        limit: 1000,
         search: ''
       });
       this.chapters = response.docs;
+      console.log('Chapters loaded:', this.chapters);
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching chapters:', error);
       swalHelper.showToast('Failed to fetch chapters', 'error');
     } finally {
       this.chaptersLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
   onFilterChange(): void {
-    this.filters.page = 1; // Reset to first page when filters change
-    this.filterSubject.next();
+    this.filters.page = 1;
+    this.fetchVisitors();
   }
 
   onPageChange(page: number): void {
     this.filters.page = page;
-    // No need to fetch again, as paginate pipe handles client-side pagination
-    this.cdr.detectChanges();
+    this.fetchVisitors();
   }
 
   resetFilters(): void {
     this.filters = {
       page: 1,
       limit: 10,
-      chapterName: '',
-      startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
+      chapterName: null,
+      startDate : this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
     this.fetchVisitors();
   }
 
-  // Helper method to format date for display
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -137,7 +163,6 @@ export class VisitorsComponent implements OnInit {
     });
   }
 
-  // Helper method to format date for input fields
   formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -145,7 +170,6 @@ export class VisitorsComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Toggle visitor paid status
   async toggleVisitorPaidStatus(visitor: Visitor): Promise<void> {
     this.updatingVisitorId = visitor._id;
     try {
@@ -164,7 +188,6 @@ export class VisitorsComponent implements OnInit {
     }
   }
 
-  // Export to Excel
   async exportToExcel(): Promise<void> {
     try {
       this.exporting = true;
@@ -176,21 +199,23 @@ export class VisitorsComponent implements OnInit {
         page: 1
       };
       const allData = await this.visitorService.getAllVisitors(exportParams);
-      const exportData = allData.docs.map((visitor, index) => ({
-        'Sr No': index + 1,
-        'Title': visitor.eventId?.name || 'N/A',
-        'Visitor Name': visitor.name || 'N/A',
-        'Chapter': visitor.refUserId?.chapter_name || 'N/A',
-        'Company Name': visitor.business_name || 'N/A',
-        'Mobile No': visitor.mobile_number || 'N/A',
-        'Email': visitor.email || 'N/A',
-        'Visitor Address': visitor.address || 'N/A',
-        'PinCode': visitor.pincode || 'N/A',
-        'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
-        'Profession': visitor.business_type || 'N/A',
-        'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
-        'Fees': visitor.fees || 'N/A'
-      }));
+      const exportData = allData.docs.map((visitor, index) => {
+        return {
+          'Sr No': index + 1,
+          'Title': visitor.eventId?.name || 'N/A',
+          'Visitor Name': visitor.name || 'N/A',
+          'Chapter': visitor.refUserId?.chapter_name || 'N/A',
+          'Company Name': visitor.business_name || 'N/A',
+          'Mobile No': visitor.mobile_number || 'N/A',
+          'Email': visitor.email || 'N/A',
+          'Visitor Address': visitor.address || 'N/A',
+          'PinCode': visitor.pincode || 'N/A',
+          'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
+          'Profession': visitor.business_type || 'N/A',
+          'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
+          'Fees': visitor.fees || 'N/A'
+        };
+      });
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
       await this.exportService.exportToExcel(exportData, fileName);
       swalHelper.showToast('Excel file downloaded successfully', 'success');
@@ -202,7 +227,6 @@ export class VisitorsComponent implements OnInit {
     }
   }
 
-  // Export to PDF
   async exportToPDF(): Promise<void> {
     try {
       this.exporting = true;
@@ -213,7 +237,7 @@ export class VisitorsComponent implements OnInit {
         limit: 10000,
         page: 1
       };
-      const allData = await this.visitorService.getAllVisitors(exportParams);
+      const allData = await  this.visitorService.getAllVisitors(exportParams);
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },
@@ -227,18 +251,20 @@ export class VisitorsComponent implements OnInit {
         { header: 'Profession', dataKey: 'profession' },
         { header: 'Visitor Type', dataKey: 'visitorType' }
       ];
-      const data = allData.docs.map((visitor, index) => ({
-        srNo: index + 1,
-        title: visitor.eventId?.name || 'N/A',
-        visitorName: `${visitor.name || 'N/A'}\n(${visitor.refUserId?.chapter_name || 'N/A'})`,
-        companyName: visitor.business_name || 'N/A',
-        mobileNo: visitor.mobile_number || 'N/A',
-        address: visitor.address || 'N/A',
-        pincode: visitor.pincode || 'N/A',
-        visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
-        profession: visitor.business_type || 'N/A',
-        visitorType: visitor.paid ? 'Paid' : 'Unpaid'
-      }));
+      const data = allData.docs.map((visitor, index) => {
+        return {
+          srNo: index + 1,
+          title: visitor.eventId?.name || 'N/A',
+          visitorName: `${visitor.name || 'N/A'}\n(${visitor.refUserId?.chapter_name || 'N/A'})`,
+          companyName: visitor.business_name || 'N/A',
+          mobileNo: visitor.mobile_number || 'N/A',
+          address: visitor.address || 'N/A',
+          pincode: visitor.pincode || 'N/A',
+          visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
+          profession: visitor.business_type || 'N/A',
+          visitorType: visitor.paid ? 'Paid' : 'Unpaid'
+        };
+      });
       const title = 'Visitors Report';
       let subtitle = 'All Visitors';
       if (this.filters.chapterName) {
@@ -257,7 +283,6 @@ export class VisitorsComponent implements OnInit {
     }
   }
 
-  // Helper for file names
   private formatDateForFileName(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

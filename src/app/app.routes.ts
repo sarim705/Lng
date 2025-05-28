@@ -56,7 +56,7 @@ export const routes: Routes = [
       { path: 'oneTooneReport', component:OneToOneComponent},
       { path: 'tyfcb', component:TyfcbComponent},
       { path: 'VisitorsReport', component: VisitorsComponent},
-      // {path: 'attendanceRecord', component: AttendanceRecord},
+      //{path: 'attendanceRecord', component: AttendanceRecord},
       {path: 'attendanceRecord', component: AttendanceReportComponent},
       {path: 'registerComponent', component: RegisterComponent},
       {path: 'referralPoints', component: PointHistoryComponent},

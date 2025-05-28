@@ -2,7 +2,7 @@
 <div class="container-fluid">
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
     <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
-      <h4 class="mb-0 fw-bold">
+      <h4 class="mb-0 fw-bold text-white">
         <i class="bi bi-trophy me-2"></i>Point History
       </h4>
       <div class="export-buttons">
@@ -133,13 +133,13 @@
                 </div>
               </div>
             </td>
-            <td class="py-3">{{point.leaderboardPoints?.attendance_regular || 0}}</td>
-            <td class="py-3">{{point.leaderboardPoints?.induction || 0}}</td>
-            <td class="py-3">{{point.leaderboardPoints?.referal || 0}}</td>
-            <td class="py-3">{{point.leaderboardPoints?.one_to_one || 0}}</td>
-            <td class="py-3">{{point.leaderboardPoints?.tyfcb || 0}}</td>
-            <td class="py-3">{{point.leaderboardPoints?.event_attendance || 0}}</td>
-            <td class="py-3">{{point.leaderboardPoints?.visitor || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.attendance_regular || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.induction || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.referal || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.one_to_one || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.tyfcb || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.event_attendance || 0}}</td>
+            <td class="py-3">{{point.leaderboardPoints.visitor || 0}}</td>
             <td class="py-3">{{point.totalPointsSum || 0}}</td>
           </tr>
         </tbody>

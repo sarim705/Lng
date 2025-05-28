@@ -120,7 +120,10 @@ export class UsersComponent implements OnInit, AfterViewInit {
     this.payload.search = this.searchQuery;
     this.searchSubject.next(this.searchQuery);
   }
-
+handleImageError(event: Event): void {
+  const imgElement = event.target as HTMLImageElement;
+  imgElement.src = '/assets/images/placeholder-image.png';
+}
   onChange(): void {
     this.payload.page = 1;
     this.fetchUsers();

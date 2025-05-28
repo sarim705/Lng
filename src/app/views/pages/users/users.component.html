@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
     <div class="card-header bg-primary d-flex justify-content-between align-items-center py-3">
-      <h4 class="mb-0 fw-bold">
+      <h4 class="mb-0 fw-bold text-white">
         <i class="bi bi-people-fill me-2"></i>All Members
       </h4>
       <div>
@@ -19,7 +19,6 @@
           <input type="text" class="form-control" placeholder="Search..." [(ngModel)]="searchQuery" (input)="onSearch()">
         </div>
         <div class="ms-2">
-          <label for="limitSelect" class="form-label mb-1">Items per page</label>
           <ng-select
             id="limitSelect"
             [items]="[10, 25, 50, 100]"
@@ -62,15 +61,10 @@
           <tr *ngFor="let user of users?.docs | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: users?.totalDocs }; let i=index" class="border-bottom">
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
-                <div *ngIf="user.profilePic" class="position-relative">
-                  <img [src]="imageurl + '/' + user.profilePic" class="rounded-circle me-3 shadow-sm border border-2 border-white"
-                    width="48" height="48" alt="User" onerror="this.src='/assets/images/placeholder-image.png'">
-                </div>
-                <div *ngIf="!user.profilePic"
-                  class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white position-relative"
-                  style="width: 48px; height: 48px; color: white;">
-                  {{user.name ? user.name.charAt(0).toUpperCase() : 'U'}}
-                </div>
+                <img [src]="user.profilePic ? (imageurl + '/' + user.profilePic) : '/assets/images/placeholder-image.png'"
+                     class="rounded-circle me-3 shadow-sm border border-2 border-white"
+                     width="48" height="48" alt="User"
+                     (error)="handleImageError($event)">
                 <div>
                   <div class="fw-bold text-dark">{{user.name || 'Unknown User'}}</div>
                   <small class="text-muted d-block">ID: {{user._id ? user._id.substring(0, 8) : 'N/A'}}</small>
@@ -152,12 +146,13 @@
   aria-labelledby="modalTitleId" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg" role="document">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-      <div class="modal-header text-black">
+      <div class="modal-header bg-gradient-primary text-white">
         <h5 class="modal-title" id="modalTitleId">
           <i class="bi bi-person-badge-fill me-2"></i> User Details
         </h5>
         <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+
       <div class="modal-body p-4" *ngIf="selectedUser">
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs mb-4">
@@ -179,20 +174,16 @@
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body text-center">
                   <div class="position-relative d-inline-block">
-                    <img *ngIf="selectedUser.profilePic" [src]="imageurl + '/' + selectedUser.profilePic"
-                      class="img-fluid rounded-circle mb-3 shadow-sm border border-3 border-white"
-                      style="width: 180px; height: 180px; object-fit: cover;"
-                      alt="User Image" onerror="this.src='assets/images/placeholder-image.png'">
-                    <div *ngIf="!selectedUser.profilePic"
-                      class="bg-gradient-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm border border-3 border-white"
-                      style="width: 180px; height: 180px; color: white; font-size: 4rem;">
-                      {{selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U'}}
-                    </div>
+                    <img [src]="selectedUser.profilePic ? (imageurl + '/' + selectedUser.profilePic) : '/assets/images/placeholder-image.png'"
+                         class="img-fluid rounded-circle mb-3 shadow-sm border border-3 border-white"
+                         style="width: 180px; height: 180px; object-fit: cover;"
+                         alt="User Image"
+                         (error)="handleImageError($event)">
                   </div>
                   <h4 class="mb-1 mt-2">{{selectedUser.name || 'Unknown User'}}</h4>
                   <p class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{selectedUser.meeting_role || 'N/A'}}</p>
                   <div class="mt-2">
-                    <span class="badge bg-light text-dark px-3 py-2">Chapter: {{selectedUser.chapter_name|| 'N/A'}}</span>
+                    <span class="badge bg-light text-dark px-3 py-2">Chapter: {{selectedUser.chapter_name || 'N/A'}}</span>
                   </div>
                   <div class="mt-3" *ngIf="selectedUser.points !== undefined">
                     <span class="badge bg-light text-dark px-3 py-2">Points: {{selectedUser.points}}</span>

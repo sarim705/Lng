@@ -30,9 +30,9 @@ export class CitiesComponent implements OnInit, AfterViewInit {
     hasPrevPage: false,
     hasNextPage: false,
     prevPage: null,
-    nextPage: null
+    nextPage: null,
   };
-  
+
   states: State[] = [];
   loading: boolean = false;
   statesLoading: boolean = false;
@@ -41,22 +41,20 @@ export class CitiesComponent implements OnInit, AfterViewInit {
   cityModal: any;
   editMode: boolean = false;
   statesLoaded: boolean = false;
-  
-  // New property to track the selected state object
-  selectedState: State | null = null;
-  
+
   newCity = {
     name: '',
     state_id: '',
-    status: false
+    state_name: '', // Add state_name
+    status: false,
   };
-  
+
   private searchSubject = new Subject<string>();
-  
+
   payload = {
     search: '',
     page: 1,
-    limit: 10
+    limit: 10,
   };
 
   constructor(
@@ -64,16 +62,14 @@ export class CitiesComponent implements OnInit, AfterViewInit {
     private stateService: StateService,
     private cdr: ChangeDetectorRef
   ) {
-    this.searchSubject.pipe(
-      debounceTime(500)
-    ).subscribe(() => {
+    this.searchSubject.pipe(debounceTime(500)).subscribe(() => {
       this.fetchCities();
     });
   }
 
   ngOnInit(): void {
+    this.fetchStates(); // Fetch states first
     this.fetchCities();
-    this.fetchStates();
   }
 
   ngAfterViewInit(): void {
@@ -89,32 +85,15 @@ export class CitiesComponent implements OnInit, AfterViewInit {
 
   async fetchCities(): Promise<void> {
     this.loading = true;
-    
     try {
       const requestData = {
         page: this.payload.page,
         limit: this.payload.limit,
-        search: this.payload.search
+        search: this.payload.search,
       };
-      
       const response = await this.cityService.getAllCities(requestData);
       this.cities = response;
-      
-      // Ensure we have state data for each city
-      if (this.statesLoaded) {
-        this.cities.docs = this.cities.docs.map(city => {
-          // If state_name is empty but we have state_id, try to get the name
-          if (!city.state_name && city.state_id) {
-            const stateName = this.getStateName(city.state_id);
-            return {
-              ...city,
-              state_name: stateName !== 'Unknown' ? stateName : city.state_name
-            };
-          }
-          return city;
-        });
-      }
-      
+      console.log('Fetched cities:', this.cities);
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -127,31 +106,21 @@ export class CitiesComponent implements OnInit, AfterViewInit {
   async fetchStates(): Promise<void> {
     this.statesLoading = true;
     this.statesLoaded = false;
-    
     try {
-      console.log('Fetching states...');
       const response = await this.stateService.getAllStates({
         page: 1,
         limit: 1000,
-        search: ''
+        search: '',
       });
-      
-      console.log('States response:', response);
-      
       this.states = response.docs;
       this.statesLoaded = true;
-      console.log('Available states:', this.states);
-      
-      // If we already have cities, update their state names
-      if (this.cities && this.cities.docs.length > 0) {
-        this.fetchCities();
-      }
+      console.log('Fetched states:', this.states);
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching states:', error);
       swalHelper.showToast('Failed to fetch states', 'error');
     } finally {
       this.statesLoading = false;
-      this.cdr.detectChanges();
     }
   }
 
@@ -160,7 +129,7 @@ export class CitiesComponent implements OnInit, AfterViewInit {
     this.payload.search = this.searchQuery;
     this.searchSubject.next(this.searchQuery);
   }
-  
+
   onChange(): void {
     this.payload.page = 1;
     this.fetchCities();
@@ -171,65 +140,54 @@ export class CitiesComponent implements OnInit, AfterViewInit {
     this.fetchCities();
   }
 
-  async openAddCityModal(): Promise<void> {
+  openAddCityModal(): void {
+    if (!this.statesLoaded) {
+      swalHelper.showToast('Please wait for states to load', 'warning');
+      return;
+    }
     this.editMode = false;
     this.newCity = {
       name: '',
       state_id: '',
-      status: false
+      state_name: '',
+      status: false,
     };
-    this.selectedState = null;
-    
-    if (!this.statesLoaded) {
-      await this.fetchStates();
-    }
-    
-    setTimeout(() => {
-      this.showModal();
-    }, 100);
+    this.showModal();
   }
 
-  async openEditCityModal(city: City): Promise<void> {
+  openEditCityModal(city: City): void {
+    if (!this.statesLoaded) {
+      swalHelper.showToast('Please wait for states to load', 'warning');
+      return;
+    }
     this.editMode = true;
     this.selectedCity = city;
-    
-    // Make sure we use the actual state_id if it exists
+    console.log('Full city object:', JSON.stringify(city, null, 2));
+    const stateId = this.getStateIdByName(city.state_name) || city.state_id || '';
     this.newCity = {
       name: city.name,
-      state_id: city.state_id || '',
-      status: city.status
+      state_id: stateId,
+      state_name: city.state_name || '',
+      status: city.status,
     };
-    
-    // Find the state object for the selected city
-    if (city.state_id) {
-      this.selectedState = this.states.find(s => s._id === city.state_id) || null;
-    } else {
-      this.selectedState = null;
-    }
-    
-    console.log('Editing city:', city);
-    console.log('Selected state_id:', this.newCity.state_id);
-    console.log('Selected state object:', this.selectedState);
-    
-    if (!this.statesLoaded) {
-      await this.fetchStates();
-    }
-    
-    setTimeout(() => {
-      this.showModal();
-    }, 100);
+    console.log('newCity after initialization:', this.newCity);
+    console.log('States available:', this.states);
+    this.cdr.detectChanges();
+    setTimeout(() => this.showModal(), 100);
   }
-  
-  // New method to handle state selection
-  onStateSelect(state: State): void {
-    this.selectedState = state;
-    this.newCity.state_id = state._id;
-    console.log('State selected:', state);
+
+  private getStateIdByName(stateName: string | undefined): string | undefined {
+    if (!stateName) {
+      console.log('No state_name provided');
+      return undefined;
+    }
+    const state = this.states.find(s => s.name.toLowerCase() === stateName.toLowerCase());
+    console.log(`Looking up state_id for state_name: ${stateName}, found:`, state);
+    return state ? state._id : undefined;
   }
-  
+
   showModal(): void {
     this.cdr.detectChanges();
-    
     if (this.cityModal) {
       this.cityModal.show();
     } else {
@@ -240,17 +198,15 @@ export class CitiesComponent implements OnInit, AfterViewInit {
           this.cityModal = modalInstance;
           modalInstance.show();
         } else {
-          // Fallback to jQuery
           $('#cityModal').modal('show');
         }
       } catch (error) {
         console.error('Error showing modal:', error);
-        // Last resort fallback
         $('#cityModal').modal('show');
       }
     }
   }
-  
+
   closeModal(): void {
     if (this.cityModal) {
       this.cityModal.hide();
@@ -261,43 +217,18 @@ export class CitiesComponent implements OnInit, AfterViewInit {
 
   async saveCity(): Promise<void> {
     try {
-      // Validate form
-      if (!this.newCity.name || !this.newCity.state_id) {
-        swalHelper.showToast('Please fill all required fields', 'warning');
-        return;
-      }
-      
       this.loading = true;
-      
-      // Find selected state object if not already set
-      if (!this.selectedState && this.newCity.state_id) {
-        this.selectedState = this.states.find(s => s._id === this.newCity.state_id) || null;
-      }
-      
-      // Debugging - log the city data we're sending
-      console.log('Saving city with data:', this.newCity);
-      console.log('Selected state:', this.selectedState);
-      
+      // Set state_name based on selected state_id
+      const selectedState = this.states.find(s => s._id === this.newCity.state_id);
+      this.newCity.state_name = selectedState ? selectedState.name : '';
+      console.log('Payload for saveCity:', this.newCity);
+
       if (this.editMode && this.selectedCity) {
-        // Update existing city
-        const cityData: any = {
+        const response = await this.cityService.updateCity(this.selectedCity._id, {
           name: this.newCity.name,
-          state_id: this.newCity.state_id,
-          status: this.newCity.status
-        };
-        
-        // Add state_name if we have it
-        if (this.selectedState) {
-          cityData.state_name = this.selectedState.name;
-        }
-        
-        const response = await this.cityService.updateCity(
-          this.selectedCity._id,
-          cityData
-        );
-        
-        console.log('Update response:', response);
-        
+          state_name: this.newCity.state_name,
+          status: this.newCity.status,
+        });
         if (response && response.success) {
           swalHelper.showToast('City updated successfully', 'success');
           this.closeModal();
@@ -306,22 +237,11 @@ export class CitiesComponent implements OnInit, AfterViewInit {
           swalHelper.showToast(response.message || 'Failed to update city', 'error');
         }
       } else {
-        // Create new city
-        const cityData: any = {
+        const response = await this.cityService.createCity({
           name: this.newCity.name,
-          state_id: this.newCity.state_id,
-          status: this.newCity.status
-        };
-        
-        // Add state_name if we have it
-        if (this.selectedState) {
-          cityData.state_name = this.selectedState.name;
-        }
-        
-        const response = await this.cityService.createCity(cityData);
-        
-        console.log('Create response:', response);
-        
+          state_name: this.newCity.state_name,
+          status: this.newCity.status,
+        });
         if (response && response.success) {
           swalHelper.showToast('City created successfully', 'success');
           this.closeModal();
@@ -341,26 +261,14 @@ export class CitiesComponent implements OnInit, AfterViewInit {
   async toggleCityStatus(city: City): Promise<void> {
     try {
       this.loading = true;
-      
       const updatedStatus = !city.status;
-      
-      // Create update data object with type 'any' to allow additional properties
-      const updateData: any = { 
-        name: city.name, 
-        state_id: city.state_id,
-        status: updatedStatus 
-      };
-      
-      // Only add state_name if it exists in the city object
-      if (city.state_name) {
-        updateData.state_name = city.state_name;
-      }
-      
-      const response = await this.cityService.updateCity(
-        city._id,
-        updateData
-      );
-      
+      const stateId = this.getStateIdByName(city.state_name) || city.state_id;
+      const state = this.states.find(s => s._id === stateId);
+      const response = await this.cityService.updateCity(city._id, {
+        name: city.name,
+        state_name: state ? state.name : city.state_name || '',
+        status: updatedStatus,
+      });
       if (response && response.success) {
         city.status = updatedStatus;
         swalHelper.showToast(`City status changed to ${updatedStatus ? 'Active' : 'Inactive'}`, 'success');
@@ -382,13 +290,10 @@ export class CitiesComponent implements OnInit, AfterViewInit {
         'Are you sure you want to delete this city? This action cannot be undone.',
         'warning'
       );
-      
       if (result.isConfirmed) {
         this.loading = true;
-        
         try {
           const response = await this.cityService.deleteCity(cityId);
-          
           if (response && response.success) {
             swalHelper.showToast('City deleted successfully', 'success');
             this.fetchCities();
@@ -407,14 +312,12 @@ export class CitiesComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper to find state name by id
   getStateName(stateId: string): string {
     if (!stateId) return 'Unknown';
     const state = this.states.find(s => s._id === stateId);
     return state ? state.name : 'Unknown';
   }
 
-  // Format date helper function
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();

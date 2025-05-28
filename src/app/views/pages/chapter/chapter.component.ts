@@ -30,9 +30,9 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     hasPrevPage: false,
     hasNextPage: false,
     prevPage: null,
-    nextPage: null
+    nextPage: null,
   };
-  
+
   cities: City[] = [];
   loading: boolean = false;
   citiesLoading: boolean = false;
@@ -41,23 +41,20 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
   chapterModal: any;
   editMode: boolean = false;
   citiesLoaded: boolean = false;
-  
+
   newChapter = {
     name: '',
     city_id: '',
     city_name: '',
-    status: false
+    status: false,
   };
-  
-  // Property to track the selected city object
-  selectedCity: City | null = null;
-  
+
   private searchSubject = new Subject<string>();
-  
+
   payload = {
     search: '',
     page: 1,
-    limit: 10
+    limit: 10,
   };
 
   constructor(
@@ -65,16 +62,14 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     private cityService: CityService,
     private cdr: ChangeDetectorRef
   ) {
-    this.searchSubject.pipe(
-      debounceTime(500)
-    ).subscribe(() => {
+    this.searchSubject.pipe(debounceTime(500)).subscribe(() => {
       this.fetchChapters();
     });
   }
 
   ngOnInit(): void {
+    this.fetchCities(); // Fetch cities first to ensure dropdown is populated
     this.fetchChapters();
-    this.fetchCities();
   }
 
   ngAfterViewInit(): void {
@@ -90,32 +85,15 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
 
   async fetchChapters(): Promise<void> {
     this.loading = true;
-    
     try {
       const requestData = {
         page: this.payload.page,
         limit: this.payload.limit,
-        search: this.payload.search
+        search: this.payload.search,
       };
-      
       const response = await this.chapterService.getAllChapters(requestData);
       this.chapters = response;
-      
-      // Ensure we have city data for each chapter
-      if (this.citiesLoaded) {
-        this.chapters.docs = this.chapters.docs.map(chapter => {
-          // If city_name is empty but we have city_id, try to get the name
-          if (!chapter.city_name && chapter.city_id) {
-            const cityName = this.getCityName(chapter.city_id);
-            return {
-              ...chapter,
-              city_name: cityName || chapter.city_name
-            };
-          }
-          return chapter;
-        });
-      }
-      
+      console.log('Fetched chapters:', this.chapters);
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -128,31 +106,21 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
   async fetchCities(): Promise<void> {
     this.citiesLoading = true;
     this.citiesLoaded = false;
-    
     try {
-      console.log('Fetching cities...');
       const response = await this.cityService.getAllCities({
         page: 1,
         limit: 1000,
-        search: ''
+        search: '',
       });
-      
-      console.log('Cities response:', response);
-      
       this.cities = response.docs;
       this.citiesLoaded = true;
-      console.log('Available cities:', this.cities);
-      
-      // If we already have chapters, update their city names
-      if (this.chapters && this.chapters.docs.length > 0) {
-        this.fetchChapters();
-      }
+      console.log('Fetched cities:', this.cities);
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching cities:', error);
       swalHelper.showToast('Failed to fetch cities', 'error');
     } finally {
       this.citiesLoading = false;
-      this.cdr.detectChanges();
     }
   }
 
@@ -161,7 +129,7 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     this.payload.search = this.searchQuery;
     this.searchSubject.next(this.searchQuery);
   }
-  
+
   onChange(): void {
     this.payload.page = 1;
     this.fetchChapters();
@@ -172,60 +140,54 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     this.fetchChapters();
   }
 
-  async openAddChapterModal(): Promise<void> {
+  openAddChapterModal(): void {
+    if (!this.citiesLoaded) {
+      swalHelper.showToast('Please wait for cities to load', 'warning');
+      return;
+    }
     this.editMode = false;
     this.newChapter = {
       name: '',
       city_id: '',
       city_name: '',
-      status: false
+      status: false,
     };
-    this.selectedCity = null;
-    
-    if (!this.citiesLoaded) {
-      await this.fetchCities();
-    }
-    
-    setTimeout(() => {
-      this.showModal();
-    }, 100);
+    this.showModal();
   }
 
-  async openEditChapterModal(chapter: Chapter): Promise<void> {
+  openEditChapterModal(chapter: Chapter): void {
+    if (!this.citiesLoaded) {
+      swalHelper.showToast('Please wait for cities to load', 'warning');
+      return;
+    }
     this.editMode = true;
     this.selectedChapter = chapter;
-    
-    // Make sure we use the actual city_id if it exists
+    console.log('Full chapter object:', JSON.stringify(chapter, null, 2));
+    const cityId = this.getCityIdByName(chapter.city_name) || chapter.city_id || '';
     this.newChapter = {
       name: chapter.name,
-      city_id: chapter.city_id || '',
+      city_id: cityId,
       city_name: chapter.city_name || '',
-      status: chapter.status
+      status: chapter.status,
     };
-    
-    // Find the city object for the selected chapter
-    if (chapter.city_id) {
-      this.selectedCity = this.cities.find(c => c._id === chapter.city_id) || null;
-    } else {
-      this.selectedCity = null;
-    }
-    
-    console.log('Editing chapter:', chapter);
-    console.log('Selected city_id:', this.newChapter.city_id);
-    console.log('Selected city object:', this.selectedCity);
-    
-    if (!this.citiesLoaded) {
-      await this.fetchCities();
-    }
-    
-    setTimeout(() => {
-      this.showModal();
-    }, 100);
+    console.log('newChapter after initialization:', this.newChapter);
+    console.log('Cities available:', this.cities);
+    this.cdr.detectChanges();
+    setTimeout(() => this.showModal(), 100);
   }
-  
+
+  private getCityIdByName(cityName: string | undefined): string | undefined {
+    if (!cityName) {
+      console.log('No city_name provided');
+      return undefined;
+    }
+    const city = this.cities.find(c => c.name.toLowerCase() === cityName.toLowerCase());
+    console.log(`Looking up city_id for city_name: ${cityName}, found:`, city);
+    return city ? city._id : undefined;
+  }
+
   showModal(): void {
     this.cdr.detectChanges();
-    
     if (this.chapterModal) {
       this.chapterModal.show();
     } else {
@@ -236,17 +198,15 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
           this.chapterModal = modalInstance;
           modalInstance.show();
         } else {
-          // Fallback to jQuery
           $('#chapterModal').modal('show');
         }
       } catch (error) {
         console.error('Error showing modal:', error);
-        // Last resort fallback
         $('#chapterModal').modal('show');
       }
     }
   }
-  
+
   closeModal(): void {
     if (this.chapterModal) {
       this.chapterModal.hide();
@@ -255,52 +215,20 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Method to handle city selection
-  onCitySelect(city: City): void {
-    this.selectedCity = city;
-    this.newChapter.city_id = city._id;
-    this.newChapter.city_name = city.name;
-    console.log('City selected:', city);
-  }
-
   async saveChapter(): Promise<void> {
     try {
-      // Validate form
-      if (!this.newChapter.name) {
-        swalHelper.showToast('Please enter chapter name', 'warning');
-        return;
-      }
-      
       this.loading = true;
-      
-      // Find selected city object if not already set
-      if (!this.selectedCity && this.newChapter.city_id) {
-        this.selectedCity = this.cities.find(c => c._id === this.newChapter.city_id) || null;
-        if (this.selectedCity) {
-          this.newChapter.city_name = this.selectedCity.name;
-        }
-      }
-      
-      // Debugging - log the chapter data we're sending
-      console.log('Saving chapter with data:', this.newChapter);
-      console.log('Selected city:', this.selectedCity);
-      
+      // Set city_name based on selected city_id
+      const selectedCity = this.cities.find(c => c._id === this.newChapter.city_id);
+      this.newChapter.city_name = selectedCity ? selectedCity.name : '';
+      console.log('Payload for saveChapter:', this.newChapter);
+
       if (this.editMode && this.selectedChapter) {
-        // Update existing chapter
-        const chapterData: any = {
+        const response = await this.chapterService.updateChapter(this.selectedChapter._id, {
           name: this.newChapter.name,
-          city_id: this.newChapter.city_id,
           city_name: this.newChapter.city_name,
-          status: this.newChapter.status
-        };
-        
-        const response = await this.chapterService.updateChapter(
-          this.selectedChapter._id,
-          chapterData
-        );
-        
-        console.log('Update response:', response);
-        
+          status: this.newChapter.status,
+        });
         if (response && response.success) {
           swalHelper.showToast('Chapter updated successfully', 'success');
           this.closeModal();
@@ -309,18 +237,11 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
           swalHelper.showToast(response.message || 'Failed to update chapter', 'error');
         }
       } else {
-        // Create new chapter
-        const chapterData: any = {
+        const response = await this.chapterService.createChapter({
           name: this.newChapter.name,
-          city_id: this.newChapter.city_id,
           city_name: this.newChapter.city_name,
-          status: this.newChapter.status
-        };
-        
-        const response = await this.chapterService.createChapter(chapterData);
-        
-        console.log('Create response:', response);
-        
+          status: this.newChapter.status,
+        });
         if (response && response.success) {
           swalHelper.showToast('Chapter created successfully', 'success');
           this.closeModal();
@@ -340,19 +261,14 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
   async toggleChapterStatus(chapter: Chapter): Promise<void> {
     try {
       this.loading = true;
-      
       const updatedStatus = !chapter.status;
-      
-      const response = await this.chapterService.updateChapter(
-        chapter._id,
-        { 
-          name: chapter.name, 
-          city_id: chapter.city_id,
-          city_name: chapter.city_name,
-          status: updatedStatus 
-        }
-      );
-      
+      const cityId = this.getCityIdByName(chapter.city_name) || chapter.city_id;
+      const city = this.cities.find(c => c._id === cityId);
+      const response = await this.chapterService.updateChapter(chapter._id, {
+        name: chapter.name,
+        city_name: city ? city.name : chapter.city_name || '',
+        status: updatedStatus,
+      });
       if (response && response.success) {
         chapter.status = updatedStatus;
         swalHelper.showToast(`Chapter status changed to ${updatedStatus ? 'Active' : 'Inactive'}`, 'success');
@@ -374,13 +290,10 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
         'Are you sure you want to delete this chapter? This action cannot be undone.',
         'warning'
       );
-      
       if (result.isConfirmed) {
         this.loading = true;
-        
         try {
           const response = await this.chapterService.deleteChapter(chapterId);
-          
           if (response && response.success) {
             swalHelper.showToast('Chapter deleted successfully', 'success');
             this.fetchChapters();
@@ -399,14 +312,12 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper to find city name by id
   getCityName(cityId: string): string {
-    if (!cityId) return 'Unknown';
+    if (!cityId) return 'Not Assigned';
     const city = this.cities.find(c => c._id === cityId);
-    return city ? city.name : 'Unknown';
+    return city ? city.name : 'Not Assigned';
   }
 
-  // Format date helper function
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();

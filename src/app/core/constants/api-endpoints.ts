@@ -64,7 +64,7 @@ public      CREATE_CITY  :string=`${this.PATH}/createCity`
 public     GET_ALL_CITIES :string=`${this.PATH}/getCities`
 public     GET_CITY_BY_ID :string=`${this.PATH}/getCityById`
 public UPDATE_CITY:string=`${this.PATH}/updateCity`
-public  DELETE_CITY:string=`${this.PATH}/api/cities`
+public  DELETE_CITY:string=`${this.PATH}/deleteCity`
 
 public  CREATE_LEADERBOARD:string=`${this.PATH}/createLeaderboard`
 public  GET_ALL_LEADERBOARDS:string=`${this.PATH}/getAllLeaderboards`

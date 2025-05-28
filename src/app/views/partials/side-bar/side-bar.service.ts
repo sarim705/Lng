@@ -92,16 +92,16 @@ export class SideBarService {
           link: 'tyfcb',
           icon: 'trending-up', // Business metrics
         },
-        {
+         {
           title: 'Visitors Report',
-          link: 'VisitorsReport',
-          icon: 'user', // Individual visitor
+         link: 'VisitorsReport',
+         icon: 'user', // Individual visitor
         },
-        {
-          title: 'Attendance Record',
-          link: 'attendanceRecord',
-          icon: 'clipboard', // Detailed records
-        },
+       // {
+        //  title: 'Attendance Record',
+        //  link: 'attendanceRecord',
+      //    icon: 'clipboard', // Detailed records
+       // },
      
       ],
     },
