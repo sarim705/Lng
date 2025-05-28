@@ -237,7 +237,7 @@ export class VisitorsComponent implements OnInit {
         limit: 10000,
         page: 1
       };
-      const allData = await  this.visitorService.getAllVisitors(exportParams);
+      const allData = await this.visitorService.getAllVisitors(exportParams);
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },

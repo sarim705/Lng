@@ -89,7 +89,7 @@
         <thead class="bg-light">
           <tr>
             <th class="py-3">Sr No</th>
-            <th class="py-3">Event Title</th>
+            <th class="py-3">Title</th>
             <th class="py-3">Visitor Name</th>
             <th class="py-3">Company Name</th>
             <th class="py-3">Mobile No</th>
@@ -101,11 +101,11 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let visitor of visitors.docs | paginate: { id: paginationConfig.id, itemsPerPage: visitors.limit, currentPage: visitors.page, totalItems: visitors.totalDocs }; let i = index"
-              class="border-bottom"
-              [ngClass]="{'d-none': !(visitor && visitor._id && visitor.name)}">
+          <tr *ngFor="let visitor of visitors.docs | paginate: { id: paginationConfig.id, itemsPerPage: visitors.limit, currentPage: visitors.page, totalItems: visitors.totalDocs }; let i = index" 
+              class="border-bottom" 
+              [hidden]="!visitor || !visitor._id || !visitor.name">
             <td class="py-3">{{ (visitors.page - 1) * visitors.limit + i + 1 }}</td>
-            <td class="py-3">{{ visitor.eventId.name || 'N/A' }}</td>
+            <td class="py-3">{{ visitor.eventId?.name || 'N/A' }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">
                 <div>
