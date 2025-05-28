@@ -53,7 +53,7 @@ export class SideBarService {
           icon: 'tag', // Categories or labels
         },
         {
-          title: 'subCategory',
+          title: 'subCategories',
           link: 'subcategory',
           icon: 'list', 
           // Detailed records
