@@ -82,6 +82,11 @@ public UPDATE_VISITOR:string=`${this.PATH}/updateVisitor`
 public REFERRAL_RECEIVED:string=`${this.PATH}/referrals/received`
 public REFERRAL_GIVEN:string=`${this.PATH}/referrals/given`
 public GET_CHAPTER_BY_CITY:string=`${this.PATH}/getChapterByCity`
+public DELETE_SUBCATEGORY:string=`${this.PATH}/deleteSubCategory`
+public GET_SUBCATEGORIES:string=`${this.PATH}/getSubCategories`
+public CREATE_SUBCATEGORY:string=`${this.PATH}/createSubCategory`
+public UPDATE_SUBCATEGORY:string=`${this.PATH}/updateSubCategory`
+
 
 
 

@@ -25,6 +25,7 @@ import { AttendanceReportComponent } from './views/pages/attendenceReport/attend
 import {RegisterComponent} from './views/pages/userRegisteration/userRegisteration.component';
 import { PointHistoryComponent } from './views/pages/ReferralPoints/referralpoint.component';
 import{AdminLoginComponent} from './views/pages/login/login.component';
+import { SubCategoriesComponent } from './views/pages/subcategory/subcategory.component';
 
 
 
@@ -47,6 +48,7 @@ export const routes: Routes = [
       { path: 'attendence', component:   AttendanceComponent },
       { path: 'chapter', component:   ChaptersComponent },
       { path: 'category', component:   CategoriesComponent},
+      {path: 'subcategory', component: SubCategoriesComponent},
      
       { path: 'city', component:    CitiesComponent},
       { path: 'leaderboard', component:    LeaderboardComponent},
@@ -61,6 +63,7 @@ export const routes: Routes = [
       {path: 'registerComponent', component: RegisterComponent},
       {path: 'referralPoints', component: PointHistoryComponent},
       {path: 'adminLogin', component: AdminLoginComponent},
+    
 
 
 

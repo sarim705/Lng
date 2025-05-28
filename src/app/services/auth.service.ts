@@ -22,6 +22,8 @@ export interface AdminLoginResponse {
   };
 }
 
+
+
 export interface Chapter {
   _id: string;
   name: string;
@@ -1042,6 +1044,136 @@ export class EventService {
       } catch (error) {
         console.error('Delete Chapter Error:', error);
         swalHelper.showToast('Failed to delete chapter', 'error');
+        throw error;
+      }
+    }
+  }
+
+  export interface SubCategoryResponse {
+    docs: SubCategory[];
+    totalDocs: string | number;
+    limit: number;
+    page: number;
+    totalPages: number;
+    pagingCounter: number;
+    hasPrevPage: boolean;
+    hasNextPage: boolean;
+    prevPage: number | null;
+    nextPage: number | null;
+  }
+  
+  export interface SubCategory {
+    _id: string;
+    name: string;
+    category_name: string;
+    status: boolean;
+    createdAt: string;
+    __v: number;
+  }
+  
+
+  @Injectable({
+    providedIn: 'root',
+  })
+  export class SubCategoryService {
+    private headers: any = [];
+    
+    constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+    
+    private getHeaders = () => {
+      this.headers = [];
+      let token = this.storage.get(common.TOKEN);
+      
+      if (token != null) {
+        this.headers.push({ Authorization: `Bearer ${token}` });
+      }
+    };
+  
+    async getSubCategories(data: { page: number; limit: number; search: string }): Promise<SubCategoryResponse> {
+      try {
+        this.getHeaders();
+        
+        let queryParams = `?page=${data.page}&limit=${data.limit}`;
+        if (data.search) {
+          queryParams += `&search=${encodeURIComponent(data.search)}`;
+        }
+        
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.GET_SUBCATEGORIES + queryParams,
+            method: 'GET',
+          },
+          null,
+          this.headers
+        );
+        
+        return response.data || response;
+      } catch (error) {
+        console.error('API Error:', error);
+        swalHelper.showToast('Failed to fetch subcategories', 'error');
+        throw error;
+      }
+    }
+  
+    async createSubCategory(data: { name: string; category_name: string; status: boolean }): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.CREATE_SUBCATEGORY,
+            method: 'POST',
+          },
+          data,
+          this.headers
+        );
+        
+        return response;
+      } catch (error) {
+        console.error('API Error:', error);
+        swalHelper.showToast('Failed to create subcategory', 'error');
+        throw error;
+      }
+    }
+  
+    async updateSubCategory(id: string, data: { name: string; category_name: string; status: boolean }): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.UPDATE_SUBCATEGORY}/${id}`,
+            method: 'PUT',
+          },
+          data,
+          this.headers
+        );
+        
+        return response;
+      } catch (error) {
+        console.error('API Error:', error);
+        swalHelper.showToast('Failed to update subcategory', 'error');
+        throw error;
+      }
+    }
+  
+    async deleteSubCategory(id: string): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.DELETE_SUBCATEGORY}/${id}`,
+            method: 'DELETE',
+          },
+          null,
+          this.headers
+        );
+        
+        return response;
+      } catch (error) {
+        console.error('API Error:', error);
+        swalHelper.showToast('Failed to delete subcategory', 'error');
         throw error;
       }
     }

@@ -97,6 +97,13 @@ export class SideBarService {
          link: 'VisitorsReport',
          icon: 'user', // Individual visitor
         },
+
+        {
+          title: 'subCategory',
+          link: 'subcategory',
+          icon: 'list', 
+          // Detailed records
+        }
        // {
         //  title: 'Attendance Record',
         //  link: 'attendanceRecord',
