@@ -38,7 +38,7 @@ export class SideBarService {
           icon: 'map', // Geographic divisions
         },
         {
-          title: 'City',
+          title: 'Cities',
           link: 'city',
           icon: 'map-pin', // Location point
         },
@@ -48,7 +48,7 @@ export class SideBarService {
           icon: 'layers', // Groupings or levels
         },
         {
-          title: 'Category',
+          title: 'Categories',
           link: 'category',
           icon: 'tag', // Categories or labels
         },

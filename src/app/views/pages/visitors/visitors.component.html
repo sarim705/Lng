@@ -105,7 +105,7 @@
               class="border-bottom"
               [ngClass]="{'d-none': !(visitor && visitor._id && visitor.name)}">
             <td class="py-3">{{ (visitors.page - 1) * visitors.limit + i + 1 }}</td>
-            <td class="py-3">{{ visitor.eventId?.name || 'N/A' }}</td>
+            <td class="py-3">{{ visitor.eventId.name || 'N/A' }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">
                 <div>
