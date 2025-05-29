@@ -15,8 +15,8 @@ import { environment } from 'src/env/env.local';
   standalone: true,
   imports: [CommonModule, FormsModule, NgxPaginationModule, NgSelectModule],
   providers: [OneToOneService, ChapterService, ExportService],
-  templateUrl: './onetoone.component.html',
-  styleUrls: ['./onetoone.component.css'],
+  templateUrl: './oneToone.component.html',
+  styleUrls: ['./oneToone.component.css'],
 })
 export class OneToOneComponent implements OnInit {
   oneToOnes: OneToOneResponse = {
