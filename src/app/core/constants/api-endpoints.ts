@@ -33,7 +33,7 @@ public  GET_ALL_EVENTS: string= `${this.PATH}/getAllEvents`
             public CREATE_EVENT: string= `${this.PATH}/createEvent`
        
 
-        public DELETE_EVENT: string = `${this.PATH}/deleteEvent/:eventId`
+        public DELETE_EVENT: string = `${this.PATH}/deleteEvent`
 
             public ADD_PHOTOS_TO_EVENT: string = `${this.PATH}/event/`
 

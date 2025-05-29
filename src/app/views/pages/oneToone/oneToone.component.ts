@@ -80,7 +80,17 @@ export class OneToOneComponent implements OnInit {
       };
       
       const response = await this.oneToOneService.getAllOneToOne(requestParams);
-      this.oneToOnes = response;
+      this.oneToOnes = {
+        ...response,
+        docs: response.docs.map(doc => ({
+          ...doc,
+          memberId1: doc.memberId1 || { name: 'Unknown', chapter_name: 'N/A', profilePic: '' },
+          memberId2: doc.memberId2 || { name: 'Unknown', chapter_name: 'N/A', profilePic: '' },
+          initiatedBy: doc.initiatedBy || { name: 'Unknown', profilePic: '' },
+          meet_place: doc.meet_place || 'N/A',
+          topics: doc.topics || 'N/A'
+        }))
+      };
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching one-to-ones:', error);
@@ -148,13 +158,12 @@ export class OneToOneComponent implements OnInit {
   }
 
   formatDate(dateString?: string): string {
-    if (!dateString) return 'N/A';
+    if (!dateString || isNaN(new Date(dateString).getTime())) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
-     
     });
   }
 

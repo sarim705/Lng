@@ -104,36 +104,36 @@
             <td class="py-3">{{ (oneToOnes.page - 1) * oneToOnes.limit + i + 1 }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">
-                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
                   style="width: 32px; height: 32px; color: white;">
-                  {{oneToOne.memberId1?.name ? oneToOne.memberId1.name.charAt(0).toUpperCase() : 'U'}}
+                  {{oneToOne.memberId1.name ? oneToOne.memberId1.name.charAt(0).toUpperCase() : 'U'}}
                 </div>
                 <div>
-                  <div class="fw-bold text-dark">{{oneToOne.memberId1?.name || 'Unknown'}}</div>
-                  <small class="text-muted d-block">{{oneToOne.memberId1?.chapter_name || 'N/A'}}</small>
+                  <div class="fw-bold text-dark">{{oneToOne.memberId1.name || 'Unknown'}}</div>
+                  <small class="text-muted d-block">{{oneToOne.memberId1.chapter_name || 'N/A'}}</small>
                 </div>
               </div>
             </td>
             <td class="py-3">
               <div class="d-flex align-items-center">
-                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
                   style="width: 32px; height: 32px; color: white;">
-                  {{oneToOne.memberId2?.name ? oneToOne.memberId2.name.charAt(0).toUpperCase() : 'U'}}
+                  {{oneToOne.memberId2.name ? oneToOne.memberId2.name.charAt(0).toUpperCase() : 'U'}}
                 </div>
                 <div>
-                  <div class="fw-bold text-dark">{{oneToOne.memberId2?.name || 'Unknown'}}</div>
-                  <small class="text-muted d-block">{{oneToOne.memberId2?.chapter_name || 'N/A'}}</small>
+                  <div class="fw-bold text-dark">{{oneToOne.memberId2.name || 'Unknown'}}</div>
+                  <small class="text-muted d-block">{{oneToOne.memberId2.chapter_name || 'N/A'}}</small>
                 </div>
               </div>
             </td>
             <td class="py-3">
               <div class="d-flex align-items-center">
-                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
                   style="width: 32px; height: 32px; color: white;">
                   {{oneToOne.initiatedBy.name ? oneToOne.initiatedBy.name.charAt(0).toUpperCase() : 'U'}}
                 </div>
                 <div>
-                  <div class="fw-bold text-dark">{{oneToOne.initiatedBy?.name || 'Unknown'}}</div>
+                  <div class="fw-bold text-dark">{{oneToOne.initiatedBy.name || 'Unknown'}}</div>
                 </div>
               </div>
             </td>

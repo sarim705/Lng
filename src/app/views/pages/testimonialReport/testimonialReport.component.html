@@ -102,7 +102,7 @@
             <td class="py-3">{{ (testimonials.page - 1) * testimonials.limit + i + 1 }}</td>
             <td class="py-3">
               <div class="d-flex align-items-center">
-                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
                   style="width: 32px; height: 32px; color: white;">
                   {{testimonial.giverId.name ? testimonial.giverId.name.charAt(0).toUpperCase() : 'U'}}
                 </div>
@@ -115,7 +115,7 @@
             <td class="py-3">
               <div *ngIf="testimonial.receiverId">
                 <div class="d-flex align-items-center">
-                  <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                  <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
                     style="width: 32px; height: 32px; color: white;">
                     {{testimonial.receiverId.name ? testimonial.receiverId.name.charAt(0).toUpperCase() : 'U'}}
                   </div>

@@ -45,7 +45,7 @@
             <tr *ngFor="let country of countries.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: countries.totalDocs}; let i=index" class="border-bottom">
               <td class="ps-4 py-3">
                 <div class="d-flex align-items-center">
-                  <div class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white"
+                  <div class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
                     style="width: 40px; height: 40px; color: white;">
                     {{country.name ? country.name.charAt(0).toUpperCase() : 'C'}}
                   </div>

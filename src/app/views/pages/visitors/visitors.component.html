@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
     <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
-      <h4 class="mb-0 fw-bold text-white">
+      <h4 class="mb-0 fw-bold text-white" >
         <i class="bi bi-people me-2"></i>Visitors Management
       </h4>
       <div class="export-buttons">
@@ -56,7 +56,7 @@
         </div>
         <div class="d-flex align-items-center">
           <div class="ms-2">
-         
+            
             <ng-select 
               id="limitSelect"
               [items]="[10, 25, 50, 100]" 
@@ -89,7 +89,7 @@
         <thead class="bg-light">
           <tr>
             <th class="py-3">Sr No</th>
-            <th class="py-3">Event Name</th>
+            <th class="py-3">Title</th>
             <th class="py-3">Visitor Name</th>
             <th class="py-3">Company Name</th>
             <th class="py-3">Mobile No</th>
@@ -101,37 +101,37 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let visitor of visitors.docs | paginate: { id: paginationConfig.id, itemsPerPage: visitors.limit, currentPage: visitors.page, totalItems: visitors.totalDocs }; let i = index" 
-              class="border-bottom" 
-              [hidden]="!visitor || !visitor._id || !visitor.name">
-            <td class="py-3">{{ (visitors.page - 1) * visitors.limit + i + 1 }}</td>
-            <td class="py-3">{{ visitor.eventId?.name || 'N/A' }}</td>
-            <td class="py-3">
-              <div class="d-flex align-items-center">
-                <div>
-                  <div class="fw-bold text-dark">{{ visitor.name }}</div>
-                  <small class="text-muted d-block">{{ visitor.refUserId?.chapter_name || 'N/A' }}</small>
+          <ng-container *ngFor="let visitor of visitors.docs | paginate: { id: paginationConfig.id, itemsPerPage: visitors.limit, currentPage: visitors.page, totalItems: visitors.totalDocs }; let i = index">
+            <tr *ngIf="visitor && visitor._id && visitor.name" class="border-bottom">
+              <td class="py-3">{{ (visitors.page - 1) * visitors.limit + i + 1 }}</td>
+              <td class="py-3">{{ visitor.eventId?.name || 'N/A' }}</td>
+              <td class="py-3">
+                <div class="d-flex align-items-center">
+                  <div>
+                    <div class="fw-bold text-dark">{{ visitor.name }}</div>
+                    <small class="text-muted d-block">{{ visitor.refUserId?.chapter_name || 'N/A' }}</small>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="py-3">{{ visitor.business_name || 'N/A' }}</td>
-            <td class="py-3">{{ visitor.mobile_number || 'N/A' }}</td>
-            <td class="py-3">{{ visitor.address || 'N/A' }}</td>
-            <td class="py-3">{{ visitor.pincode || 'N/A' }}</td>
-            <td class="py-3">{{ visitor.eventId?.date ? formatDate(visitor.eventId.date) : 'N/A' }}</td>
-            <td class="py-3">{{ visitor.business_type || 'N/A' }}</td>
-            <td class="py-3">
-              <span 
-                class="badge rounded-pill cursor-pointer" 
-                [ngClass]="visitor.paid ? 'bg-success' : 'bg-secondary'"
-                [ngStyle]="{'cursor': 'pointer'}"
-                (click)="toggleVisitorPaidStatus(visitor)"
-                [class.disabled]="updatingVisitorId === visitor._id">
-                <span *ngIf="updatingVisitorId === visitor._id" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                {{ visitor.paid ? 'Paid' : 'Unpaid' }}
-              </span>
-            </td>
-          </tr>
+              </td>
+              <td class="py-3">{{ visitor.business_name || 'N/A' }}</td>
+              <td class="py-3">{{ visitor.mobile_number || 'N/A' }}</td>
+              <td class="py-3">{{ visitor.address || 'N/A' }}</td>
+              <td class="py-3">{{ visitor.pincode || 'N/A' }}</td>
+              <td class="py-3">{{ visitor.eventId?.date ? formatDate(visitor.eventId.date) : 'N/A' }}</td>
+              <td class="py-3">{{ visitor.business_type || 'N/A' }}</td>
+              <td class="py-3">
+                <span 
+                  class="badge rounded-pill cursor-pointer" 
+                  [ngClass]="visitor.paid ? 'bg-success' : 'bg-secondary'"
+                  [ngStyle]="{'cursor': 'pointer'}"
+                  (click)="toggleVisitorPaidStatus(visitor)"
+                  [class.disabled]="updatingVisitorId === visitor._id">
+                  <span *ngIf="updatingVisitorId === visitor._id" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  {{ visitor.paid ? 'Paid' : 'Unpaid' }}
+                </span>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
       

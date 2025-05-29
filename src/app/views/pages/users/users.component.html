@@ -62,7 +62,7 @@
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
                 <img [src]="user.profilePic ? (imageurl + '/' + user.profilePic) : '/assets/images/placeholder-image.png'"
-                     class="rounded-circle me-3 shadow-sm border border-2 border-white"
+                     class="rounded-circle me-3 shadow-sm  border-2 border-white"
                      width="48" height="48" alt="User"
                      (error)="handleImageError($event)">
                 <div>
@@ -175,7 +175,7 @@
                 <div class="card-body text-center">
                   <div class="position-relative d-inline-block">
                     <img [src]="selectedUser.profilePic ? (imageurl + '/' + selectedUser.profilePic) : '/assets/images/placeholder-image.png'"
-                         class="img-fluid rounded-circle mb-3 shadow-sm border border-3 border-white"
+                         class="img-fluid rounded-circle mb-3 shadow-sm  border-3 border-white"
                          style="width: 180px; height: 180px; object-fit: cover;"
                          alt="User Image"
                          (error)="handleImageError($event)">

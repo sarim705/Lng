@@ -12,12 +12,14 @@
   }
   
   /* Status badge styles */
-  .badge.bg-success {
-    background-color: rgba(25, 135, 84, 0.9) !important;
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.3s ease;
   }
   
-  .badge.bg-danger {
-    background-color: rgba(220, 53, 69, 0.9) !important;
+  .badge:hover {
+    transform: scale(1.05);
   }
   
   /* Add hover effect to action buttons */

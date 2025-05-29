@@ -147,7 +147,7 @@ export class VisitorsComponent implements OnInit {
       page: 1,
       limit: 10,
       chapterName: null,
-      startDate : this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
+      startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
       endDate: this.formatDateForInput(new Date())
     };
     this.fetchVisitors();

@@ -37,6 +37,9 @@ export class EventsComponent implements OnInit, AfterViewInit {
     newEvent = {
         name: '',
         date: '',
+        startTime: '',
+        endTime: '',
+        mode: 'online' as 'online' | 'offline' | 'hybrid',
         event_or_meeting: 'event' as 'event' | 'meeting',
         paid: false,
         location: '',
@@ -113,7 +116,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             this.cdr.detectChanges();
         } catch (error) {
             console.error('Error fetching chapters:', error);
-            swalHelper.showToast('Failed to fetch chapters', 'error');
+            swalHelper.showToast('Failed to fetch chapters Maddox', 'error');
         }
     }
 
@@ -150,6 +153,9 @@ export class EventsComponent implements OnInit, AfterViewInit {
         this.newEvent = {
             name: '',
             date: '',
+            startTime: '',
+            endTime: '',
+            mode: 'online',
             event_or_meeting: 'event',
             paid: false,
             location: '',
@@ -165,7 +171,10 @@ export class EventsComponent implements OnInit, AfterViewInit {
         this.currentEventId = event._id;
         this.newEvent = {
             name: event.name,
-            date: new Date(event.date).toISOString().slice(0, 16),
+            date: new Date(event.date).toISOString().split('T')[0],
+            startTime: event.startTime || '',
+            endTime: event.endTime || '',
+            mode: event.mode || 'online',
             event_or_meeting: event.event_or_meeting,
             paid: event.paid,
             location: event.location,
@@ -234,6 +243,9 @@ export class EventsComponent implements OnInit, AfterViewInit {
         return !!this.newEvent.name &&
                !!this.newEvent.event_or_meeting &&
                !!this.newEvent.date &&
+               !!this.newEvent.startTime &&
+               !!this.newEvent.endTime &&
+               !!this.newEvent.mode &&
                !!this.newEvent.location &&
                !!this.newEvent.chapter_name;
     }
@@ -250,6 +262,9 @@ export class EventsComponent implements OnInit, AfterViewInit {
             const formData = new FormData();
             formData.append('name', this.newEvent.name);
             formData.append('date', this.newEvent.date);
+            formData.append('startTime', this.newEvent.startTime);
+            formData.append('endTime', this.newEvent.endTime);
+            formData.append('mode', this.newEvent.mode);
             formData.append('event_or_meeting', this.newEvent.event_or_meeting);
             formData.append('paid', this.newEvent.paid.toString());
             formData.append('location', this.newEvent.location);
@@ -285,6 +300,31 @@ export class EventsComponent implements OnInit, AfterViewInit {
         }
     }
 
+    async deleteEvent(eventId: string): Promise<void> {
+        try {
+            const confirmed = await swalHelper.confirmation(
+                'Are you sure?',
+                'Do you want to delete this event? This action cannot be undone.',
+                'warning'
+            );
+            if (!confirmed) return;
+
+            this.loading = true;
+            const response = await this.eventService.deleteEvent(eventId);
+            if (response && response.success) {
+                swalHelper.showToast('Event deleted successfully', 'success');
+                this.fetchEvents();
+            } else {
+                swalHelper.showToast(response.message || 'Failed to delete event', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            swalHelper.showToast('Failed to delete event', 'error');
+        } finally {
+            this.loading = false;
+        }
+    }
+
     async uploadPhotos(): Promise<void> {
         if (!this.selectedEvent || this.selectedPhotos.length === 0) {
             return;
@@ -314,109 +354,111 @@ export class EventsComponent implements OnInit, AfterViewInit {
         }
     }
 
-  async uploadVideos(): Promise<void> {
-    if (!this.selectedEvent || this.selectedVideos.length === 0) {
-      return;
-    }
-
-    try {
-      this.loading = true;
-
-      const formData = new FormData();
-      this.selectedVideos.forEach(video => {
-        formData.append('videos', video);
-      });
-
-      const response = await this.eventService.addVideosToEvent(this.selectedEvent._id, formData);
-
-      if (response && response.success) {
-        swalHelper.showToast('Videos uploaded successfully', 'success');
-        this.selectedVideos = [];
-        this.fetchEvents();
-      } else {
-        swalHelper.showToast(response.message || 'Failed to upload videos', 'error');
-      }
-    } catch (error) {
-      console.error('Error uploading videos:', error);
-      swalHelper.showToast('Failed to upload videos', 'error');
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  viewEventDetails(event: Event): void {
-    console.log('View event details:', event);
-    swalHelper.showToast('Event details view not implemented yet', 'info');
-  }
-
-  async showQRCode(event: Event): Promise<void> {
-    this.qrEventName = event.name;
-    this.qrCodeSrc = null;
-
-    if (this.qrCodeModal) {
-      this.qrCodeModal.show();
-    }
-
-    try {
-      const qrData = {
-        eventId: event._id,
-        event: {
-          _id: event._id,
-          name: event.name,
-          event_or_meeting: event.event_or_meeting,
-          date: event.date,
-          paid: event.paid,
-          thumbnail: event.thumbnail,
-          photos: event.photos,
-          videos: event.videos,
-          location: event.location, // Added location
-          chapter_name: event.chapter_name, // Added chapter_name
-          createdAt: event.createdAt,
-          __v: event.__v
+    async uploadVideos(): Promise<void> {
+        if (!this.selectedEvent || this.selectedVideos.length === 0) {
+            return;
         }
-      };
 
-      this.qrCodeSrc = await QRCode.toDataURL(JSON.stringify(qrData), {
-        errorCorrectionLevel: 'H',
-        margin: 1,
-        width: 300,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
+        try {
+            this.loading = true;
+            const formData = new FormData();
+            this.selectedVideos.forEach(video => {
+                formData.append('videos', video);
+            });
+
+            const response = await this.eventService.addVideosToEvent(this.selectedEvent._id, formData);
+
+            if (response && response.success) {
+                swalHelper.showToast('Videos uploaded successfully', 'success');
+                this.selectedVideos = [];
+                this.fetchEvents();
+            } else {
+                swalHelper.showToast(response.message || 'Failed to upload videos', 'error');
+            }
+        } catch (error) {
+            console.error('Error uploading videos:', error);
+            swalHelper.showToast('Failed to upload videos', 'error');
+        } finally {
+            this.loading = false;
         }
-      });
-
-      this.cdr.detectChanges();
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-      swalHelper.showToast('Failed to generate QR code', 'error');
-    }
-  }
-
-  downloadQRCode(): void {
-    if (!this.qrCodeSrc) return;
-
-    const link = document.createElement('a');
-    link.href = this.qrCodeSrc;
-    link.download = `event-qr-${this.qrEventName.replace(/\s+/g, '-').toLowerCase()}.png`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  getImagePath(path: string): string {
-    if (!path) return 'assets/images/placeholder-image.png';
-
-    if (!path.startsWith('http')) {
-      return `${this.imageurl}/${path.replace(/\\/g, '/')}`;
     }
 
-    return path;
-  }
+    viewEventDetails(event: Event): void {
+        console.log('View event details:', event);
+        swalHelper.showToast('Event details view not implemented yet', 'info');
+    }
 
-  formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  }
+    async showQRCode(event: Event): Promise<void> {
+        this.qrEventName = event.name;
+        this.qrCodeSrc = null;
+
+        if (this.qrCodeModal) {
+            this.qrCodeModal.show();
+        }
+
+        try {
+            const qrData = {
+                eventId: event._id,
+                event: {
+                    _id: event._id,
+                    name: event.name,
+                    event_or_meeting: event.event_or_meeting,
+                    date: event.date,
+                    startTime: event.startTime,
+                    endTime: event.endTime,
+                    mode: event.mode,
+                    paid: event.paid,
+                    thumbnail: event.thumbnail,
+                    photos: event.photos,
+                    videos: event.videos,
+                    location: event.location,
+                    chapter_name: event.chapter_name,
+                    createdAt: event.createdAt,
+                    __v: event.__v
+                }
+            };
+
+            this.qrCodeSrc = await QRCode.toDataURL(JSON.stringify(qrData), {
+                errorCorrectionLevel: 'H',
+                margin: 1,
+                width: 300,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            });
+
+            this.cdr.detectChanges();
+        } catch (error) {
+            console.error('Error generating QR code:', error);
+            swalHelper.showToast('Failed to generate QR code', 'error');
+        }
+    }
+
+    downloadQRCode(): void {
+        if (!this.qrCodeSrc) return;
+
+        const link = document.createElement('a');
+        link.href = this.qrCodeSrc;
+        link.download = `event-qr-${this.qrEventName.replace(/\s+/g, '-').toLowerCase()}.png`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    getImagePath(path: string): string {
+        if (!path) return 'assets/images/placeholder-image.png';
+
+        if (!path.startsWith('http')) {
+            return `${this.imageurl}/${path.replace(/\\/g, '/')}`;
+        }
+
+        return path;
+    }
+
+    formatDate(dateString: string): string {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString();
+    }
 }

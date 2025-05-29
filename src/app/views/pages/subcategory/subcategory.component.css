@@ -21,7 +21,15 @@
     font-weight: 600;
     letter-spacing: 0.5px;
   }
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.3s ease;
+  }
   
+  .badge:hover {
+    transform: scale(1.05);
+  }
 
   
   .form-control {

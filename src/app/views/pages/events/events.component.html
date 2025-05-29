@@ -1,330 +1,370 @@
 <div class="container-fluid">
-  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
-          <h4 class="mb-0 fw-bold text-white">
-              <i class="bi bi-calendar-event me-2"></i>Events Management
-          </h4>
-          <button class="btn btn-light rounded-pill px-4 fw-semibold" (click)="openAddEventModal()">
-              <i class="bi bi-plus-circle me-2"></i>Add Event
-          </button>
-      </div>
-
-      <div class="card-body p-0">
-          <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
-              <div class="d-flex w-100 align-items-center">
-                  <div class="flex-grow-1 me-2">
-                      <div class="input-group">
-                          <span class="input-group-text bg-white border-end-0">
-                              <i class="bi bi-search text-muted"></i>
-                          </span>
-                          <input type="text" class="form-control border-start-0"
-                                 placeholder="Search events..."
-                                 [(ngModel)]="searchQuery"
-                                 (input)="onSearch()">
-                      </div>
-                  </div>
-                  <div>
-                      <select class="form-select" [(ngModel)]="filterType" (change)="onFilterChange()">
-                          <option value="all">All Types</option>
-                          <option value="event">Events Only</option>
-                          <option value="meeting">Meetings Only</option>
-                      </select>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <div *ngIf="loading" class="text-center my-5 py-5">
-          <div class="spinner-grow text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-          </div>
-      </div>
-
-      <!-- Events Grid View -->
-      <div class="p-3" *ngIf="!loading && events && events.length > 0">
-          <div class="row g-3">
-              <div class="col-lg-4 col-md-6" *ngFor="let event of filteredEvents">
-                  <div class="card h-100 border-0 shadow-sm hover-shadow rounded-4 overflow-hidden">
-                      <div class="position-relative">
-                          <img [src]="getImagePath(event.thumbnail)" class="card-img-top" alt="Event thumbnail"
-                               style="height: 200px; object-fit: cover;">
-                          <div class="position-absolute top-0 end-0 p-2">
-                              <span class="badge rounded-pill"
-                                    [ngClass]="event.event_or_meeting === 'event' ? 'bg-primary' : 'bg-info'">
-                                  {{event.event_or_meeting === 'event' ? 'Event' : 'Meeting'}}
-                              </span>
-                              <span class="badge rounded-pill ms-1"
-                                    [ngClass]="event.paid ? 'bg-success' : 'bg-secondary'">
-                                  {{event.paid ? 'Paid' : 'Free'}}
-                              </span>
-                          </div>
-                      </div>
-                      <div class="card-body">
-                          <h5 class="card-title mb-2 text-truncate">{{event.name}}</h5>
-                          <div class="card-text text-muted small mb-2">
-                              <div class="d-flex align-items-center mb-1">
-                                  <i class="bi bi-calendar-event me-2 text-primary"></i>
-                                  <strong>Event Date:</strong> <span class="ms-1">{{formatDate(event.date)}}</span>
-                              </div>
-                              <div class="d-flex align-items-center mb-1">
-                                  <i class="bi bi-geo-alt me-2 text-info"></i>
-                                  <strong>Location:</strong> <span class="ms-1">{{event.location || 'N/A'}}</span>
-                              </div>
-                              <div class="d-flex align-items-center mb-1">
-                                  <i class="bi bi-bookmark me-2 text-warning"></i>
-                                  <strong>Chapter:</strong> <span class="ms-1">{{event.chapter_name || 'All'}}</span>
-                              </div>
-                              <div class="d-flex align-items-center">
-                                  <i class="bi bi-clock-history me-2 text-secondary"></i>
-                                  <strong>Created:</strong> <span class="ms-1">{{formatDate(event.createdAt)}}</span>
-                              </div>
-                          </div>
-                          <div class="d-flex mt-2">
-                              <span class="badge bg-light text-dark me-2">
-                                  <i class="bi bi-images me-1"></i>{{event.photos.length || 0}} Photos
-                              </span>
-                              <span class="badge bg-light text-dark">
-                                  <i class="bi bi-camera-video me-1"></i>{{event.videos.length || 0}} Videos
-                              </span>
-                          </div>
-                      </div>
-                      <div class="card-footer bg-light d-flex justify-content-between py-2 flex-wrap gap-2">
-                       
-                      
-                          
-                          <button class="btn btn-sm btn-outline-info rounded-pill" (click)="showQRCode(event)">
-                              <i class="bi bi-qr-code me-1"></i>QR Code
-                          </button>
-                         
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- No Events Found -->
-      <div *ngIf="!loading && (!filteredEvents || filteredEvents.length === 0)" class="text-center my-5 py-4 px-4">
-          <div class="empty-state">
-              <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
-              <h5>No Events Found</h5>
-              <p class="text-muted">Try adding some events or adjusting your search criteria.</p>
-              <button class="btn btn-primary rounded-pill mt-3" (click)="openAddEventModal()">
-                  <i class="bi bi-plus-circle me-2"></i>Add Event
-              </button>
-          </div>
-      </div>
-  </div>
-
-  <!-- Event Modal (Add/Edit) -->
-  <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
-       aria-labelledby="eventModalTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-          <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-              <div class="modal-header bg-gradient-primary text-white">
-                  <h5 class="modal-title" id="eventModalTitle">
-                      <i class="bi bi-calendar-plus me-2"></i>{{ isEditMode ? 'Edit Event' : 'Add New Event' }}
-                  </h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body p-4">
-                  <form>
-                      <div class="mb-3">
-                          <label for="eventName" class="form-label">Event Name</label>
-                          <div class="input-group">
-                              <span class="input-group-text"><i class="bi bi-tag"></i></span>
-                              <input type="text" class="form-control" id="eventName" placeholder="Enter event name"
-                                     [(ngModel)]="newEvent.name" name="eventName" required>
-                          </div>
-                      </div>
-
-                      <div class="mb-3">
-                          <label for="eventDate" class="form-label">Event Date</label>
-                          <div class="input-group">
-                              <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-                              <input type="datetime-local" class="form-control" id="eventDate"
-                                     [(ngModel)]="newEvent.date" name="eventDate" required>
-                          </div>
-                      </div>
-
-                      <div class="mb-3">
-                          <label for="eventLocation" class="form-label">Location</label>
-                          <div class="input-group">
-                              <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                              <input type="text" class="form-control" id="eventLocation" placeholder="Enter location"
-                                     [(ngModel)]="newEvent.location" name="eventLocation" required>
-                          </div>
-                      </div>
-
-                      <div class="mb-3">
-                          <label for="eventChapter" class="form-label">Chapter</label>
-                          <div class="input-group">
-                              <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
-                              <select class="form-select" id="eventChapter"
-                                      [(ngModel)]="newEvent.chapter_name" name="eventChapter" required>
-                                 
-                                  <option *ngFor="let chapter of chapters" [value]="chapter.name">{{chapter.name}}</option>
-                              </select>
-                          </div>
-                      </div>
-
-                      <div class="mb-3">
-                          <label class="form-label">Event Type</label>
-                          <div class="d-flex">
-                              <div class="form-check me-4">
-                                  <input class="form-check-input" type="radio" id="typeEvent"
-                                         [(ngModel)]="newEvent.event_or_meeting" name="eventType" value="event">
-                                  <label class="form-check-label" for="typeEvent">Event</label>
-                              </div>
-                              <div class="form-check">
-                                  <input class="form-check-input" type="radio" id="typeMeeting"
-                                         [(ngModel)]="newEvent.event_or_meeting" name="eventType" value="meeting">
-                                  <label class="form-check-label" for="typeMeeting">Meeting</label>
-                              </div>
-                          </div>
-                      </div>
-
-                      <div class="form-check form-switch mb-3">
-                          <input class="form-check-input" type="checkbox" id="eventPaid"
-                                 [(ngModel)]="newEvent.paid" name="eventPaid">
-                          <label class="form-check-label" for="eventPaid">
-                              {{newEvent.paid ? 'Paid' : 'Free'}} Event
-                          </label>
-                      </div>
-
-                      <div class="mb-3">
-                          <label for="eventThumbnail" class="form-label">Event Thumbnail</label>
-                          <div class="input-group">
-                              <span class="input-group-text"><i class="bi bi-image"></i></span>
-                              <input type="file" class="form-control" id="eventThumbnail"
-                                     (change)="onThumbnailChange($event)" accept="image/*">
-                              <label class="input-group-text" for="eventThumbnail">Upload</label>
-                          </div>
-                          <div *ngIf="thumbnailPreview" class="mt-2 text-center">
-                              <img [src]="thumbnailPreview" class="img-thumbnail rounded shadow-sm" style="max-height: 150px;">
-                          </div>
-                      </div>
-                  </form>
-              </div>
-              <div class="modal-footer">
-                  <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                      <i class="bi bi-x-circle me-1"></i> Cancel
-                  </button>
-                  <button type="button" class="btn btn-primary rounded-pill" (click)="saveEvent()" [disabled]="!canSaveEvent()">
-                      <i class="bi bi-save me-1"></i> {{ isEditMode ? 'Update' : 'Save' }}
-                  </button>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <!-- Add Media Modal -->
-  <div class="modal fade" id="mediaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
-       aria-labelledby="mediaModalTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-          <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-              <div class="modal-header bg-gradient-primary text-white">
-                  <h5 class="modal-title" id="mediaModalTitle">
-                      <i class="bi bi-images me-2"></i>Add Media to Event
-                  </h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body p-4">
-                  <ul class="nav nav-tabs mb-3" id="mediaTab" role="tablist">
-                      <li class="nav-item" role="presentation">
-                          <button class="nav-link active" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos"
-                                  type="button" role="tab" aria-controls="photos" aria-selected="true">
-                              <i class="bi bi-image me-2"></i>Photos
-                          </button>
-                      </li>
-                      <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="videos-tab" data-bs-toggle="tab" data-bs-target="#videos"
-                                  type="button" role="tab" aria-controls="videos" aria-selected="false">
-                              <i class="bi bi-camera-video me-2"></i>Videos
-                          </button>
-                      </li>
-                  </ul>
-                  <div class="tab-content" id="mediaTabContent">
-                      <div class="tab-pane fade show active" id="photos" role="tabpanel" aria-labelledby="photos-tab">
-                          <div class="mb-3">
-                              <label for="eventPhotos" class="form-label">Upload Photos</label>
-                              <div class="input-group">
-                                  <span class="input-group-text"><i class="bi bi-images"></i></span>
-                                  <input type="file" class="form-control" id="eventPhotos" multiple
-                                         (change)="onPhotosChange($event)" accept="image/*">
-                                  <label class="input-group-text" for="eventPhotos">Upload</label>
-                              </div>
-                              <div *ngIf="selectedPhotos.length > 0" class="mt-2">
-                                  <div class="alert alert-info">
-                                      <i class="bi bi-info-circle me-2"></i>
-                                      {{selectedPhotos.length}} photos selected
-                                  </div>
-                              </div>
-                          </div>
-                          <button class="btn btn-success w-100 rounded-pill" [disabled]="selectedPhotos.length === 0" (click)="uploadPhotos()">
-                              <i class="bi bi-upload me-1"></i> Upload Photos
-                          </button>
-                      </div>
-                      <div class="tab-pane fade" id="videos" role="tabpanel" aria-labelledby="videos-tab">
-                          <div class="mb-3">
-                              <label for="eventVideos" class="form-label">Upload Videos</label>
-                              <div class="input-group">
-                                  <span class="input-group-text"><i class="bi bi-camera-video"></i></span>
-                                  <input type="file" class="form-control" id="eventVideos" multiple
-                                         (change)="onVideosChange($event)" accept="video/*">
-                                  <label class="input-group-text" for="eventVideos">Upload</label>
-                              </div>
-                              <div *ngIf="selectedVideos.length > 0" class="mt-2">
-                                  <div class="alert alert-info">
-                                      <i class="bi bi-info-circle me-2"></i>
-                                      {{selectedVideos.length}} videos selected
-                                  </div>
-                              </div>
-                          </div>
-                          <button class="btn btn-success w-100 rounded-pill" [disabled]="selectedVideos.length === 0" (click)="uploadVideos()">
-                              <i class="bi bi-upload me-1"></i> Upload Videos
-                          </button>
-                      </div>
-                  </div>
-              </div>
-              <div class="modal-footer">
-                  <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                      <i class="bi bi-x-circle me-1"></i> Close
-                  </button>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <!-- QR Code Modal -->
-  <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-              <div class="modal-header bg-gradient-primary text-white">
-                  <h5 class="modal-title" id="qrCodeModalLabel">
-                      <i class="bi bi-qr-code me-2"></i>Event QR Code
-                  </h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body p-4 text-center">
-                  <h5 class="mb-3">{{ qrEventName }}</h5>
-                  <div class="d-flex justify-content-center">
-                      <div *ngIf="qrCodeSrc" class="p-3 border rounded shadow-sm bg-white">
-                          <img [src]="qrCodeSrc" alt="QR Code" class="img-fluid" style="max-width: 250px;">
-                      </div>
-                      <div *ngIf="!qrCodeSrc" class="spinner-border text-primary" role="status">
-                          <span class="visually-hidden">Loading...</span>
-                      </div>
-                  </div>
-                  <p class="text-muted mt-3 small">Scan this QR code to access event details</p>
-              </div>
-              <div class="modal-footer">
-                  <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                      <i class="bi bi-x-circle me-1"></i>Close
-                  </button>
-                  <button *ngIf="qrCodeSrc" type="button" class="btn btn-primary rounded-pill" (click)="downloadQRCode()">
-                      <i class="bi bi-download me-1"></i>Download
-                  </button>
-              </div>
-          </div>
-      </div>
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+            <h4 class="mb-0 fw-bold text-white">
+                <i class="bi bi-calendar-event me-2"></i>Events Management
+            </h4>
+            <button class="btn btn-light rounded-pill px-4 fw-semibold" (click)="openAddEventModal()">
+                <i class="bi bi-plus-circle me-2"></i>Add Event
+            </button>
+        </div>
+  
+        <div class="card-body p-0">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                <div class="d-flex w-100 align-items-center">
+                    <div class="flex-grow-1 me-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0"
+                                   placeholder="Search events..."
+                                   [(ngModel)]="searchQuery"
+                                   (input)="onSearch()">
+                        </div>
+                    </div>
+                    <div>
+                        <select class="form-select" [(ngModel)]="filterType" (change)="onFilterChange()">
+                            <option value="all">All Types</option>
+                            <option value="event">Events Only</option>
+                            <option value="meeting">Meetings Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+  
+        <div *ngIf="loading" class="text-center my-5 py-5">
+            <div class="spinner-grow text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+  
+        <!-- Events Grid View -->
+        <div class="p-3" *ngIf="!loading && events && events.length > 0">
+            <div class="row g-3">
+                <div class="col-lg-4 col-md-6" *ngFor="let event of filteredEvents">
+                    <div class="card h-100 border-0 shadow-sm hover-shadow rounded-4 overflow-hidden">
+                        <div class="position-relative">
+                            <img [src]="getImagePath(event.thumbnail)" class="card-img-top" alt="Event thumbnail"
+                                 style="height: 200px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <span class="badge rounded-pill"
+                                      [ngClass]="event.event_or_meeting === 'event' ? 'bg-primary' : 'bg-info'">
+                                    {{event.event_or_meeting === 'event' ? 'Event' : 'Meeting'}}
+                                </span>
+                                <span class="badge rounded-pill ms-1"
+                                      [ngClass]="event.paid ? 'bg-success' : 'bg-secondary'">
+                                    {{event.paid ? 'Paid' : 'Free'}}
+                                </span>
+                                <span class="badge rounded-pill ms-1 bg-warning">
+                                    {{event.mode}}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title mb-2 text-truncate">{{event.name}}</h5>
+                            <div class="card-text text-muted small mb-2">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                    <strong>Event Date:</strong> <span class="ms-1">{{formatDate(event.date)}}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-clock me-2 text-success"></i>
+                                    <strong>Time:</strong> <span class="ms-1">{{event.startTime}} - {{event.endTime}}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-geo-alt me-2 text-info"></i>
+                                    <strong>Location:</strong> <span class="ms-1">{{event.location || 'N/A'}}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-bookmark me-2 text-warning"></i>
+                                    <strong>Chapter:</strong> <span class="ms-1">{{event.chapter_name || 'All'}}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clock-history me-2 text-secondary"></i>
+                                    <strong>Created:</strong> <span class="ms-1">{{formatDate(event.createdAt)}}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex mt-2">
+                                <span class="badge bg-light text-dark me-2">
+                                    <i class="bi bi-images me-1"></i>{{event.photos.length || 0}} Photos
+                                </span>
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-camera-video me-1"></i>{{event.videos.length || 0}} Videos
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light d-flex justify-content-between py-2 flex-wrap gap-2">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="openEditEventModal(event)">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="deleteEvent(event._id)">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                            <button class="btn btn-sm btn-outline-info rounded-pill" (click)="showQRCode(event)">
+                                <i class="bi bi-qr-code me-1"></i>QR Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+  
+        <!-- No Events Found -->
+        <div *ngIf="!loading && (!filteredEvents || filteredEvents.length === 0)" class="text-center my-5 py-4 px-4">
+            <div class="empty-state">
+                <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+                <h5>No Events Found</h5>
+                <p class="text-muted">Try adding some events or adjusting your search criteria.</p>
+                <button class="btn btn-primary rounded-pill mt-3" (click)="openAddEventModal()">
+                    <i class="bi bi-plus-circle me-2"></i>Add Event
+                </button>
+            </div>
+        </div>
+    </div>
+  
+    <!-- Event Modal (Add/Edit) -->
+    <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+         aria-labelledby="eventModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title" id="eventModalTitle">
+                        <i class="bi bi-calendar-plus me-2"></i>{{ isEditMode ? 'Edit Event' : 'Add New Event' }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form>
+                        <div class="mb-3">
+                            <label for="eventName" class="form-label">Event Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                                <input type="text" class="form-control" id="eventName" placeholder="Enter event name"
+                                       [(ngModel)]="newEvent.name" name="eventName" required>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="eventDate" class="form-label">Event Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                <input type="date" class="form-control" id="eventDate"
+                                       [(ngModel)]="newEvent.date" name="eventDate" required>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="startTime" class="form-label">Start Time</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                <input type="time" class="form-control" id="startTime"
+                                       [(ngModel)]="newEvent.startTime" name="startTime" required>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="endTime" class="form-label">End Time</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                <input type="time" class="form-control" id="endTime"
+                                       [(ngModel)]="newEvent.endTime" name="endTime" required>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="eventMode" class="form-label">Mode</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-display"></i></span>
+                                <select class="form-select" id="eventMode"
+                                        [(ngModel)]="newEvent.mode" name="eventMode" required>
+                                    <option value="online">Offline</option>
+                                    <option value="offline">Online</option>
+                                    
+                                </select>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="eventLocation" class="form-label">Location/Link</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" class="form-control" id="eventLocation" placeholder="Enter location"
+                                       [(ngModel)]="newEvent.location" name="eventLocation" required>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="eventChapter" class="form-label">Chapter</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                                <select class="form-select" id="eventChapter"
+                                        [(ngModel)]="newEvent.chapter_name" name="eventChapter" required>
+                                    <option *ngFor="let chapter of chapters" [value]="chapter.name">{{chapter.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label class="form-label">Event Type</label>
+                            <div class="d-flex">
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" id="typeEvent"
+                                           [(ngModel)]="newEvent.event_or_meeting" name="eventType" value="event">
+                                    <label class="form-check-label" for="typeEvent">Event</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="typeMeeting"
+                                           [(ngModel)]="newEvent.event_or_meeting" name="eventType" value="meeting">
+                                    <label class="form-check-label" for="typeMeeting">Meeting</label>
+                                </div>
+                            </div>
+                        </div>
+  
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="eventPaid"
+                                   [(ngModel)]="newEvent.paid" name="eventPaid">
+                            <label class="form-check-label" for="eventPaid">
+                                {{newEvent.paid ? 'Paid' : 'Free'}} Event
+                            </label>
+                        </div>
+  
+                        <div class="mb-3">
+                            <label for="eventThumbnail" class="form-label">Event Thumbnail</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                <input type="file" class="form-control" id="eventThumbnail"
+                                       (change)="onThumbnailChange($event)" accept="image/*">
+                                <label class="input-group-text" for="eventThumbnail">Upload</label>
+                            </div>
+                            <div *ngIf="thumbnailPreview" class="mt-2 text-center">
+                                <img [src]="thumbnailPreview" class="img-thumbnail rounded shadow-sm" style="max-height: 150px;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-pill" (click)="saveEvent()" [disabled]="!canSaveEvent()">
+                        <i class="bi bi-save me-1"></i> {{ isEditMode ? 'Update' : 'Save' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <!-- Add Media Modal -->
+    <div class="modal fade" id="mediaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+         aria-labelledby="mediaModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title" id="mediaModalTitle">
+                        <i class="bi bi-images me-2"></i>Add Media to Event
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <ul class="nav nav-tabs mb-3" id="mediaTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos"
+                                    type="button" role="tab" aria-controls="photos" aria-selected="true">
+                                <i class="bi bi-image me-2"></i>Photos
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="videos-tab" data-bs-toggle="tab" data-bs-target="#videos"
+                                    type="button" role="tab" aria-controls="videos" aria-selected="false">
+                                <i class="bi bi-camera-video me-2"></i>Videos
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="mediaTabContent">
+                        <div class="tab-pane fade show active" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                            <div class="mb-3">
+                                <label for="eventPhotos" class="form-label">Upload Photos</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-images"></i></span>
+                                    <input type="file" class="form-control" id="eventPhotos" multiple
+                                           (change)="onPhotosChange($event)" accept="image/*">
+                                    <label class="input-group-text" for="eventPhotos">Upload</label>
+                                </div>
+                                <div *ngIf="selectedPhotos.length > 0" class="mt-2">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        {{selectedPhotos.length}} photos selected
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success w-100 rounded-pill" [disabled]="selectedPhotos.length === 0" (click)="uploadPhotos()">
+                                <i class="bi bi-upload me-1"></i> Upload Photos
+                            </button>
+                        </div>
+                        <div class="tab-pane fade" id="videos" role="tabpanel" aria-labelledby="videos-tab">
+                            <div class="mb-3">
+                                <label for="eventVideos" class="form-label">Upload Videos</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-camera-video"></i></span>
+                                    <input type="file" class="form-control" id="eventVideos" multiple
+                                           (change)="onVideosChange($event)" accept="video/*">
+                                    <label class="input-group-text" for="eventVideos">Upload</label>
+                                </div>
+                                <div *ngIf="selectedVideos.length > 0" class="mt-2">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        {{selectedVideos.length}} videos selected
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success w-100 rounded-pill" [disabled]="selectedVideos.length === 0" (click)="uploadVideos()">
+                                <i class="bi bi-upload me-1"></i> Upload Videos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <!-- QR Code Modal -->
+    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title" id="qrCodeModalLabel">
+                        <i class="bi bi-qr-code me-2"></i>Event QR Code
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <h5 class="mb-3">{{ qrEventName }}</h5>
+                    <div class="d-flex justify-content-center">
+                        <div *ngIf="qrCodeSrc" class="p-3 border rounded shadow-sm bg-white">
+                            <img [src]="qrCodeSrc" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                        </div>
+                        <div *ngIf="!qrCodeSrc" class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <p class="text-muted mt-3 small">Scan this QR code to access event details</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
+                    <button *ngIf="qrCodeSrc" type="button" class="btn btn-primary rounded-pill" (click)="downloadQRCode()">
+                        <i class="bi bi-download me-1"></i>Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
   </div>
