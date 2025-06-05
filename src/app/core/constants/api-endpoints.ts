@@ -7,8 +7,8 @@ class ApiEndpoints {
   
   // User Management
   public GET_USERS: string = `${this.PATH}/users`;
-  public UPDATE_USER_STATUS: string = `${this.PATH}/status`;
-  public DELETE_USER: string = `${this.PATH}/delete`;
+  public UPDATE_USER_STATUS: string = `${this.PATH}/isActiveStatus`;
+  public DELETE_USER: string = `${this.PATH}/users/delete`;
   
   public GET_USER_DETAILS: string = `${this.PATH}/details`;
   public GET_ALL_COUNTRIES: string= `${this.PATH}/getAllCountries`
@@ -35,11 +35,13 @@ public  GET_ALL_EVENTS: string= `${this.PATH}/getAllEvents`
 
         public DELETE_EVENT: string = `${this.PATH}/deleteEvent`
 
-            public ADD_PHOTOS_TO_EVENT: string = `${this.PATH}/event/`
+            public ADD_PHOTOS_TO_EVENT: string = `${this.PATH}/events`
 
-            public ADD_VIDEOS_TO_EVENT: string = `${this.PATH}/event/`
+            public ADD_VIDEOS_TO_EVENT: string = `${this.PATH}/events`
+            public GET_EVENT_GALLERY: string = `${this.PATH}/getEventGallery`
+            public GET_ALL_PARTICIPANTS: string = `${this.PATH}/getAllParticipant`
        
-
+        
          
 
              public UPDATE_EVENT: string= `${this.PATH}/updateEvent`
@@ -87,17 +89,30 @@ public GET_SUBCATEGORIES:string=`${this.PATH}/getSubCategories`
 public CREATE_SUBCATEGORY:string=`${this.PATH}/createSubCategory`
 public UPDATE_SUBCATEGORY:string=`${this.PATH}/updateSubCategory`
 
-
+public TOGGLE_USER_STATUS:string=`${this.PATH}/isActiveStatus`
 
 
 public REGISTER_USER:string=`${this.PATH1}/mobile/auth/register`
 
 
-public GET_ALL_ATTENDANCE_REPORT:string=`${this.PATH}/getAllAttendance`
+public GET_ATTENDANCE_RECORDS:string=`${this.PATH}/getAttendanceRecords`
 
 public GET_POINT_HISTORY :string=`${this.PATH}/getPointsHistory`
 
 public ADMIN_LOGIN :string=`${this.PATH}/login`
+
+public GET_EVENTS_BY_CHAPTER :string=`${this.PATH}/getEventByChapter`
+
+public TOGGLE_ATTENDANCE_STATUS:string=`${this.PATH}/toggleAttendanceStatus`
+public GET_ALL_BANNER:string=`${this.PATH}/getAllBanner`
+public BANNER_CREATE:string=`${this.PATH}/bannerCreate`
+public BANNER_UPDATE:string=`${this.PATH}/bannerUpdate`
+public GET_BANNER_BY_ID:string=`${this.PATH}//banners`
+public DELETE_BANNER:string=`${this.PATH}/delete`
+
+
+
+
 
 
 

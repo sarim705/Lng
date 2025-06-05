@@ -171,43 +171,38 @@ export class CategoriesComponent implements OnInit, AfterViewInit {
 
   async saveCategory(): Promise<void> {
     try {
-      // Validate form
       if (!this.newCategory.name) {
         swalHelper.showToast('Please fill all required fields', 'warning');
         return;
       }
-      
+  
       this.loading = true;
-      
-      if (this.editMode && this.selectedCategory) {
-        // Update existing category
-        const response = await this.categoryService.updateCategory(
-          this.selectedCategory._id,
-          this.newCategory
-        );
-        
-        if (response && response.success) {
-          swalHelper.showToast('Category updated successfully', 'success');
-          this.closeModal();
-          this.fetchCategories();
-        } else {
-          swalHelper.showToast(response.message || 'Failed to update category', 'error');
-        }
+  
+      const response = this.editMode && this.selectedCategory
+        ? await this.categoryService.updateCategory(this.selectedCategory._id, this.newCategory)
+        : await this.categoryService.createCategory(this.newCategory);
+  
+      console.log('Response:', response); // Debug log
+  
+      if (response && response.success) {
+        swalHelper.showToast(`Category ${this.editMode ? 'updated' : 'created'} successfully`, 'success');
+        this.closeModal();
+        this.fetchCategories();
       } else {
-        // Create new category
-        const response = await this.categoryService.createCategory(this.newCategory);
-        
-        if (response && response.success) {
-          swalHelper.showToast('Category created successfully', 'success');
-          this.closeModal();
-          this.fetchCategories();
+        if (response?.message === 'Category with this name already exists') {
+          swalHelper.showToast('Category already exists', 'warning');
         } else {
-          swalHelper.showToast(response.message || 'Failed to create category', 'error');
+          swalHelper.showToast(response?.message || `Failed to ${this.editMode ? 'update' : 'create'} category`, 'error');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving category:', error);
-      swalHelper.showToast('Failed to save category', 'error');
+      console.log('Error details:', JSON.stringify(error, null, 2));
+      if (error?.response?.data?.message === 'Category with this name already exists' || error?.message === 'Category with this name already exists') {
+        swalHelper.showToast('Category already exists', 'error');
+      } else {
+        swalHelper.showToast(error?.response?.data?.message || error?.message || 'Failed to save category', 'error');
+      }
     } finally {
       this.loading = false;
     }

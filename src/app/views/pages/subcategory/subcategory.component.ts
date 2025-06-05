@@ -231,7 +231,11 @@ export class SubCategoriesComponent implements OnInit, AfterViewInit {
           this.closeModal();
           this.fetchSubCategories();
         } else {
-          swalHelper.showToast(response.message || 'Failed to create subcategory', 'error');
+          if (response?.message === 'SubCategory with this name already exists in the selected category') {
+            swalHelper.showToast('SubCategory already exists', 'warning');
+          } else {
+            swalHelper.showToast(response.message || 'Failed to create subcategory', 'error');
+          }
         }
       }
     } catch (error) {

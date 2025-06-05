@@ -1,65 +1,70 @@
-/* Add these styles to your events.component.css file */
-
 .bg-gradient-primary {
     background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
     color: white;
-  }
-  
-  .rounded-4 {
+}
+
+.rounded-4 {
     border-radius: 0.75rem !important;
-  }
-  
-  .hover-shadow {
+}
+
+.hover-shadow {
     transition: all 0.3s ease;
-  }
-  
-  .hover-shadow:hover {
+}
+
+.hover-shadow:hover {
     transform: translateY(-5px);
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-  }
-  
-  .card-title {
+}
+
+.card-title {
     font-weight: 600;
     color: #333;
-  }
-  
-  .empty-state {
+}
+
+.empty-state {
     padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-  }
-  
-  .form-control:focus, .form-select:focus {
+}
+
+.form-control:focus, .form-select:focus {
     border-color: #4e73df;
     box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
-  }
-  
-  .input-group-text {
+}
+
+.input-group-text {
     background-color: #f8f9fa;
-  }
-  
-  /* Loading animation */
-  .spinner-grow {
+}
+
+/* Loading animation */
+.spinner-grow {
     width: 3rem;
     height: 3rem;
     color: #4e73df;
-  }
-  
-  /* Badge styles */
-  .badge {
+}
+
+/* Badge styles */
+.badge {
     font-weight: 500;
     padding: 0.5em 0.75em;
-  }
-  
-  /* Card styling */
-  .card {
+}
+
+/* Card styling */
+.card {
     transition: all 0.2s ease;
-  }
-  
-  /* Added style for the thumbnail preview */
-  .img-thumbnail {
+}
+
+/* Added style for the thumbnail preview */
+.img-thumbnail {
     border: 3px solid #f1f1f1;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  }
+}
+
+/* Style for required field asterisks */
+.form-label.required::after {
+    content: '*';
+    color: red;
+    margin-left: 2px;
+}

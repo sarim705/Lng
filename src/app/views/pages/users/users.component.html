@@ -54,6 +54,7 @@
             <th class="py-3">Mobile</th>
             <th class="py-3">Email</th>
             <th class="py-3">User Type</th>
+            <th class="py-3">Status</th>
             <th class="text-end pe-4 py-3">Action</th>
           </tr>
         </thead>
@@ -94,6 +95,16 @@
                 {{user.meeting_role || 'N/A'}}
               </span>
             </td>
+            <td class="py-3">
+              <span class="badge rounded-pill" 
+                    [ngClass]="user.isActive
+ ? 'badge bg-success' : 'badge bg-danger'"
+                    style="cursor: pointer;"
+                    (click)="toggleUserStatus(user)">
+                {{user.isActive
+ ? 'Active' : 'Inactive'}}
+              </span>
+            </td>
             <td class="text-end pe-4 py-3">
               <div class="dropdown">
                 <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button"
@@ -104,10 +115,9 @@
                   <li><a class="dropdown-item" (click)="viewUserDetails(user)" style="cursor: pointer;">
                     <i class="bi bi-eye-fill me-2 text-primary"></i> View Details
                   </a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <!-- <li><a class="dropdown-item text-danger" (click)="deleteUser(user._id)" style="cursor: pointer;">
+                  <li><a class="dropdown-item text-danger" (click)="deleteUser(user._id)" style="cursor: pointer;">
                     <i class="bi bi-trash-fill me-2"></i> Delete
-                  </a></li> -->
+                  </a></li>
                 </ul>
               </div>
             </td>

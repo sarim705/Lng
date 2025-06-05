@@ -324,54 +324,72 @@ export class AuthService {
     }
   }
 
-  async updateUserStatus(userId: string, isActive: boolean): Promise<any> {
+  async toggleUserStatus(data: { id: string }): Promise<any> {
     try {
       this.getHeaders();
-      
-      const data = {
-        userId: userId,
-        isActive: isActive
-      };
-      
       const response = await this.apiManager.request(
         {
-          url: apiEndpoints.UPDATE_USER_STATUS,
+          url: 'http://localhost:2027/admin/isActiveStatus',
           method: 'POST',
         },
         data,
         this.headers
       );
       
-      if (response.status === 200 && response.data) {
-        return response.data;
+      if (response.status === 200 )
+         {
+
+          console.log('Toggle User Status Response:', response.data);
+        return response;
       } else {
         swalHelper.showToast(response.message || 'Failed to update user status', 'warning');
         return null;
       }
     } catch (error) {
-      console.error('Update User Status Error:', error);
+      console.error('Toggle User Status Error:', error);
       swalHelper.showToast('Something went wrong!', 'error');
       throw error;
     }
   }
-
+  
   async deleteUser(userId: string): Promise<any> {
     try {
       this.getHeaders();
       const response = await this.apiManager.request(
         {
-          url: apiEndpoints.DELETE_USER,
-          method: 'POST',
+          url: `${apiEndpoints.DELETE_USER}/${userId}`,
+          method: 'DELETE',
         },
-        { userId },
+        null,
         this.headers
       );
-      return response.data;
+      return response;
     } catch (error) {
+      console.error('Delete User Error:', error);
       swalHelper.showToast('Failed to delete user', 'error');
       throw error;
     }
   }
+  async uploadExcelFile(formData: FormData): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: 'http://localhost:2027/admin/import',
+          method: 'POST',
+        },
+        formData,
+        this.headers
+      );
+      return response;
+    } catch (error: any) {
+      console.error('Upload Excel File Error:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to upload file';
+      swalHelper.showToast(errorMessage, 'error');
+      throw new Error(errorMessage);
+    }
+  }
+ 
 
   async getUserDetails(userId: string): Promise<any> {
     try {
@@ -444,6 +462,7 @@ export class StateService {
     }
   }
   
+
     async createState(data: { name: string; country_name: string; status: boolean }): Promise<any> {
       try {
         this.getHeaders();
@@ -646,9 +665,9 @@ export class DashboardService {
     hasNextPage: boolean;
     prevPage: number | null;
     nextPage: number | null;
-  }
-  
-  export interface Event {
+}
+
+export interface Event {
     _id: string;
     name: string;
     event_or_meeting: 'event' | 'meeting';
@@ -656,28 +675,29 @@ export class DashboardService {
     date: string;
     startTime: string;
     endTime: string;
-    mode: 'online' | 'offline' | 'hybrid';
+    mode: 'online' | 'offline';
     thumbnail: string;
     location: string;
     chapter_name: string;
+    details: string;
+    mapURL: string;
     createdAt: string;
     photos: string[];
     videos: string[];
     __v: number;
-  }
-  
-  export interface Chapter {
+}
+export interface Chapter {
     name: string;
-  }
-  
-  @Injectable({
+}
+
+@Injectable({
     providedIn: 'root',
-  })
-  export class EventService {
+})
+export class EventService {
     private headers: any = [];
-  
+
     constructor(private apiManager: ApiManager, private storage: AppStorage) {}
-  
+
     private getHeaders = () => {
         this.headers = [];
         let token = this.storage.get(common.TOKEN);
@@ -685,18 +705,19 @@ export class DashboardService {
             this.headers.push({ Authorization: `Bearer ${token}` });
         }
     };
-  
+
     async getAllEvents(): Promise<Event[]> {
         try {
             this.getHeaders();
             const response = await this.apiManager.request(
                 {
-                    url: apiEndpoints.GET_ALL_EVENTS,
+                    url: `${apiEndpoints.GET_ALL_EVENTS}?t=${new Date().getTime()}`, // Cache-busting
                     method: 'GET',
                 },
                 null,
                 this.headers
             );
+            console.log('getAllEvents Response:', JSON.stringify(response, null, 2)); // Debug: Log full response
             return response.data || [];
         } catch (error) {
             console.error('API Error:', error);
@@ -704,7 +725,7 @@ export class DashboardService {
             throw error;
         }
     }
-  
+
     async createEvent(formData: FormData): Promise<any> {
         try {
             this.getHeaders();
@@ -724,27 +745,29 @@ export class DashboardService {
             throw error;
         }
     }
-  
+
     async updateEvent(eventId: string, formData: FormData): Promise<any> {
-        try {
-            this.getHeaders();
-            const response = await this.apiManager.request(
-                {
-                    url: `${apiEndpoints.UPDATE_EVENT}/${eventId}`,
-                    method: 'PUT',
-                    isFormData: true,
-                },
-                formData,
-                this.headers
-            );
-            return response;
-        } catch (error) {
-            console.error('Update Event Error:', error);
-            swalHelper.showToast('Failed to update event', 'error');
-            throw error;
-        }
-    }
-  
+      try {
+          this.getHeaders();
+          // Append eventId to FormData
+          formData.append('eventId', eventId);
+          const response = await this.apiManager.request(
+              {
+                  url: apiEndpoints.UPDATE_EVENT, // Now points to /updateEvent
+                  method: 'POST', // Changed to POST
+                  isFormData: true,
+              },
+              formData,
+              this.headers
+          );
+          console.log('updateEvent Response:', JSON.stringify(response, null, 2));
+          return response;
+      } catch (error) {
+          console.error('Update Event Error:', error);
+          swalHelper.showToast('Failed to update event', 'error');
+          throw error;
+      }
+  }
     async deleteEvent(eventId: string): Promise<any> {
         try {
             this.getHeaders();
@@ -763,7 +786,7 @@ export class DashboardService {
             throw error;
         }
     }
-  
+
     async addPhotosToEvent(eventId: string, formData: FormData): Promise<any> {
         try {
             this.getHeaders();
@@ -783,7 +806,29 @@ export class DashboardService {
             throw error;
         }
     }
-  
+
+    async getEventGallery(eventId: string): Promise<any> {
+      try {
+          this.getHeaders();
+          const response = await this.apiManager.request(
+              {
+                  url: `${apiEndpoints.GET_EVENT_GALLERY}`,
+                  method: 'POST',
+                 
+              },
+              { eventId },
+              this.headers
+          );
+          console.log('getEventGallery Response:', JSON.stringify(response, null, 2));
+          return response;
+      } catch (error) {
+          console.error('Get Event Gallery Error:', error);
+          swalHelper.showToast('Failed to fetch event gallery', 'error');
+          throw error;
+      }
+  }
+
+
     async addVideosToEvent(eventId: string, formData: FormData): Promise<any> {
         try {
             this.getHeaders();
@@ -803,8 +848,7 @@ export class DashboardService {
             throw error;
         }
     }
-  }
-  
+}
 
   export interface AttendanceData {
     _id: string;
@@ -1155,8 +1199,17 @@ export class DashboardService {
         );
         
         return response;
-      } catch (error) {
+      } catch (error: any) {
         console.error('API Error:', error);
+      if( error && error.error) {
+        
+
+        return error.error
+      }; // Return the specific error message if available
+        
+        
+
+
         swalHelper.showToast('Failed to create subcategory', 'error');
         throw error;
       }
@@ -1285,8 +1338,16 @@ export class DashboardService {
         );
         
         return response;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Create Category Error:', error);
+        
+        
+        if (error && error.error) {
+          
+          return error.error;
+        }
+        
+        
         swalHelper.showToast('Failed to create category', 'error');
         throw error;
       }
@@ -2094,6 +2155,7 @@ export interface Visitor {
   business_type: string;
   address: string;
   pincode: string;
+  attendanceStatus: string;
   fees: number | null;
   paid: boolean;
   createdAt: string;
@@ -2157,6 +2219,27 @@ export class VisitorService {
       throw error;
     }
   }
+//
+
+async toggleVisitorAttendance(body: { visitorId: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: 'http://localhost:2027/admin/toggleVisitorAttendance',
+          method: 'POST',
+        },
+        body, // Pass the body as the second argument
+        this.headers
+      );
+      return response;
+    } catch (error) {
+      console.error('Error toggling visitor attendance:', error);
+      swalHelper.showToast('Failed to toggle visitor attendance', 'error');
+      throw error;
+    }
+  }
+  
   async updateVisitor(visitorId: string, data: any): Promise<any> {
     try {
       this.getHeaders();
@@ -2195,29 +2278,96 @@ export class VisitorService {
     date: string;
   }
   
-  export interface AttendanceRecord {
-    _id: string;
-    userData: UserData;
-    eventData: EventData;
-    createdAt: string;
+  // export interface AttendanceRecord {
+  //   _id: string;
+  //   userData: UserData;
+  //   eventData: EventData;
+  //   createdAt: string;
+  // }
+  
+  // export interface AttendanceReportResponse {
+  //   docs: AttendanceRecord[];
+  //   totalDocs: number;
+  //   limit: number;
+  //   page: number;
+  //   totalPages: number;
+  //   hasPrevPage: boolean;
+  //   hasNextPage: boolean;
+  //   prevPage: number | null;
+  //   nextPage: number | null;
+  // }
+  
+  // @Injectable({
+  //   providedIn: 'root',
+  // })
+  // export class AttendanceReportService {
+  //   private headers: any = [];
+    
+  //   constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+    
+  //   private getHeaders = () => {
+  //     this.headers = [];
+  //     let token = this.storage.get(common.TOKEN);
+      
+  //     if (token != null) {
+  //       this.headers.push({ Authorization: `Bearer ${token}` });
+  //     }
+  //   };
+  
+  //   async getAllAttendance(params: any): Promise<AttendanceReportResponse> {
+  //     try {
+  //       this.getHeaders();
+        
+  //       // Build query string
+  //       const queryParams = Object.keys(params)
+  //         .filter(key => params[key] !== undefined && params[key] !== null)
+  //         .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+  //         .join('&');
+        
+  //       const url = `${apiEndpoints.GET_ALL_ATTENDANCE}?${queryParams}`;
+        
+  //       const response = await this.apiManager.request(
+  //         {
+  //           url: url,
+  //           method: 'GET',
+  //         },
+  //         null,
+  //         this.headers
+  //       );
+        
+  //       return response.data || response;
+  //     } catch (error) {
+  //       console.error('API Error:', error);
+  //       swalHelper.showToast('Failed to fetch attendance records', 'error');
+  //       throw error;
+  //     }
+  //   }
+  // }
+
+  export interface BannerResponse {
+    banners: Banner[];
+    total: number;
   }
   
-  export interface AttendanceReportResponse {
-    docs: AttendanceRecord[];
-    totalDocs: number;
-    limit: number;
-    page: number;
-    totalPages: number;
-    hasPrevPage: boolean;
-    hasNextPage: boolean;
-    prevPage: number | null;
-    nextPage: number | null;
+  export interface Banner {
+    _id: string;
+    title: string;
+    description: string;
+    image: string;
+    redirectUrl: string;
+    contact: string;
+    fromDate: string;
+    toDate: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
   }
   
   @Injectable({
     providedIn: 'root',
   })
-  export class AttendanceReportService {
+  export class BannerService {
     private headers: any = [];
     
     constructor(private apiManager: ApiManager, private storage: AppStorage) {}
@@ -2231,35 +2381,330 @@ export class VisitorService {
       }
     };
   
-    async getAllAttendance(params: any): Promise<AttendanceReportResponse> {
+    async getBanners(data: { page: number; limit: number; search: string }): Promise<any> {
       try {
         this.getHeaders();
         
-        // Build query string
-        const queryParams = Object.keys(params)
-          .filter(key => params[key] !== undefined && params[key] !== null)
-          .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-          .join('&');
-        
-        const url = `${apiEndpoints.GET_ALL_ATTENDANCE}?${queryParams}`;
+        // Create query parameters
+        let queryParams = `?page=${data.page}&limit=${data.limit}`;
+        if (data.search) {
+          queryParams += `&search=${encodeURIComponent(data.search)}`;
+        }
         
         const response = await this.apiManager.request(
           {
-            url: url,
+            url: apiEndpoints.GET_ALL_BANNER + queryParams,
             method: 'GET',
           },
           null,
           this.headers
         );
         
-        return response.data || response;
+        // Return the response data
+        return response;
       } catch (error) {
         console.error('API Error:', error);
+        swalHelper.showToast('Failed to fetch banners', 'error');
+        throw error;
+      }
+    }
+  
+    async createBanner(formData: FormData): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        // For file uploads, don't set Content-Type header, let browser set it
+        const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+        
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.BANNER_CREATE,
+            method: 'POST',
+          },
+          formData,
+          fileHeaders
+        );
+        
+        return response;
+      } catch (error: any) {
+        console.error('Create Banner Error:', error);
+        
+        if (error && error.error) {
+          return error.error;
+        }
+        
+        swalHelper.showToast('Failed to create banner', 'error');
+        throw error;
+      }
+    }
+  
+    async updateBanner(id: string, formData: FormData): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        // For file uploads, don't set Content-Type header, let browser set it
+        const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+        
+        // Add the banner ID to the form data
+        formData.append('id', id);
+        
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.BANNER_UPDATE,
+            method: 'POST',
+          },
+          formData,
+          fileHeaders
+        );
+        
+        return response;
+      } catch (error) {
+        console.error('Update Banner Error:', error);
+        swalHelper.showToast('Failed to update banner', 'error');
+        throw error;
+      }
+    }
+  
+    async getBannerById(id: string): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.GET_BANNER_BY_ID}/${id}`,
+            method: 'GET',
+          },
+          null,
+          this.headers
+        );
+        
+        return response;
+      } catch (error) {
+        console.error('Get Banner By ID Error:', error);
+        swalHelper.showToast('Failed to fetch banner details', 'error');
+        throw error;
+      }
+    }
+  
+    async deleteBanner(id: string): Promise<any> {
+      try {
+        this.getHeaders();
+        
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.DELETE_BANNER}/${id}`,
+            method: 'DELETE',
+          },
+          null,
+          this.headers
+        );
+        
+        return response;
+      } catch (error) {
+        console.error('Delete Banner Error:', error);
+        swalHelper.showToast('Failed to delete banner', 'error');
+        throw error;
+      }
+    }
+  
+  }
+  
+  export interface Event1 {
+    _id: string;
+    name: string;
+    date: string;
+    chapter_name: string;
+  }
+  
+  export interface AttendanceResponse1 {
+    eventDetails: {
+      id: string;
+      name: string;
+      date: string;
+      mode: string;
+      location: string;
+      chapter_name: string;
+    };
+    attendanceRecords: {
+      docs: {
+        userId: string;
+        name: string;
+        chapter_name: string;
+        email: string;
+        mobile_number: string;
+        status: 'present' | 'absent';
+      }[];
+      totalDocs: number;
+      limit: number;
+      page: number;
+      totalPages: number;
+      pagingCounter: number;
+      hasPrevPage: boolean;
+      hasNextPage: boolean;
+      prevPage: number | null;
+      nextPage: number | null;
+    };
+  }
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class AttendanceService1 {
+    private headers: any = [];
+  
+    constructor(
+      private apiManager: ApiManager,
+      private storage: AppStorage
+    ) {}
+  
+    private getHeaders = () => {
+      this.headers = [];
+      let token = this.storage.get(common.TOKEN);
+      if (token != null) {
+        this.headers.push({ Authorization: `Bearer ${token}` });
+      }
+    };
+  
+    async getEventsByChapter(chapter: string): Promise<{ data: { events: Event1[] } }> {
+      try {
+        this.getHeaders();
+        const response= await this.apiManager.request(
+          {
+            url: `${apiEndpoints.GET_EVENTS_BY_CHAPTER}/${encodeURIComponent(chapter)}`,
+            method: 'GET'
+          },
+          null,
+          this.headers
+        );
+        return {
+          data: {
+            events: response.data.events
+          }
+        };
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        swalHelper.showToast('Failed to fetch events', 'error');
+        throw error;
+      }
+    }
+  
+    async getAttendanceRecords(params: { chapter: string; eventId: string; page: number; limit: number }): Promise<AttendanceResponse1> {
+      try {
+        this.getHeaders();
+        const queryParams = `?chapter=${encodeURIComponent(params.chapter)}&eventId=${params.eventId}&page=${params.page}&limit=${params.limit}`;
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.GET_ATTENDANCE_RECORDS}${queryParams}`,
+            method: 'GET'
+          },
+          null,
+          this.headers
+        );
+        return {
+          eventDetails: response.data.eventDetails,
+          attendanceRecords: response.data.attendanceRecords
+        };
+      } catch (error) {
+        console.error('Error fetching attendance records:', error);
         swalHelper.showToast('Failed to fetch attendance records', 'error');
         throw error;
       }
     }
+  
+    async toggleAttendanceStatus(data: { eventId: string; userId: string }): Promise<any> {
+      try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.TOGGLE_ATTENDANCE_STATUS,
+            method: 'POST'
+          },
+          data,
+          this.headers
+        );
+        return response;
+      } catch (error) {
+        console.error('Error toggling attendance status:', error);
+        swalHelper.showToast('Failed to toggle attendance status', 'error');
+        throw error;
+      }
+    }
   }
+  
+  export interface Participant {
+    _id: string;
+    userId: {
+        _id: string;
+        name: string;
+        chapter_name: string;
+        profilePic: string;
+    };
+    eventId: {
+        _id: string;
+        name: string;
+        date: string;
+    };
+    preference: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface ParticipantResponse {
+    message: string;
+    data: {
+        docs: Participant[];
+        totalDocs: number;
+        limit: number;
+        totalPages: number;
+        page: number;
+        pagingCounter: number;
+        hasPrevPage: boolean;
+        hasNextPage: boolean;
+        prevPage: number | null;
+        nextPage: number | null;
+    };
+    status: number;
+    success?: boolean;
+}
+
+// Add this service class to your existing auth.service.ts
+@Injectable({
+    providedIn: 'root',
+})
+export class ParticipationService {
+    private headers: any = [];
+
+    constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+    private getHeaders = () => {
+        this.headers = [];
+        let token = this.storage.get(common.TOKEN);
+        if (token != null) {
+            this.headers.push({ Authorization: `Bearer ${token}` });
+        }
+    };
+
+    async getAllParticipants(eventId: string): Promise<ParticipantResponse> {
+        try {
+            this.getHeaders();
+            const response = await this.apiManager.request(
+                {
+                    url: `${apiEndpoints.GET_ALL_PARTICIPANTS}?t=${new Date().getTime()}`,
+                    method: 'POST',
+                },
+                { eventId },
+                this.headers
+            );
+            console.log('getAllParticipants Response:', JSON.stringify(response, null, 2));
+            
+            return response;
+        } catch (error) {
+            console.error('API Error:', error);
+            swalHelper.showToast('Failed to fetch participants', 'error');
+            throw error;
+        }
+    }
+}
   @Injectable({
     providedIn: 'root',
   })

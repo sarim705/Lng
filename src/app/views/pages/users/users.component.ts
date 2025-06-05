@@ -120,10 +120,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
     this.payload.search = this.searchQuery;
     this.searchSubject.next(this.searchQuery);
   }
-handleImageError(event: Event): void {
-  const imgElement = event.target as HTMLImageElement;
-  imgElement.src = '/assets/images/placeholder-image.png';
-}
+
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = '/assets/images/placeholder-image.png';
+  }
+
   onChange(): void {
     this.payload.page = 1;
     this.fetchUsers();
@@ -246,15 +248,21 @@ handleImageError(event: Event): void {
   async toggleUserStatus(user: any): Promise<void> {
     try {
       this.loading = true;
-      const updatedStatus = !user.acc_active;
-      await this.authService.updateUserStatus(user._id, updatedStatus);
-      user.acc_active = updatedStatus;
-      swalHelper.showToast(`User status changed to ${updatedStatus ? 'Active' : 'Inactive'}`, 'success');
+      const response = await this.authService.toggleUserStatus({ id: user._id });
+      if (response && response.success) {
+        user.isActive = response.data; // Update the local user object
+        swalHelper.showToast(`User status changed to ${response.data ? 'Active' : 'Inactive'}`, 'success');
+      } else {
+        const errorMessage = response?.message || 'Failed to update user status';
+        console.error('Toggle user status failed:', errorMessage);
+        swalHelper.showToast(errorMessage, 'error');
+      }
     } catch (error) {
       console.error('Error updating user status:', error);
       swalHelper.showToast('Failed to update user status', 'error');
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -268,15 +276,20 @@ handleImageError(event: Event): void {
 
       if (result.isConfirmed) {
         this.loading = true;
-        await this.authService.deleteUser(userId);
-        swalHelper.showToast('User deleted successfully', 'success');
-        this.fetchUsers();
+        const response = await this.authService.deleteUser(userId);
+        if (response.success) {
+          swalHelper.showToast('User deleted successfully', 'success');
+          this.fetchUsers();
+        } else {
+          swalHelper.showToast(response.message || 'Failed to delete user', 'error');
+        }
       }
     } catch (error) {
       console.error('Error deleting user:', error);
       swalHelper.showToast('Failed to delete user', 'error');
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 

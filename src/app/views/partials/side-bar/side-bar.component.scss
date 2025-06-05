@@ -336,7 +336,7 @@ $sidebar-collapsed-width: 70px;
     }
 
     .nav-icon {
-      color: $primary-color;
+      color: rgb(45, 14, 14);
     }
 
     .nav-indicator {
@@ -346,10 +346,10 @@ $sidebar-collapsed-width: 70px;
   }
 
   &.logout-link {
-    color: #e74c3c;
+    color: #2d0b07;
 
     &:hover {
-      color: #c0392b;
+      color: #150503;
       background: rgba(231, 76, 60, 0.1);
     }
   }

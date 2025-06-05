@@ -1,3 +1,4 @@
+// visitors.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -36,6 +37,7 @@ export class VisitorsComponent implements OnInit {
   chaptersLoading: boolean = false;
   exporting: boolean = false;
   updatingVisitorId: string | null = null;
+  toggling: { [key: string]: boolean } = {}; // Add toggling state for attendance
   
   Math = Math;
   
@@ -90,7 +92,8 @@ export class VisitorsComponent implements OnInit {
           address: visitor.address,
           pincode: visitor.pincode,
           business_type: visitor.business_type,
-          eventId: visitor.eventId
+          eventId: visitor.eventId,
+          attendanceStatus: visitor.attendanceStatus // Log new field
         });
       });
 
@@ -188,6 +191,26 @@ export class VisitorsComponent implements OnInit {
     }
   }
 
+  async toggleVisitorAttendanceStatus(visitor: Visitor): Promise<void> {
+    this.toggling[visitor._id] = true;
+    try {
+      const response = await this.visitorService.toggleVisitorAttendance({ visitorId: visitor._id });
+      if (response.success) {
+        visitor.attendanceStatus = response.data.visitor.attendanceStatus;
+        swalHelper.showToast(`Visitor attendance status changed to ${visitor.attendanceStatus}`, 'success');
+        this.cdr.detectChanges();
+      } else {
+        swalHelper.showToast('Failed to update attendance status', 'error');
+      }
+    } catch (error) {
+      console.error('Error toggling attendance status:', error);
+      swalHelper.showToast('Failed to toggle attendance status', 'error');
+    } finally {
+      this.toggling[visitor._id] = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   async exportToExcel(): Promise<void> {
     try {
       this.exporting = true;
@@ -213,6 +236,7 @@ export class VisitorsComponent implements OnInit {
           'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
           'Profession': visitor.business_type || 'N/A',
           'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
+          'Attendance Status': visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A', // Add attendanceStatus
           'Fees': visitor.fees || 'N/A'
         };
       });
@@ -249,7 +273,8 @@ export class VisitorsComponent implements OnInit {
         { header: 'PinCode', dataKey: 'pincode' },
         { header: 'Visitor Date', dataKey: 'visitorDate' },
         { header: 'Profession', dataKey: 'profession' },
-        { header: 'Visitor Type', dataKey: 'visitorType' }
+        { header: 'Visitor Type', dataKey: 'visitorType' },
+        { header: 'Attendance Status', dataKey: 'attendanceStatus' } // Add attendanceStatus
       ];
       const data = allData.docs.map((visitor, index) => {
         return {
@@ -262,7 +287,8 @@ export class VisitorsComponent implements OnInit {
           pincode: visitor.pincode || 'N/A',
           visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
           profession: visitor.business_type || 'N/A',
-          visitorType: visitor.paid ? 'Paid' : 'Unpaid'
+          visitorType: visitor.paid ? 'Paid' : 'Unpaid',
+          attendanceStatus: visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A' // Add attendanceStatus
         };
       });
       const title = 'Visitors Report';

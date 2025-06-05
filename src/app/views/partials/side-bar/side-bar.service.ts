@@ -28,6 +28,12 @@ export class SideBarService {
           icon: 'users', // Members list
         },
         {
+          title: 'Import Users',
+          link: 'importUsers',
+          icon: 'file-import', // File import
+        },
+     
+        {
           title: 'Countries',
           link: 'country',
           icon: 'globe', // Global map
@@ -69,6 +75,12 @@ export class SideBarService {
           icon: 'calendar', // Event planning
         },
         {
+          title: 'Participation',
+          link: 'participation',
+          icon: 'check-circle', // Participation tracking
+        },
+       
+        {
           title: 'Attendence',
           link: 'attendence',
           icon: 'check-square', // Checkbox tracking
@@ -105,12 +117,13 @@ export class SideBarService {
         },
 
        
-       // {
-        //  title: 'Attendance Record',
-        //  link: 'attendanceRecord',
-      //    icon: 'clipboard', // Detailed records
-       // },
-     
+        {
+          title: 'Attendance Record',
+          link: 'attendanceRecord',
+          icon: 'clipboard', // Detailed records
+        },
+    
+        
       ],
     },
   ];

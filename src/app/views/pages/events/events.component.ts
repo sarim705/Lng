@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { debounceTime, Subject } from 'rxjs';
 import { EventService, Event, ChapterService, Chapter } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
@@ -12,7 +12,7 @@ declare var bootstrap: any;
 @Component({
     selector: 'app-events',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule],
     templateUrl: './events.component.html',
     styleUrls: ['./events.component.css']
 })
@@ -33,19 +33,13 @@ export class EventsComponent implements OnInit, AfterViewInit {
     selectedChapter: string = 'All';
     isEditMode: boolean = false;
     currentEventId: string | null = null;
-
-    newEvent = {
-        name: '',
-        date: '',
-        startTime: '',
-        endTime: '',
-        mode: 'online' as 'online' | 'offline' | 'hybrid',
-        event_or_meeting: 'event' as 'event' | 'meeting',
-        paid: false,
-        location: '',
-        chapter_name: 'All'
-    };
-
+    galleryModal: any;
+    galleryLoading: boolean = false;
+    galleryData: any = null;
+    galleryEventName: string = '';
+    fullScreenImageModal: any;
+    fullScreenImageSrc: string = '';
+    eventForm: FormGroup;
     thumbnailFile: File | null = null;
     thumbnailPreview: string | null = null;
     selectedPhotos: File[] = [];
@@ -56,12 +50,27 @@ export class EventsComponent implements OnInit, AfterViewInit {
     constructor(
         private eventService: EventService,
         private chapterService: ChapterService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private fb: FormBuilder
     ) {
         this.searchSubject.pipe(
             debounceTime(500)
         ).subscribe(() => {
             this.filterEvents();
+        });
+
+        this.eventForm = this.fb.group({
+            name: ['', [Validators.required, Validators.minLength(3)]],
+            date: ['', Validators.required],
+            startTime: [''],
+            endTime: [''],
+            mode: ['online'],
+            event_or_meeting: ['', Validators.required],
+            paid: [false],
+            location: ['', [Validators.required, Validators.minLength(3)]],
+            chapter_name: ['', Validators.required],
+            mapURL: [''],
+            details: ['']
         });
     }
 
@@ -92,6 +101,20 @@ export class EventsComponent implements OnInit, AfterViewInit {
             } else {
                 console.warn('QR Code modal element not found in the DOM');
             }
+
+            const galleryModalElement = document.getElementById('galleryModal');
+            if (galleryModalElement) {
+                this.galleryModal = new bootstrap.Modal(galleryModalElement);
+            } else {
+                console.warn('Gallery modal element not found in the DOM');
+            }
+
+            const fullScreenImageModalElement = document.getElementById('fullScreenImageModal');
+            if (fullScreenImageModalElement) {
+                this.fullScreenImageModal = new bootstrap.Modal(fullScreenImageModalElement);
+            } else {
+                console.warn('Full-screen image modal element not found in the DOM');
+            }
         }, 300);
     }
 
@@ -99,6 +122,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
         this.loading = true;
         try {
             const response = await this.eventService.getAllEvents();
+            console.log('Fetched Events:', JSON.stringify(response, null, 2));
             this.events = response;
             this.filterEvents();
             this.cdr.detectChanges();
@@ -107,6 +131,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             swalHelper.showToast('Failed to fetch events', 'error');
         } finally {
             this.loading = false;
+            this.cdr.detectChanges();
         }
     }
 
@@ -116,12 +141,13 @@ export class EventsComponent implements OnInit, AfterViewInit {
             this.cdr.detectChanges();
         } catch (error) {
             console.error('Error fetching chapters:', error);
-            swalHelper.showToast('Failed to fetch chapters Maddox', 'error');
+            swalHelper.showToast('Failed to fetch chapters', 'error');
         }
     }
 
     filterEvents(): void {
-        let filtered = this.events;
+        let filtered = [...this.events];
+        console.log('Filtering Events:', JSON.stringify(filtered, null, 2));
 
         if (this.searchQuery.trim()) {
             const query = this.searchQuery.toLowerCase().trim();
@@ -137,6 +163,8 @@ export class EventsComponent implements OnInit, AfterViewInit {
         }
 
         this.filteredEvents = filtered;
+        console.log('Filtered Events:', JSON.stringify(this.filteredEvents, null, 2));
+        this.cdr.detectChanges();
     }
 
     onSearch(): void {
@@ -150,17 +178,19 @@ export class EventsComponent implements OnInit, AfterViewInit {
     openAddEventModal(): void {
         this.isEditMode = false;
         this.currentEventId = null;
-        this.newEvent = {
+        this.eventForm.reset({
             name: '',
             date: '',
             startTime: '',
             endTime: '',
             mode: 'online',
-            event_or_meeting: 'event',
+            event_or_meeting: '',
             paid: false,
             location: '',
-            chapter_name: 'All'
-        };
+            chapter_name: '',
+            mapURL: '',
+            details: ''
+        });
         this.thumbnailFile = null;
         this.thumbnailPreview = null;
         this.showEventModal();
@@ -169,7 +199,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
     openEditEventModal(event: Event): void {
         this.isEditMode = true;
         this.currentEventId = event._id;
-        this.newEvent = {
+        this.eventForm.patchValue({
             name: event.name,
             date: new Date(event.date).toISOString().split('T')[0],
             startTime: event.startTime || '',
@@ -178,8 +208,10 @@ export class EventsComponent implements OnInit, AfterViewInit {
             event_or_meeting: event.event_or_meeting,
             paid: event.paid,
             location: event.location,
-            chapter_name: event.chapter_name || 'All'
-        };
+            chapter_name: event.chapter_name || '',
+            mapURL: event.mapURL || '',
+            details: event.details || ''
+        });
         this.thumbnailFile = null;
         this.thumbnailPreview = this.getImagePath(event.thumbnail);
         this.showEventModal();
@@ -212,6 +244,40 @@ export class EventsComponent implements OnInit, AfterViewInit {
         }
     }
 
+    async openGalleryModal(event: Event): Promise<void> {
+        this.galleryEventName = event.name;
+        this.galleryData = null;
+        this.galleryLoading = true;
+
+        if (this.galleryModal) {
+            this.galleryModal.show();
+        }
+
+        try {
+            const response = await this.eventService.getEventGallery(event._id);
+            if (response && response.success) {
+                this.galleryData = response.data;
+            } else {
+                swalHelper.showToast(response.message || 'Failed to load gallery', 'error');
+            }
+        } catch (error) {
+            console.error('Error fetching gallery:', error);
+            swalHelper.showToast('Failed to load gallery', 'error');
+        } finally {
+            this.galleryLoading = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    openFullScreenImage(index: number): void {
+        if (this.galleryData && this.galleryData.media.photos[index]) {
+            this.fullScreenImageSrc = this.getImagePath(this.galleryData.media.photos[index]);
+            if (this.fullScreenImageModal) {
+                this.fullScreenImageModal.show();
+            }
+        }
+    }
+
     onThumbnailChange(event: any): void {
         const files = event.target.files;
         if (files && files.length > 0) {
@@ -240,46 +306,58 @@ export class EventsComponent implements OnInit, AfterViewInit {
     }
 
     canSaveEvent(): boolean {
-        return !!this.newEvent.name &&
-               !!this.newEvent.event_or_meeting &&
-               !!this.newEvent.date &&
-               !!this.newEvent.startTime &&
-               !!this.newEvent.endTime &&
-               !!this.newEvent.mode &&
-               !!this.newEvent.location &&
-               !!this.newEvent.chapter_name;
+        return this.eventForm.valid;
     }
 
     async saveEvent(): Promise<void> {
-        try {
-            if (!this.canSaveEvent()) {
-                swalHelper.showToast('Please fill all required fields', 'warning');
-                return;
-            }
+        if (!this.canSaveEvent()) {
+            this.eventForm.markAllAsTouched();
+            swalHelper.showToast('Please fill all required fields correctly', 'warning');
+            return;
+        }
 
+        try {
             this.loading = true;
 
             const formData = new FormData();
-            formData.append('name', this.newEvent.name);
-            formData.append('date', this.newEvent.date);
-            formData.append('startTime', this.newEvent.startTime);
-            formData.append('endTime', this.newEvent.endTime);
-            formData.append('mode', this.newEvent.mode);
-            formData.append('event_or_meeting', this.newEvent.event_or_meeting);
-            formData.append('paid', this.newEvent.paid.toString());
-            formData.append('location', this.newEvent.location);
-            if (this.newEvent.chapter_name !== 'All') {
-                formData.append('chapter_name', this.newEvent.chapter_name);
-            }
+            Object.keys(this.eventForm.value).forEach(key => {
+                if (key === 'paid') {
+                    formData.append(key, this.eventForm.get(key)?.value.toString());
+                } else if (key === 'chapter_name' && this.eventForm.get(key)?.value === '') {
+                    formData.append(key, 'All');
+                } else {
+                    formData.append(key, this.eventForm.get(key)?.value || '');
+                }
+            });
+
             if (this.thumbnailFile) {
                 formData.append('thumbnail', this.thumbnailFile as Blob);
+            }
+
+            console.log('Sending FormData:');
+            for (let pair of (formData as any).entries()) {
+                console.log(`${pair[0]}: ${pair[1]}`);
             }
 
             let response;
             if (this.isEditMode && this.currentEventId) {
                 response = await this.eventService.updateEvent(this.currentEventId, formData);
+                console.log('Update Event Response:', JSON.stringify(response, null, 2));
+                if (response && response.success && response.data) {
+                    const index = this.events.findIndex(e => e._id === this.currentEventId);
+                    if (index !== -1) {
+                        this.events[index] = {
+                            ...response.data,
+                            name: this.eventForm.get('name')?.value
+                        };
+                        console.log('Manually updated events array:', JSON.stringify(this.events[index], null, 2));
+                        this.filterEvents();
+                        this.cdr.detectChanges();
+                    }
+                }
             } else {
                 response = await this.eventService.createEvent(formData);
+                console.log('Create Event Response:', JSON.stringify(response, null, 2));
             }
 
             if (response && response.success) {
@@ -288,7 +366,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
                     'success'
                 );
                 this.closeEventModal();
-                this.fetchEvents();
+                setTimeout(() => this.fetchEvents(), 0);
             } else {
                 swalHelper.showToast(response.message || 'Failed to save event', 'error');
             }
@@ -297,6 +375,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             swalHelper.showToast('Failed to save event', 'error');
         } finally {
             this.loading = false;
+            this.cdr.detectChanges();
         }
     }
 
@@ -307,21 +386,29 @@ export class EventsComponent implements OnInit, AfterViewInit {
                 'Do you want to delete this event? This action cannot be undone.',
                 'warning'
             );
-            if (!confirmed) return;
 
-            this.loading = true;
-            const response = await this.eventService.deleteEvent(eventId);
-            if (response && response.success) {
-                swalHelper.showToast('Event deleted successfully', 'success');
-                this.fetchEvents();
-            } else {
-                swalHelper.showToast(response.message || 'Failed to delete event', 'error');
+            if (confirmed.isConfirmed) {
+                try {
+                    this.loading = true;
+                    const response = await this.eventService.deleteEvent(eventId);
+
+                    if (response && response.success) {
+                        swalHelper.showToast('Event deleted successfully', 'success');
+                        await this.fetchEvents();
+                    } else {
+                        swalHelper.showToast(response.message || 'Failed to delete event', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting event:', error);
+                    swalHelper.showToast('Failed to delete event', 'error');
+                } finally {
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                }
             }
         } catch (error) {
-            console.error('Error deleting event:', error);
-            swalHelper.showToast('Failed to delete event', 'error');
-        } finally {
-            this.loading = false;
+            console.error('Error during confirmation dialog:', error);
+            swalHelper.showToast('Something went wrong during confirmation.', 'error');
         }
     }
 
@@ -342,7 +429,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             if (response && response.success) {
                 swalHelper.showToast('Photos uploaded successfully', 'success');
                 this.selectedPhotos = [];
-                this.fetchEvents();
+                await this.fetchEvents();
             } else {
                 swalHelper.showToast(response.message || 'Failed to upload photos', 'error');
             }
@@ -351,6 +438,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             swalHelper.showToast('Failed to upload photos', 'error');
         } finally {
             this.loading = false;
+            this.cdr.detectChanges();
         }
     }
 
@@ -371,7 +459,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             if (response && response.success) {
                 swalHelper.showToast('Videos uploaded successfully', 'success');
                 this.selectedVideos = [];
-                this.fetchEvents();
+                await this.fetchEvents();
             } else {
                 swalHelper.showToast(response.message || 'Failed to upload videos', 'error');
             }
@@ -380,6 +468,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
             swalHelper.showToast('Failed to upload videos', 'error');
         } finally {
             this.loading = false;
+            this.cdr.detectChanges();
         }
     }
 

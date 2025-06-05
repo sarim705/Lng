@@ -8,7 +8,6 @@
                 <i class="bi bi-plus-circle me-2"></i>Add Event
             </button>
         </div>
-  
         <div class="card-body p-0">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
                 <div class="d-flex w-100 align-items-center">
@@ -24,7 +23,7 @@
                         </div>
                     </div>
                     <div>
-                        <select class="form-select" [(ngModel)]="filterType" (change)="onFilterChange()">
+                       <select class="form-select" [(ngModel)]="filterType" (change)="onFilterChange()">
                             <option value="all">All Types</option>
                             <option value="event">Events Only</option>
                             <option value="meeting">Meetings Only</option>
@@ -33,13 +32,13 @@
                 </div>
             </div>
         </div>
-  
+
         <div *ngIf="loading" class="text-center my-5 py-5">
             <div class="spinner-grow text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-  
+
         <!-- Events Grid View -->
         <div class="p-3" *ngIf="!loading && events && events.length > 0">
             <div class="row g-3">
@@ -78,6 +77,14 @@
                                     <strong>Location/Link:</strong> <span class="ms-1">{{event.location || 'N/A'}}</span>
                                 </div>
                                 <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-geo-alt me-2 text-info"></i>
+                                    <strong>Location URL:</strong> <span class="ms-1">{{event.mapURL || 'N/A'}}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-geo-alt me-2 text-info"></i>
+                                    <strong>Details:</strong> <span class="ms-1">{{event.details || 'N/A'}}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
                                     <i class="bi bi-bookmark me-2 text-warning"></i>
                                     <strong>Chapter:</strong> <span class="ms-1">{{event.chapter_name || 'All'}}</span>
                                 </div>
@@ -96,21 +103,27 @@
                             </div>
                         </div>
                         <div class="card-footer bg-light d-flex justify-content-between py-2 flex-wrap gap-2">
-                         <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="openEditEventModal(event)">
-                                <i class="bi bi-pencil me-1"></i>Edit 
-                            </button> 
+                            <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="openEditEventModal(event)">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </button>
                             <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="deleteEvent(event._id)">
                                 <i class="bi bi-trash me-1"></i>Delete
                             </button>
                             <button class="btn btn-sm btn-outline-info rounded-pill" (click)="showQRCode(event)">
                                 <i class="bi bi-qr-code me-1"></i>QR Code
                             </button>
+                            <button class="btn btn-sm btn-outline-success rounded-pill" (click)="openGalleryModal(event)">
+                                <i class="bi bi-images me-1"></i>View Gallery
+                            </button>
+                            <button class="btn btn-sm btn-outline-success rounded-pill" (click)="openAddMediaModal(event)">
+                                <i class="bi bi-images me-1"></i>Add Media
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-  
+
         <!-- No Events Found -->
         <div *ngIf="!loading && (!filteredEvents || filteredEvents.length === 0)" class="text-center my-5 py-4 px-4">
             <div class="empty-state">
@@ -123,7 +136,7 @@
             </div>
         </div>
     </div>
-  
+
     <!-- Event Modal (Add/Edit) -->
     <div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
          aria-labelledby="eventModalTitle" aria-hidden="true">
@@ -136,100 +149,135 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form>
+                    <form [formGroup]="eventForm" (ngSubmit)="saveEvent()">
                         <div class="mb-3">
-                            <label for="eventName" class="form-label">Event Name</label>
+                            <label for="eventName" class="form-label">Event Name *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-tag"></i></span>
                                 <input type="text" class="form-control" id="eventName" placeholder="Enter event name"
-                                       [(ngModel)]="newEvent.name" name="eventName" required>
+                                       formControlName="name" [ngClass]="{'is-invalid': eventForm.get('name')?.invalid && (eventForm.get('name')?.touched || eventForm.get('name')?.dirty)}">
+                                <div *ngIf="eventForm.get('name')?.invalid && (eventForm.get('name')?.touched || eventForm.get('name')?.dirty)" class="invalid-feedback">
+                                    <div *ngIf="eventForm.get('name')?.errors?.['required']">Event name is required</div>
+                                    <div *ngIf="eventForm.get('name')?.errors?.['minlength']">Event name must be at least 3 characters</div>
+                                </div>
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
-                            <label for="eventDate" class="form-label">Event Date</label>
+                            <label for="eventDate" class="form-label">Event Date *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar"></i></span>
                                 <input type="date" class="form-control" id="eventDate"
-                                       [(ngModel)]="newEvent.date" name="eventDate" required>
+                                       formControlName="date" [ngClass]="{'is-invalid': eventForm.get('date')?.invalid && (eventForm.get('date')?.touched || eventForm.get('date')?.dirty)}">
+                                <div *ngIf="eventForm.get('date')?.invalid && (eventForm.get('date')?.touched || eventForm.get('date')?.dirty)" class="invalid-feedback">
+                                    <div *ngIf="eventForm.get('date')?.errors?.['required']">Event date is required</div>
+                                </div>
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
                             <label for="startTime" class="form-label">Start Time</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-clock"></i></span>
                                 <input type="time" class="form-control" id="startTime"
-                                       [(ngModel)]="newEvent.startTime" name="startTime" required>
+                                       formControlName="startTime">
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
                             <label for="endTime" class="form-label">End Time</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-clock"></i></span>
                                 <input type="time" class="form-control" id="endTime"
-                                       [(ngModel)]="newEvent.endTime" name="endTime" required>
+                                       formControlName="endTime">
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
                             <label for="eventMode" class="form-label">Mode</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-display"></i></span>
                                 <select class="form-select" id="eventMode"
-                                        [(ngModel)]="newEvent.mode" name="eventMode" required>
-                                    <option value="online">Offline</option>
-                                    <option value="offline">Online</option>
-                                    
+                                        formControlName="mode">
+                                    <option value="online">Online</option>
+                                    <option value="offline">Offline</option>
                                 </select>
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
-                            <label for="eventLocation" class="form-label">Location/Link</label>
+                            <label for="eventLocation" class="form-label">Location/Link *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
                                 <input type="text" class="form-control" id="eventLocation" placeholder="Enter location"
-                                       [(ngModel)]="newEvent.location" name="eventLocation" required>
+                                       formControlName="location" [ngClass]="{'is-invalid': eventForm.get('location')?.invalid && (eventForm.get('location')?.touched || eventForm.get('location')?.dirty)}">
+                                <div *ngIf="eventForm.get('location')?.invalid && (eventForm.get('location')?.touched || eventForm.get('location')?.dirty)" class="invalid-feedback">
+                                    <div *ngIf="eventForm.get('location')?.errors?.['required']">Location is required</div>
+                                    <div *ngIf="eventForm.get('location')?.errors?.['minlength']">Location must be at least 3 characters</div>
+                                </div>
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
-                            <label for="eventChapter" class="form-label">Chapter</label>
+                            <label for="LocationURL" class="form-label">Location URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" class="form-control" id="LocationURL" placeholder="Enter location URL if any"
+                                       formControlName="mapURL">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="details" class="form-label">Details</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" class="form-control" id="details" placeholder="Enter description"
+                                       formControlName="details">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="eventChapter" class="form-label">Chapter *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
                                 <select class="form-select" id="eventChapter"
-                                        [(ngModel)]="newEvent.chapter_name" name="eventChapter" required>
+                                        formControlName="chapter_name" [ngClass]="{'is-invalid': eventForm.get('chapter_name')?.invalid && (eventForm.get('chapter_name')?.touched || eventForm.get('chapter_name')?.dirty)}">
+                                    <option value="" disabled>Select a chapter</option>
                                     <option *ngFor="let chapter of chapters" [value]="chapter.name">{{chapter.name}}</option>
                                 </select>
+                                <div *ngIf="eventForm.get('chapter_name')?.invalid && (eventForm.get('chapter_name')?.touched || eventForm.get('chapter_name')?.dirty)" class="invalid-feedback">
+                                    <div *ngIf="eventForm.get('chapter_name')?.errors?.['required']">Chapter is required</div>
+                                </div>
                             </div>
                         </div>
-  
+
                         <div class="mb-3">
-                            <label class="form-label">Event Type</label>
+                            <label class="form-label">Event Type *</label>
                             <div class="d-flex">
                                 <div class="form-check me-4">
                                     <input class="form-check-input" type="radio" id="typeEvent"
-                                           [(ngModel)]="newEvent.event_or_meeting" name="eventType" value="event">
+                                           formControlName="event_or_meeting" value="event">
                                     <label class="form-check-label" for="typeEvent">Event</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" id="typeMeeting"
-                                           [(ngModel)]="newEvent.event_or_meeting" name="eventType" value="meeting">
+                                           formControlName="event_or_meeting" value="meeting">
                                     <label class="form-check-label" for="typeMeeting">Meeting</label>
                                 </div>
                             </div>
+                            <div *ngIf="eventForm.get('event_or_meeting')?.invalid && (eventForm.get('event_or_meeting')?.touched || eventForm.get('event_or_meeting')?.dirty)" class="invalid-feedback d-block">
+                                <div *ngIf="eventForm.get('event_or_meeting')?.errors?.['required']">Event type is required</div>
+                            </div>
                         </div>
-  
+
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="eventPaid"
-                                   [(ngModel)]="newEvent.paid" name="eventPaid">
+                                   formControlName="paid">
                             <label class="form-check-label" for="eventPaid">
-                                {{newEvent.paid ? 'Paid' : 'Free'}} Event
+                                {{eventForm.get('paid')?.value ? 'Paid' : 'Free'}} Event
                             </label>
                         </div>
-  
+
                         <div class="mb-3">
                             <label for="eventThumbnail" class="form-label">Event Thumbnail</label>
                             <div class="input-group">
@@ -242,15 +290,16 @@
                                 <img [src]="thumbnailPreview" class="img-thumbnail rounded shadow-sm" style="max-height: 150px;">
                             </div>
                         </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary rounded-pill" [disabled]="!eventForm.valid">
+                                <i class="bi bi-save me-1"></i> {{ isEditMode ? 'Update' : 'Save' }}
+                            </button>
+                        </div>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Cancel
-                    </button>
-                    <button type="button" class="btn btn-primary rounded-pill" (click)="saveEvent()" [disabled]="!canSaveEvent()">
-                        <i class="bi bi-save me-1"></i> {{ isEditMode ? 'Update' : 'Save' }}
-                    </button>
                 </div>
             </div>
         </div>
@@ -367,4 +416,89 @@
             </div>
         </div>
     </div>
-  </div>
+
+    <!-- Gallery Modal -->
+    <div class="modal fade" id="galleryModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+         aria-labelledby="galleryModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title" id="galleryModalTitle">
+                        <i class="bi bi-images me-2"></i>{{ galleryEventName }} Gallery
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div *ngIf="galleryLoading" class="text-center my-5">
+                        <div class="spinner-grow text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div *ngIf="!galleryLoading && galleryData">
+                        <ul class="nav nav-tabs mb-3" id="galleryTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="gallery-photos-tab" data-bs-toggle="tab" data-bs-target="#gallery-photos"
+                                        type="button" role="tab" aria-controls="gallery-photos" aria-selected="true">
+                                    <i class="bi bi-image me-2"></i>Photos
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="gallery-videos-tab" data-bs-toggle="tab" data-bs-target="#gallery-videos"
+                                        type="button" role="tab" aria-controls="gallery-videos" aria-selected="false">
+                                    <i class="bi bi-camera-video me-2"></i>Videos
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="galleryTabContent">
+                            <div class="tab-pane fade show active" id="gallery-photos" role="tabpanel" aria-labelledby="gallery-photos-tab">
+                                <div *ngIf="galleryData.media.photos.length === 0" class="text-center text-muted">
+                                    No photos available
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6 col-md-4" *ngFor="let photo of galleryData.media.photos; let i = index">
+                                        <div class="gallery-item position-relative">
+                                            <img [src]="getImagePath(photo)" class="img-fluid rounded shadow-sm gallery-img"
+                                                 alt="Event photo" (click)="openFullScreenImage(i)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="gallery-videos" role="tabpanel" aria-labelledby="gallery-videos-tab">
+                                <div *ngIf="galleryData.media.videos.length === 0" class="text-center text-muted">
+                                    No videos available
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12" *ngFor="let video of galleryData.media.videos">
+                                        <div class="gallery-item">
+                                            <video controls class="img-fluid rounded shadow-sm gallery-video"
+                                                   [src]="getImagePath(video)">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-Screen Image Modal -->
+    <div class="modal fade" id="fullScreenImageModal" tabindex="-1" aria-labelledby="fullScreenImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 bg-transparent">
+                <div class="modal-body p-0 position-relative">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <img [src]="fullScreenImageSrc" class="img-fluid" alt="Full-screen event photo">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

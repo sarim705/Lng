@@ -21,11 +21,13 @@ import { ReferralsComponentRecieved} from './views/pages/referralReportRecieved/
 import { OneToOneComponent } from './views/pages/oneToone/oneToone.component';
 import { TyfcbComponent } from './views/pages/tyfcb/tyfcb.component';
 import { VisitorsComponent } from './views/pages/visitors/visitors.component';
-import { AttendanceReportComponent } from './views/pages/attendenceReport/attendence-Report.component';
+import { AttendanceDataComponent } from './views/pages/attendenceRecord/attendenceRecord.component';
 import {RegisterComponent} from './views/pages/userRegisteration/userRegisteration.component';
 import { PointHistoryComponent } from './views/pages/ReferralPoints/referralpoint.component';
 import{AdminLoginComponent} from './views/pages/login/login.component';
 import { SubCategoriesComponent } from './views/pages/subcategory/subcategory.component';
+import { ParticipationComponent } from './views/pages/participation/participation.component';
+import { ImportUsersComponent } from './views/pages/importUser/import-users.component';
 
 
 
@@ -41,6 +43,7 @@ export const routes: Routes = [
  
     
       { path: 'users', component: UsersComponent },
+      {path: 'importUsers', component: ImportUsersComponent},
       { path: 'country', component: CountriesComponent },
       { path: 'states', component: StatesComponent },
       { path: 'dashboard', component: DashboardComponent },
@@ -58,25 +61,14 @@ export const routes: Routes = [
       { path: 'oneTooneReport', component:OneToOneComponent},
       { path: 'tyfcb', component:TyfcbComponent},
       { path: 'VisitorsReport', component: VisitorsComponent},
-      //{path: 'attendanceRecord', component: AttendanceRecord},
-      {path: 'attendanceRecord', component: AttendanceReportComponent},
+     
+      {path: 'attendanceRecord', component: AttendanceDataComponent },
       {path: 'registerComponent', component: RegisterComponent},
       {path: 'referralPoints', component: PointHistoryComponent},
       {path: 'adminLogin', component: AdminLoginComponent},
-    
-
-
-
-      
-     
-
+      {path: 'participation', component: ParticipationComponent}, 
       
       
-    
-      
-
-      
-    
       
     ],
   },
