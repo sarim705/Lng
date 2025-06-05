@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  baseURL: 'https://xxgn1wm1-4200.inc1.devtunnels.ms/adminLogin', // Update with your actual base URL
+  baseURL: 'http://localhost:2027', // Update with your actual base URL
   route: 'admin',
  
-  imageUrl:'https://xxgn1wm1-4200.inc1.devtunnels.ms/adminLogin',
+  imageUrl:'http://localhost:2027',
 };

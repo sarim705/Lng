@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  baseURL: 'https://xxgn1wm1-4200.inc1.devtunnels.ms/adminLogin',
+  baseURL: 'https://lng.itfuturz.in',
   route: 'admin',
-  imageUrl:'https://xxgn1wm1-4200.inc1.devtunnels.ms/adminLogin'
+  imageUrl:'https://lng.itfuturz.in'
   
 };
