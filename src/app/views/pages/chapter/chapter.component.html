@@ -44,6 +44,9 @@
           <tr>
             <th class="ps-4 py-3">Chapter Name</th>
             <th class="py-3">City</th>
+            <th class="py-3">Registration Fee</th>
+            <th class="py-3">Renewal Fee</th>
+            <th class="py-3">Membership Duration (Days)</th>
             <th class="py-3">Status</th>
             <th class="py-3">Created At</th>
             <th class="text-end pe-4 py-3">Action</th>
@@ -57,7 +60,7 @@
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
                 <div
-                  class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
+                  class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
                   style="width: 40px; height: 40px; color: white;"
                 >
                   {{ chapter.name ? chapter.name.charAt(0).toUpperCase() : 'C' }}
@@ -69,6 +72,9 @@
               </div>
             </td>
             <td class="py-3">{{ chapter.city_name || 'Not Assigned' }}</td>
+            <td class="py-3">{{ chapter.fees?.registration_fee || 0 }}</td>
+            <td class="py-3">{{ chapter.fees?.renewal_fee || 0 }}</td>
+            <td class="py-3">{{ chapter.fees?.membership_duration_days || 365 }}</td>
             <td class="py-3">
               <span
                 class="badge rounded-pill"
@@ -149,7 +155,7 @@
         <h5 class="modal-title" id="chapterModalTitle">
           <i class="bi bi-book me-2"></i> {{ editMode ? 'Edit Chapter' : 'Add New Chapter' }}
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="closeModal()"></button>
       </div>
       <div class="modal-body p-4">
         <form>
@@ -166,7 +172,7 @@
             />
           </div>
           <div class="mb-3">
-            <label for="citySelect" class="form-label">City (Optional)</label>
+            <label for="citySelect" class="form-label">City</label>
             <ng-select
               id="citySelect"
               [items]="cities"
@@ -185,6 +191,45 @@
               No cities available. Please add cities first.
             </div>
           </div>
+          <div class="mb-3">
+            <label for="registrationFee" class="form-label">Registration Fee</label>
+            <input
+              type="number"
+              class="form-control"
+              id="registrationFee"
+              placeholder="Enter registration fee"
+              [(ngModel)]="newChapter.registration_fee"
+              name="registrationFee"
+              required
+              min="0"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="renewalFee" class="form-label">Renewal Fee</label>
+            <input
+              type="number"
+              class="form-control"
+              id="renewalFee"
+              placeholder="Enter renewal fee"
+              [(ngModel)]="newChapter.renewal_fee"
+              name="renewalFee"
+              required
+              min="0"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="membershipDuration" class="form-label">Membership Duration (Days)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="membershipDuration"
+              placeholder="Enter membership duration in days"
+              [(ngModel)]="newChapter.membership_duration_days"
+              name="membershipDuration"
+              required
+              min="1"
+            />
+          </div>
           <div class="form-check form-switch mb-3">
             <input
               class="form-check-input"
@@ -200,14 +245,14 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal" (click)="closeModal()">
           <i class="bi bi-x-circle me-1"></i> Cancel
         </button>
         <button
           type="button"
           class="btn btn-primary rounded-pill"
           (click)="saveChapter()"
-          [disabled]="!newChapter.name"
+          [disabled]="!newChapter.name || newChapter.registration_fee < 0 || newChapter.renewal_fee < 0 || newChapter.membership_duration_days < 1"
         >
           <i class="bi bi-save me-1"></i> {{ editMode ? 'Update' : 'Save' }}
         </button>

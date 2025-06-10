@@ -1,25 +1,26 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { OneToOneService, OneToOne, OneToOneResponse } from '../../../services/auth.service';
+import { FeeService, UserFee, UserFeeResponse } from '../../../services/auth.service';
 import { ChapterService, Chapter } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
 import { debounceTime, Subject } from 'rxjs';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ExportService } from '../../../services/export.service';
-import { environment } from 'src/env/env.local';
+declare var bootstrap: any;
+
 
 @Component({
-  selector: 'app-one-to-one',
+  selector: 'app-fees',
   standalone: true,
   imports: [CommonModule, FormsModule, NgxPaginationModule, NgSelectModule],
-  providers: [OneToOneService, ChapterService, ExportService],
-  templateUrl: './oneToone.component.html',
-  styleUrls: ['./oneToone.component.css'],
+  providers: [FeeService, ChapterService, ExportService],
+  templateUrl: './fees.component.html',
+  styleUrls: ['./fees.component.css'],
 })
-export class OneToOneComponent implements OnInit {
-  oneToOnes: OneToOneResponse = {
+export class FeesComponent implements OnInit {
+  usersFees: UserFeeResponse = {
     docs: [],
     totalDocs: 0,
     limit: 10,
@@ -35,6 +36,7 @@ export class OneToOneComponent implements OnInit {
   loading: boolean = false;
   chaptersLoading: boolean = false;
   exporting: boolean = false;
+  updating: boolean = false;
   
   Math = Math;
   
@@ -42,60 +44,71 @@ export class OneToOneComponent implements OnInit {
     page: 1,
     limit: 10,
     chapter_name: null,
-    startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
-    endDate: this.formatDateForInput(new Date())
+    search: ''
   };
   
   paginationConfig = {
-    id: 'one-to-one-pagination'
+    id: 'fees-pagination'
+  };
+  
+  selectedUser: UserFee | null = null;
+  feeUpdate = {
+    userId: '',
+    amount: 0,
+    remarks: ''
   };
   
   private filterSubject = new Subject<void>();
   
   constructor(
-    private oneToOneService: OneToOneService,
+    private feeService: FeeService,
     private chapterService: ChapterService,
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
     this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
-      this.fetchOneToOnes();
+      this.fetchUsersFees();
     });
   }
 
   ngOnInit(): void {
     this.fetchChapters();
-    this.fetchOneToOnes();
+    this.fetchUsersFees();
   }
 
-  async fetchOneToOnes(): Promise<void> {
+  async fetchUsersFees(): Promise<void> {
     this.loading = true;
     try {
       const requestParams = {
         page: this.filters.page,
         limit: this.filters.limit,
         chapter_name: this.filters.chapter_name || undefined,
-        startDate: this.filters.startDate || undefined,
-        endDate: this.filters.endDate || undefined
+        search: this.filters.search || undefined
       };
       
-      const response = await this.oneToOneService.getAllOneToOne(requestParams);
-      this.oneToOnes = {
+      const response = await this.feeService.getAllUsersFee(requestParams);
+      this.usersFees = {
         ...response,
         docs: response.docs.map(doc => ({
           ...doc,
-          memberId1: doc.memberId1 || { name: 'Unknown', chapter_name: 'N/A', profilePic: '' },
-          memberId2: doc.memberId2 || { name: 'Unknown', chapter_name: 'N/A', profilePic: '' },
-          initiatedBy: doc.initiatedBy || { name: 'Unknown', profilePic: '' },
-          meet_place: doc.meet_place || 'N/A',
-          topics: doc.topics || 'N/A'
+          fees: {
+            ...doc.fees,
+            total_fee: doc.fees.total_fee || 0,
+            paid_fee: doc.fees.paid_fee || 0,
+            pending_fee: doc.fees.pending_fee || 0,
+            renewal_fee: doc.fees.renewal_fee || 0,
+            induction_date: doc.fees.induction_date || '',
+            end_date: doc.fees.end_date || '',
+            is_renewed: doc.fees.is_renewed || false,
+            fee_history: doc.fees.fee_history || []
+          }
         }))
       };
       this.cdr.detectChanges();
     } catch (error) {
-      console.error('Error fetching one-to-ones:', error);
-      swalHelper.showToast('Failed to fetch one-to-one meetings', 'error');
-      this.oneToOnes = {
+      console.error('Error fetching fees:', error);
+      swalHelper.showToast('Failed to fetch member fees', 'error');
+      this.usersFees = {
         docs: [],
         totalDocs: 0,
         limit: this.filters.limit,
@@ -120,7 +133,7 @@ export class OneToOneComponent implements OnInit {
         limit: 1000,
         search: ''
       });
-      this.chapters = response.docs|| [];
+      this.chapters = response.docs || [];
     } catch (error) {
       console.error('Error fetching chapters:', error);
       swalHelper.showToast('Failed to fetch chapters', 'error');
@@ -137,7 +150,7 @@ export class OneToOneComponent implements OnInit {
   onPageChange(page: number): void {
     if (page !== this.filters.page) {
       this.filters.page = page;
-      this.fetchOneToOnes();
+      this.fetchUsersFees();
     }
   }
 
@@ -146,15 +159,9 @@ export class OneToOneComponent implements OnInit {
       page: 1,
       limit: 10,
       chapter_name: null,
-      startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
-      endDate: this.formatDateForInput(new Date())
+      search: ''
     };
-    this.fetchOneToOnes();
-  }
-
-  getProfilePicUrl(picPath?: string): string {
-    if (!picPath) return 'assets/images/default-avatar.png';
-    return `${environment.imageUrl}/${picPath}`;
+    this.fetchUsersFees();
   }
 
   formatDate(dateString?: string): string {
@@ -167,11 +174,40 @@ export class OneToOneComponent implements OnInit {
     });
   }
 
-  formatDateForInput(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  openFeeUpdateModal(user: UserFee): void {
+    this.selectedUser = user;
+    this.feeUpdate = {
+      userId: user._id,
+      amount: 0,
+      remarks: ''
+    };
+    const modal = new bootstrap.Modal(document.getElementById('feeUpdateModal')!);
+    modal.show();
+  }
+
+  async updateFee(): Promise<void> {
+    if (!this.selectedUser) return;
+    
+    this.updating = true;
+    try {
+        console.log('Updating fee for user:', this.feeUpdate);
+      await this.feeService.updateFee(this.feeUpdate);
+      swalHelper.showToast('Fee updated successfully', 'success');
+      const modal = bootstrap.Modal.getInstance(document.getElementById('feeUpdateModal')!);
+      modal?.hide();
+      this.fetchUsersFees();
+    } catch (error) {
+      console.error('Error updating fee:', error);
+      swalHelper.showToast('Failed to update fee', 'error');
+    } finally {
+      this.updating = false;
+    }
+  }
+
+  openFeeHistoryModal(user: UserFee): void {
+    this.selectedUser = user;
+    const modal = new bootstrap.Modal(document.getElementById('feeHistoryModal')!);
+    modal.show();
   }
 
   async exportToExcel(): Promise<void> {
@@ -179,29 +215,28 @@ export class OneToOneComponent implements OnInit {
       this.exporting = true;
       const exportParams = {
         chapter_name: this.filters.chapter_name || undefined,
-        startDate: this.filters.startDate || undefined,
-        endDate: this.filters.endDate || undefined,
+        search: this.filters.search || undefined,
         limit: 10000,
         page: 1
       };
       
-      const allData = await this.oneToOneService.getAllOneToOne(exportParams);
+      const allData = await this.feeService.getAllUsersFee(exportParams);
       
-      const exportData = allData.docs.map((oneToOne, index) => {
+      const exportData = allData.docs.map((user, index) => {
         return {
           'Sr No': index + 1,
-          'Meeting From': oneToOne.memberId1?.name || 'Unknown',
-          'From Chapter': oneToOne.memberId1?.chapter_name || 'N/A',
-          'Meeting With': oneToOne.memberId2?.name || 'Unknown',
-          'With Chapter': oneToOne.memberId2?.chapter_name || 'N/A',
-          'Initiated By': oneToOne.initiatedBy?.name || 'Unknown',
-          'Meeting Place': oneToOne.meet_place || 'N/A',
-          'Meeting Date/Time': this.formatDate(oneToOne.date),
-          'Topics Of Conversation': oneToOne.topics || 'N/A'
+          'Username': user.name || 'Unknown',
+          'Chapter': user.chapter_name || 'N/A',
+          'Total Fee': user.fees.total_fee,
+          'Paid Amount': user.fees.paid_fee,
+          'Remaining Amount': user.fees.pending_fee,
+          'Induction Date': this.formatDate(user.fees.induction_date),
+          'Membership End': this.formatDate(user.fees.end_date),
+          'Renewal Amount': user.fees.renewal_fee
         };
       });
       
-      const fileName = `OneToOne_Meetings_${this.formatDateForFileName(new Date())}`;
+      const fileName = `Member_Fees_${this.formatDateForFileName(new Date())}`;
       await this.exportService.exportToExcel(exportData, fileName);
       swalHelper.showToast('Excel file downloaded successfully!', 'success');
     } catch (error) {
@@ -217,44 +252,47 @@ export class OneToOneComponent implements OnInit {
       this.exporting = true;
       const exportParams = {
         chapter_name: this.filters.chapter_name || undefined,
-        startDate: this.filters.startDate || undefined,
-        endDate: this.filters.endDate || undefined,
+        search: this.filters.search || undefined,
         limit: 10000,
         page: 1
       };
       
-      const allData = await this.oneToOneService.getAllOneToOne(exportParams);
+      const allData = await this.feeService.getAllUsersFee(exportParams);
       
-      const fileName = `OneToOne_Meetings_${this.formatDateForFileName(new Date())}`;
+      const fileName = `Member_Fees_${this.formatDateForFileName(new Date())}`;
       const columns = [
         { header: 'Sr No', dataKey: 'srNo' },
-        { header: 'Meeting From', dataKey: 'meetingFrom' },
-        { header: 'Meeting With', dataKey: 'meetingWith' },
-        { header: 'Initiated By', dataKey: 'initiatedBy' },
-        { header: 'Meeting Place', dataKey: 'meetingPlace' },
-        { header: 'Meeting Date/Time', dataKey: 'meetingDateTime' },
-        { header: 'Topics', dataKey: 'topics' }
+        { header: 'Username', dataKey: 'username' },
+        { header: 'Chapter', dataKey: 'chapter' },
+        { header: 'Total Fee', dataKey: 'totalFee' },
+        { header: 'Paid Amount', dataKey: 'paidAmount' },
+        { header: 'Remaining Amount', dataKey: 'remainingAmount' },
+        { header: 'Induction Date', dataKey: 'inductionDate' },
+        { header: 'Membership End', dataKey: 'membershipEnd' },
+        { header: 'Renewal Amount', dataKey: 'renewalAmount' }
       ];
       
-      const data = allData.docs.map((oneToOne, index) => {
+      const data = allData.docs.map((user, index) => {
         return {
           srNo: index + 1,
-          meetingFrom: `${oneToOne.memberId1?.name || 'Unknown'} (${oneToOne.memberId1?.chapter_name || 'N/A'})`,
-          meetingWith: `${oneToOne.memberId2?.name || 'Unknown'} (${oneToOne.memberId2?.chapter_name || 'N/A'})`,
-          initiatedBy: oneToOne.initiatedBy?.name || 'N/A',
-          meetingPlace: oneToOne.meet_place || 'N/A',
-          meetingDateTime: this.formatDate(oneToOne.date),
-          topics: oneToOne.topics || ''
+          username: user.name || 'Unknown',
+          chapter: user.chapter_name || 'N/A',
+          totalFee: user.fees.total_fee,
+          paidAmount: user.fees.paid_fee,
+          remainingAmount: user.fees.pending_fee,
+          inductionDate: this.formatDate(user.fees.induction_date),
+          membershipEnd: this.formatDate(user.fees.end_date),
+          renewalAmount: user.fees.renewal_fee
         };
       });
       
-      const title = 'One-to-One Meetings Report';
-      let subtitle = 'All One-to-One Meetings';
+      const title = 'Member Fees Report';
+      let subtitle = 'All Member Fees';
       if (this.filters.chapter_name) {
         subtitle = `Chapter: ${this.filters.chapter_name}`;
       }
-      if (this.filters.startDate && this.filters.endDate) {
-        subtitle += ` | Period: ${this.formatDate(this.filters.startDate)} to ${this.formatDate(this.filters.endDate)}`;
+      if (this.filters.search) {
+        subtitle += ` | Search: ${this.filters.search}`;
       }
       
       await this.exportService.exportToPDF(columns, data, title, subtitle, fileName);

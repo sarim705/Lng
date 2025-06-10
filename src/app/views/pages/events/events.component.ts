@@ -540,7 +540,7 @@ export class EventsComponent implements OnInit, AfterViewInit {
         if (!path) return 'assets/images/placeholder-image.png';
 
         if (!path.startsWith('http')) {
-            return `${this.imageurl}/${path.replace(/\\/g, '/')}`;
+            return `${this.imageurl}${path.replace(/\\/g, '/')}`;
         }
 
         return path;

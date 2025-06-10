@@ -29,6 +29,8 @@ export interface Chapter {
   name: string;
   city_id?: string;
   city_name: string;
+  RegisterationFee: number;
+  
   status: boolean;
   createdAt: string;
   __v: number;
@@ -329,7 +331,7 @@ export class AuthService {
       this.getHeaders();
       const response = await this.apiManager.request(
         {
-          url: 'http://localhost:2027/admin/isActiveStatus',
+          url: apiEndpoints.UPDATE_USER_STATUS,
           method: 'POST',
         },
         data,
@@ -375,7 +377,7 @@ export class AuthService {
       this.getHeaders();
       const response = await this.apiManager.request(
         {
-          url: 'http://localhost:2027/admin/import',
+          url: apiEndpoints.IMPORT_USERS,
           method: 'POST',
         },
         formData,
@@ -944,17 +946,20 @@ export class EventService {
   }
     
   export interface ChapterResponse {
-    docs: Chapter[];
-    totalDocs: string | number;
-    limit: number;
-    page: number;
-    totalPages: number;
-    pagingCounter: number;
-    hasPrevPage: boolean;
-    hasNextPage: boolean;
-    prevPage: number | null;
-    nextPage: number | null;
-    
+    docs?: Chapter[]; // Optional for list responses
+    data?: Chapter; // For create/update responses
+    message: string;
+    status: number;
+    success: boolean;
+    totalDocs?: string | number;
+    limit?: number;
+    page?: number;
+    totalPages?: number;
+    pagingCounter?: number;
+    hasPrevPage?: boolean;
+    hasNextPage?: boolean;
+    prevPage?: number | null;
+    nextPage?: number | null;
   }
   
   export interface Chapter {
@@ -962,6 +967,11 @@ export class EventService {
     name: string;
     city_id?: string;
     city_name: string;
+    fees: {
+      registration_fee: number;
+      renewal_fee: number;
+      membership_duration_days: number;
+    };
     status: boolean;
     createdAt: string;
     __v: number;
@@ -972,18 +982,71 @@ export class EventService {
   })
   export class ChapterService {
     private headers: any = [];
-    
+  
     constructor(private apiManager: ApiManager, private storage: AppStorage) {}
-    
+  
     private getHeaders = () => {
       this.headers = [];
       let token = this.storage.get(common.TOKEN);
-      
+  
       if (token != null) {
         this.headers.push({ Authorization: `Bearer ${token}` });
       }
     };
-    
+  
+    async createChapter(data: Partial<Chapter>): Promise<ChapterResponse> {
+      try {
+        this.getHeaders();
+  
+        const response = await this.apiManager.request(
+          {
+            url: apiEndpoints.CREATE_CHAPTER,
+            method: 'POST',
+          },
+          data,
+          this.headers
+        );
+  
+        // Normalize the response to match ChapterResponse
+        return {
+          data: response.data?.data || response.data, // Handle nested data if present
+          message: response.data?.message || 'Chapter created successfully',
+          status: response.status || 201,
+          success: response.data?.success || true,
+        };
+      } catch (error) {
+        console.error('Create Chapter Error:', error);
+        swalHelper.showToast('Failed to create chapter', 'error');
+        throw error;
+      }
+    }
+  
+    async updateChapter(id: string, data: Partial<Chapter>): Promise<ChapterResponse> {
+      try {
+        this.getHeaders();
+  
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.UPDATE_CHAPTER}/${id}`,
+            method: 'PUT',
+          },
+          data,
+          this.headers
+        );
+  
+        // Normalize the response to match ChapterResponse
+        return {
+          data: response.data?.data || response.data, // Handle nested data if present
+          message: response.data?.message || 'Chapter updated successfully',
+          status: response.status || 200,
+          success: response.data?.success || true,
+        };
+      } catch (error) {
+        console.error('Update Chapter Error:', error);
+        swalHelper.showToast('Failed to update chapter', 'error');
+        throw error;
+      }
+    }
   
     async getAllChapters(data: { page: number; limit: number; search: string }): Promise<ChapterResponse> {
       try {
@@ -1033,49 +1096,7 @@ export class EventService {
       }
     }
   
-    async createChapter(data: { name: string; city_id?: string; city_name?: string; status: boolean }): Promise<any> {
-      try {
-        this.getHeaders();
-        
-        const response = await this.apiManager.request(
-          {
-            url: apiEndpoints.CREATE_CHAPTER,
-            method: 'POST',
-          },
-          data,
-          this.headers
-        );
-        
-        return response;
-      } catch (error) {
-        console.error('Create Chapter Error:', error);
-        swalHelper.showToast('Failed to create chapter', 'error');
-        throw error;
-      }
-    }
-  
-    async updateChapter(id: string, data: { name: string; city_id?: string; city_name?: string; status: boolean }): Promise<any> {
-      try {
-        this.getHeaders();
-        
-        const response = await this.apiManager.request(
-          {
-            url: `${apiEndpoints.UPDATE_CHAPTER}/${id}`,
-            
-             method: 'PUT',
-          },
-          data,
-          this.headers
-        );
-        
-        return response;
-      } catch (error) {
-        console.error('Update Chapter Error:', error);
-        swalHelper.showToast('Failed to update chapter', 'error');
-        throw error;
-      }
-    }
-  
+    
     async getChapterById(id: string): Promise<any> {
       try {
         this.getHeaders();
@@ -1243,6 +1264,7 @@ export class EventService {
         const response = await this.apiManager.request(
           {
             url: `${apiEndpoints.DELETE_SUBCATEGORY}/${id}`,
+    
             method: 'DELETE',
           },
           null,
@@ -2226,7 +2248,7 @@ async toggleVisitorAttendance(body: { visitorId: string }): Promise<any> {
       this.getHeaders();
       const response = await this.apiManager.request(
         {
-          url: 'http://localhost:2027/admin/toggleVisitorAttendance',
+          url: apiEndpoints.TOGGLE_VISITOR_ATTENDANCE,
           method: 'POST',
         },
         body, // Pass the body as the second argument
@@ -2493,6 +2515,7 @@ async toggleVisitorAttendance(body: { visitorId: string }): Promise<any> {
         const response = await this.apiManager.request(
           {
             url: `${apiEndpoints.DELETE_BANNER}/${id}`,
+           
             method: 'DELETE',
           },
           null,
@@ -2508,6 +2531,108 @@ async toggleVisitorAttendance(body: { visitorId: string }): Promise<any> {
     }
   
   }
+
+  
+export interface UserFeeResponse {
+  docs: UserFee[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+export interface UserFee {
+  _id: string;
+  name: string;
+  chapter_name: string;
+  mobile_number: string;
+  email: string;
+  fees: {
+      total_fee: number;
+      paid_fee: number;
+      pending_fee: number;
+      renewal_fee: number;
+      induction_date: string;
+      end_date: string;
+      is_renewed: boolean;
+      fee_history: {
+          amount: number;
+          payment_date: string;
+          remarks: string;
+          _id: string;
+      }[];
+  };
+}
+
+interface UpdateFeeRequest {
+  userId: string;
+  amount: number;
+  remarks: string;
+}
+@Injectable({
+  providedIn: 'root',
+})
+export class FeeService {
+  private headers: any = [];
+
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+  private getHeaders = () => {
+      this.headers = [];
+      let token = this.storage.get(common.TOKEN);
+
+      if (token != null) {
+          this.headers.push({ Authorization: `Bearer ${token}` });
+      }
+  };
+
+  async getAllUsersFee(data: { page: number; limit: number; chapter_name?: string; search?: string }): Promise<UserFeeResponse> {
+      try {
+          this.getHeaders();
+
+          const response = await this.apiManager.request(
+              {
+                  url: apiEndpoints.GET_ALL_USERS_FEE,
+                  method: 'POST',
+              },
+              data,
+              this.headers
+          );
+
+          return response.data;
+      } catch (error) {
+          console.error('Error fetching user fees:', error);
+          swalHelper.showToast('Failed to fetch user fees', 'error');
+          throw error;
+      }
+  }
+
+  async updateFee(data: UpdateFeeRequest): Promise<any> {
+      try {
+          this.getHeaders();
+
+          const response = await this.apiManager.request(
+              {
+                  url: apiEndpoints.UPDATE_FEE,
+                  method: 'POST',
+              },
+              data,
+              this.headers
+          );
+          console.log('Update Fee1 Response:', response);
+
+          return response.data;
+      } catch (error) {
+          console.error('Error updating fee:', error);
+          swalHelper.showToast('Failed to update fee', 'error');
+          throw error;
+      }
+  }
+}
   
   export interface Event1 {
     _id: string;
@@ -2833,6 +2958,158 @@ export class ParticipationService {
         } catch (error) {
           console.error('Register User Error:', error);
           swalHelper.showToast('Failed to register user', 'error');
+          throw error;
+        }
+      }
+    }
+    export interface Badge {
+      _id: string;
+      name: string;
+      description: string;
+      image: string;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+      __v: number;
+    }
+    
+    export interface BadgeResponse {
+      docs: Badge[];
+      totalDocs: number;
+      limit: number;
+      page: number;
+      totalPages: number;
+      pagingCounter: number;
+      hasPrevPage: boolean;
+      hasNextPage: boolean;
+      prevPage: number | null;
+      nextPage: number | null;
+      message: string;
+      success: boolean;
+    }
+    
+    @Injectable({
+      providedIn: 'root',
+    })
+    export class BadgeService {
+      private headers: any = [];
+    
+      constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+    
+      private getHeaders = () => {
+        this.headers = [];
+        let token = this.storage.get(common.TOKEN);
+        
+        if (token != null) {
+          this.headers.push({ Authorization: `Bearer ${token}` });
+        }
+      };
+    
+      async getAllBadges(data: { page: number; limit: number; search: string }): Promise<BadgeResponse> {
+        try {
+          this.getHeaders();
+          
+          let queryParams = `?page=${data.page}&limit=${data.limit}`;
+          if (data.search) {
+            queryParams += `&search=${encodeURIComponent(data.search)}`;
+          }
+          
+          const response = await this.apiManager.request(
+            {
+              url: apiEndpoints.GET_ALL_BADGES + queryParams,
+              method: 'GET',
+            },
+            null,
+            this.headers
+          );
+          
+          // Map the response to BadgeResponse type
+          const badgeResponse: BadgeResponse = {
+            success: response.data?.success || false,
+            message: response.message,
+            docs: response.data.docs,
+            totalDocs: response.data.totalDocs,
+            limit: response.data.limit,
+            page: response.data.page,
+            totalPages: response.data.totalPages,
+            pagingCounter: response.data.pagingCounter,
+            hasPrevPage: response.data.hasPrevPage,
+            hasNextPage: response.data.hasNextPage,
+            prevPage: response.data.prevPage,
+            nextPage: response.data.nextPage,
+          };
+          
+          return badgeResponse;
+        } catch (error) {
+          console.error('API Error:', error);
+          swalHelper.showToast('Failed to fetch badges', 'error');
+          throw error;
+        }
+      }
+    
+      async createBadge(formData: FormData): Promise<any> {
+        try {
+          this.getHeaders();
+          
+          const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+          
+          const response = await this.apiManager.request(
+            {
+              url: apiEndpoints.CREATE_BADGE,
+              method: 'POST',
+            },
+            formData,
+            fileHeaders
+          );
+          
+          return response;
+        } catch (error: any) {
+          console.error('Create Badge Error:', error);
+          swalHelper.showToast('Failed to create badge', 'error');
+          throw error;
+        }
+      }
+    
+      async updateBadge(id: string, formData: FormData): Promise<any> {
+        try {
+          this.getHeaders();
+          
+          const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+          
+          const response = await this.apiManager.request(
+            {
+              url: `${apiEndpoints.UPDATE_BADGE}/${id}`,
+              method: 'PUT',
+            },
+            formData,
+            fileHeaders
+          );
+          
+          return response;
+        } catch (error) {
+          console.error('Update Badge Error:', error);
+          swalHelper.showToast('Failed to update badge', 'error');
+          throw error;
+        }
+      }
+    
+      async deleteBadge(id: string): Promise<any> {
+        try {
+          this.getHeaders();
+          
+          const response = await this.apiManager.request(
+            {
+              url: `${apiEndpoints.DELETE_BADGE}/${id}`,
+              method: 'DELETE',
+            },
+            null,
+            this.headers
+          );
+          
+          return response;
+        } catch (error) {
+          console.error('Delete Badge Error:', error);
+          swalHelper.showToast('Failed to delete badge', 'error');
           throw error;
         }
       }

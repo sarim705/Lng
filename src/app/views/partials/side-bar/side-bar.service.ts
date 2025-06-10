@@ -65,6 +65,21 @@ export class SideBarService {
           // Detailed records
         },
         {
+          title: 'Banner',
+          link: 'banners',
+          icon: 'banner', // History or timeline
+        },
+        {
+          title: 'Referral Points',
+          link: 'referralPoints',
+          icon: 'award', // Recognition or rewards
+        },
+        {
+          title: 'Admin Login',
+          link: 'adminLogin',
+          icon: 'lock', // Security or login
+        },
+        {
           title: 'LeaderBoard',
           link: 'leaderboard',
           icon: 'award', // Recognition
@@ -121,6 +136,17 @@ export class SideBarService {
           title: 'Attendance Record',
           link: 'attendanceRecord',
           icon: 'clipboard', // Detailed records
+        },
+        {
+          title: 'Fees Record',
+          link: 'fees',
+          icon: 'credit-card', // Financial transactions
+        }
+        ,
+        {
+          title: 'Badges',
+          link: 'badges',
+          icon: 'medal', // Achievement badges
         },
     
         

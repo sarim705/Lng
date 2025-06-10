@@ -8,9 +8,9 @@ import { swalHelper } from '../../../core/constants/swal-helper';
 import { debounceTime, Subject } from 'rxjs';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
-
-declare var $: any;
 declare var bootstrap: any;
+declare var $: any;
+
 
 @Component({
   selector: 'app-banners',
@@ -29,11 +29,14 @@ export class BannersComponent implements OnInit, AfterViewInit {
   loading: boolean = false;
   searchQuery: string = '';
   selectedBanner: Banner | null = null;
+  selectedBannerForPreview: Banner | null = null;
   bannerModal: any;
+  imagePreviewModal: any;
   editMode: boolean = false;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
   imageurl = environment.imageUrl;
+  formSubmitted: boolean = false;
   
   newBanner = {
     title: '',
@@ -75,8 +78,11 @@ export class BannersComponent implements OnInit, AfterViewInit {
       const modalElement = document.getElementById('bannerModal');
       if (modalElement) {
         this.bannerModal = new bootstrap.Modal(modalElement);
-      } else {
-        console.warn('Modal element not found in the DOM');
+      }
+      
+      const imagePreviewModalElement = document.getElementById('imagePreviewModal');
+      if (imagePreviewModalElement) {
+        this.imagePreviewModal = new bootstrap.Modal(imagePreviewModalElement);
       }
     }, 300);
   }
@@ -178,6 +184,11 @@ export class BannersComponent implements OnInit, AfterViewInit {
     this.showModal();
   }
 
+  openImagePreview(banner: Banner): void {
+    this.selectedBannerForPreview = banner;
+    this.showImagePreviewModal();
+  }
+
   resetForm(): void {
     this.newBanner = {
       title: '',
@@ -191,6 +202,7 @@ export class BannersComponent implements OnInit, AfterViewInit {
     };
     this.selectedFile = null;
     this.imagePreview = null;
+    this.formSubmitted = false;
   }
   
   showModal(): void {
@@ -217,6 +229,31 @@ export class BannersComponent implements OnInit, AfterViewInit {
       }
     }
   }
+
+  showImagePreviewModal(): void {
+    // Force detect changes
+    this.cdr.detectChanges();
+    
+    if (this.imagePreviewModal) {
+      this.imagePreviewModal.show();
+    } else {
+      try {
+        const modalElement = document.getElementById('imagePreviewModal');
+        if (modalElement) {
+          const modalInstance = new bootstrap.Modal(modalElement);
+          this.imagePreviewModal = modalInstance;
+          modalInstance.show();
+        } else {
+          // Fallback to jQuery
+          $('#imagePreviewModal').modal('show');
+        }
+      } catch (error) {
+        console.error('Error showing image preview modal:', error);
+        // Last resort fallback
+        $('#imagePreviewModal').modal('show');
+      }
+    }
+  }
   
   closeModal(): void {
     if (this.bannerModal) {
@@ -227,17 +264,27 @@ export class BannersComponent implements OnInit, AfterViewInit {
   }
 
   async saveBanner(form: any): Promise<void> {
-    form.submitted = true;
+    this.formSubmitted = true;
     
     try {
-      if (!this.newBanner.title) {
-        swalHelper.showToast('Please fill all required fields', 'warning');
+      // Validation checks
+      if (!this.newBanner.title?.trim()) {
+        swalHelper.showToast('Please enter a banner title', 'warning');
         return;
       }
 
       if (!this.editMode && !this.newBanner.image) {
         swalHelper.showToast('Please select a banner image', 'warning');
         return;
+      }
+
+      // Validate URL format if provided
+      if (this.newBanner.redirectUrl && this.newBanner.redirectUrl.trim()) {
+        const urlPattern = /^https?:\/\/.+/;
+        if (!urlPattern.test(this.newBanner.redirectUrl)) {
+          swalHelper.showToast('Please enter a valid URL (must start with http:// or https://)', 'warning');
+          return;
+        }
       }
 
       // Validate date range
@@ -255,10 +302,10 @@ export class BannersComponent implements OnInit, AfterViewInit {
 
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('title', this.newBanner.title);
-      formData.append('description', this.newBanner.description || '');
-      formData.append('redirectUrl', this.newBanner.redirectUrl || '');
-      formData.append('contact', this.newBanner.contact || '');
+      formData.append('title', this.newBanner.title.trim());
+      formData.append('description', this.newBanner.description?.trim() || '');
+      formData.append('redirectUrl', this.newBanner.redirectUrl?.trim() || '');
+      formData.append('contact', this.newBanner.contact?.trim() || '');
       formData.append('fromDate', this.newBanner.fromDate || '');
       formData.append('toDate', this.newBanner.toDate || '');
       formData.append('isActive', this.newBanner.isActive.toString());

@@ -1,0 +1,65 @@
+/* Custom styling for Badge component */
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .dropdown-item {
+    cursor: pointer;
+  }
+  
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+  }
+  
+  .table {
+    width: 100%;
+  }
+  
+  .table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.3s ease;
+  }
+  
+  .badge:hover {
+    transform: scale(1.05);
+  }
+  
+  .modal-content {
+    border-radius: 1rem;
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  .btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2e59d9;
+  }
+  
+  
+  
+  .spinner-grow {
+    color: #4e73df;
+  }
+  
+  .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+  }

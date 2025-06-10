@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { HomeLayoutComponent } from './views/partials/home-layout/home-layout.component';
+import { BannersComponent } from './views/pages/banner/banner.component';
 
 
 
@@ -28,7 +29,8 @@ import{AdminLoginComponent} from './views/pages/login/login.component';
 import { SubCategoriesComponent } from './views/pages/subcategory/subcategory.component';
 import { ParticipationComponent } from './views/pages/participation/participation.component';
 import { ImportUsersComponent } from './views/pages/importUser/import-users.component';
-
+import {FeesComponent} from './views/pages/feesRecord/fees.component';
+import { BadgesComponent } from './views/pages/badges/badges.component';
 
 
 export const routes: Routes = [
@@ -67,6 +69,11 @@ export const routes: Routes = [
       {path: 'referralPoints', component: PointHistoryComponent},
       {path: 'adminLogin', component: AdminLoginComponent},
       {path: 'participation', component: ParticipationComponent}, 
+      {
+        path: 'banners',component: BannersComponent
+      },
+      {path: 'fees', component: FeesComponent},
+      {path: 'badges', component: BadgesComponent},
       
       
       

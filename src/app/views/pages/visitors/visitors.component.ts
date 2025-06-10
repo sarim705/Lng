@@ -123,7 +123,7 @@ export class VisitorsComponent implements OnInit {
         limit: 1000,
         search: ''
       });
-      this.chapters = response.docs;
+      this.chapters = response.docs|| [];
       console.log('Chapters loaded:', this.chapters);
       this.cdr.detectChanges();
     } catch (error) {

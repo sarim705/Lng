@@ -22,10 +22,9 @@ class ApiEndpoints {
             public  DELETE_STATE: string= `${this.PATH}/deleteState`
             public GET_STATE_BY_ID: string= `${this.PATH}/getStateById`
         public   UPDATE_STATE: string= `${this.PATH}/updateState`
+  public  IMPORT_USERS: string = `${this.PATH}/import`;
 
-      
-
-        public GET_DASHBOARD_COUNTS: string = `${this.PATH}/getdata/counts`
+      public GET_DASHBOARD_COUNTS: string = `${this.PATH}/getdata/counts`
     
 
 
@@ -88,6 +87,10 @@ public DELETE_SUBCATEGORY:string=`${this.PATH}/deleteSubCategory`
 public GET_SUBCATEGORIES:string=`${this.PATH}/getSubCategories`
 public CREATE_SUBCATEGORY:string=`${this.PATH}/createSubCategory`
 public UPDATE_SUBCATEGORY:string=`${this.PATH}/updateSubCategory`
+public UPDATE_FEE:string=`${this.PATH}/Feeupdate`
+public GET_ALL_USERS_FEE :string=`${this.PATH}/getAllFeesUsers`
+
+
 
 public TOGGLE_USER_STATUS:string=`${this.PATH}/isActiveStatus`
 
@@ -104,11 +107,20 @@ public ADMIN_LOGIN :string=`${this.PATH}/login`
 public GET_EVENTS_BY_CHAPTER :string=`${this.PATH}/getEventByChapter`
 
 public TOGGLE_ATTENDANCE_STATUS:string=`${this.PATH}/toggleAttendanceStatus`
+public TOGGLE_VISITOR_ATTENDANCE:string=`${this.PATH}/toggleVisitorAttendance`
+
+
 public GET_ALL_BANNER:string=`${this.PATH}/getAllBanner`
 public BANNER_CREATE:string=`${this.PATH}/bannerCreate`
 public BANNER_UPDATE:string=`${this.PATH}/bannerUpdate`
-public GET_BANNER_BY_ID:string=`${this.PATH}//banners`
-public DELETE_BANNER:string=`${this.PATH}/delete`
+public GET_BANNER_BY_ID:string=`${this.PATH}/banners`
+public DELETE_BANNER:string=`${this.PATH}/bannerdelete`
+
+public GET_ALL_BADGES:string=`${this.PATH}/getAllBadges`
+public CREATE_BADGE:string=`${this.PATH}/createBadge`
+public UPDATE_BADGE:string=`${this.PATH}/updateBadges`
+public DELETE_BADGE:string=`${this.PATH}/deleteBadge`
+
 
 
 

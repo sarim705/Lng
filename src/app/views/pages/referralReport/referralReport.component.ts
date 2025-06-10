@@ -111,7 +111,7 @@ export class ReferralsComponent implements OnInit {
         limit: 1000,
         search: ''
       });
-      this.chapters = response.docs;
+      this.chapters = response.docs|| [];
     } catch (error) {
       console.error('Error fetching chapters:', error);
       swalHelper.showToast('Failed to fetch chapters', 'error');

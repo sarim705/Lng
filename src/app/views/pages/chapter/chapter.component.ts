@@ -22,6 +22,10 @@ declare var bootstrap: any;
 export class ChaptersComponent implements OnInit, AfterViewInit {
   chapters: ChapterResponse = {
     docs: [],
+    data: undefined,
+    message: '',
+    success: true,
+    status: 200,
     totalDocs: 0,
     limit: 10,
     page: 1,
@@ -46,6 +50,9 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
     name: '',
     city_id: '',
     city_name: '',
+    registration_fee: 0,
+    renewal_fee: 0,
+    membership_duration_days: 365,
     status: false,
   };
 
@@ -68,7 +75,7 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.fetchCities(); // Fetch cities first to ensure dropdown is populated
+    this.fetchCities();
     this.fetchChapters();
   }
 
@@ -150,6 +157,9 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
       name: '',
       city_id: '',
       city_name: '',
+      registration_fee: 0,
+      renewal_fee: 0,
+      membership_duration_days: 365,
       status: false,
     };
     this.showModal();
@@ -168,6 +178,9 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
       name: chapter.name,
       city_id: cityId,
       city_name: chapter.city_name || '',
+      registration_fee: chapter.fees?.registration_fee || 0,
+      renewal_fee: chapter.fees?.renewal_fee || 0,
+      membership_duration_days: chapter.fees?.membership_duration_days || 365,
       status: chapter.status,
     };
     console.log('newChapter after initialization:', this.newChapter);
@@ -221,29 +234,33 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
       // Set city_name based on selected city_id
       const selectedCity = this.cities.find(c => c._id === this.newChapter.city_id);
       this.newChapter.city_name = selectedCity ? selectedCity.name : '';
-      console.log('Payload for saveChapter:', this.newChapter);
+
+      const payload = {
+        name: this.newChapter.name,
+        city_name: this.newChapter.city_name,
+        status: this.newChapter.status,
+        fees: {
+          registration_fee: this.newChapter.registration_fee,
+          renewal_fee: this.newChapter.renewal_fee,
+          membership_duration_days: this.newChapter.membership_duration_days,
+        },
+      };
 
       if (this.editMode && this.selectedChapter) {
-        const response = await this.chapterService.updateChapter(this.selectedChapter._id, {
-          name: this.newChapter.name,
-          city_name: this.newChapter.city_name,
-          status: this.newChapter.status,
-        });
-        if (response && response.success) {
-          swalHelper.showToast('Chapter updated successfully', 'success');
+        const response = await this.chapterService.updateChapter(this.selectedChapter._id, payload);
+        console.log('Update response:', JSON.stringify(response, null, 2));
+        if (response.success && (response.status === 200 || response.status === 201)) {
+          swalHelper.showToast(response.message || 'Chapter updated successfully', 'success');
           this.closeModal();
           this.fetchChapters();
         } else {
           swalHelper.showToast(response.message || 'Failed to update chapter', 'error');
         }
       } else {
-        const response = await this.chapterService.createChapter({
-          name: this.newChapter.name,
-          city_name: this.newChapter.city_name,
-          status: this.newChapter.status,
-        });
-        if (response && response.success) {
-          swalHelper.showToast('Chapter created successfully', 'success');
+        const response = await this.chapterService.createChapter(payload);
+        console.log('Create response:', JSON.stringify(response, null, 2));
+        if (response.success && (response.status === 201 || response.status === 200)) {
+          swalHelper.showToast(response.message || 'Chapter created successfully', 'success');
           this.closeModal();
           this.fetchChapters();
         } else {
@@ -268,10 +285,16 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
         name: chapter.name,
         city_name: city ? city.name : chapter.city_name || '',
         status: updatedStatus,
+        fees: {
+          registration_fee: chapter.fees?.registration_fee || 0,
+          renewal_fee: chapter.fees?.renewal_fee || 0,
+          membership_duration_days: chapter.fees?.membership_duration_days || 365,
+        },
       });
-      if (response && response.success) {
+      if (response.success && (response.status === 200 || response.status === 201)) {
         chapter.status = updatedStatus;
         swalHelper.showToast(`Chapter status changed to ${updatedStatus ? 'Active' : 'Inactive'}`, 'success');
+        this.fetchChapters();
       } else {
         swalHelper.showToast(response.message || 'Failed to update chapter status', 'error');
       }
@@ -295,7 +318,7 @@ export class ChaptersComponent implements OnInit, AfterViewInit {
         try {
           const response = await this.chapterService.deleteChapter(chapterId);
           if (response && response.success) {
-            swalHelper.showToast('Chapter deleted successfully', 'success');
+            swalHelper.showToast(response.message || 'Chapter deleted successfully', 'success');
             this.fetchChapters();
           } else {
             swalHelper.showToast(response.message || 'Failed to delete chapter', 'error');
