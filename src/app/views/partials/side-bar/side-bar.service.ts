@@ -48,6 +48,7 @@ export class SideBarService {
           link: 'city',
           icon: 'map-pin', // Location point
         },
+       
         {
           title: 'Chapter',
           link: 'chapter',
@@ -70,6 +71,12 @@ export class SideBarService {
           icon: 'banner', // History or timeline
         },
         {
+          title: 'Badges',
+          link: 'badges',
+          icon: 'award', // Recognition or achievements
+        },
+      
+        {
           title: 'Referral Points',
           link: 'referralPoints',
           icon: 'award', // Recognition or rewards
@@ -84,6 +91,7 @@ export class SideBarService {
           link: 'leaderboard',
           icon: 'award', // Recognition
         },
+       
         {
           title: 'Events',
           link: 'events',
@@ -142,12 +150,7 @@ export class SideBarService {
           link: 'fees',
           icon: 'credit-card', // Financial transactions
         }
-        ,
-        {
-          title: 'Badges',
-          link: 'badges',
-          icon: 'medal', // Achievement badges
-        },
+        
     
         
       ],

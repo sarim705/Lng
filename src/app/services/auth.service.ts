@@ -2984,8 +2984,6 @@ export class ParticipationService {
       hasNextPage: boolean;
       prevPage: number | null;
       nextPage: number | null;
-      message: string;
-      success: boolean;
     }
     
     @Injectable({
@@ -3005,7 +3003,7 @@ export class ParticipationService {
         }
       };
     
-      async getAllBadges(data: { page: number; limit: number; search: string }): Promise<BadgeResponse> {
+      async getAllBadges(data: { page: number; limit: number; search: string }): Promise<any> {
         try {
           this.getHeaders();
           
@@ -3023,23 +3021,7 @@ export class ParticipationService {
             this.headers
           );
           
-          // Map the response to BadgeResponse type
-          const badgeResponse: BadgeResponse = {
-            success: response.data?.success || false,
-            message: response.message,
-            docs: response.data.docs,
-            totalDocs: response.data.totalDocs,
-            limit: response.data.limit,
-            page: response.data.page,
-            totalPages: response.data.totalPages,
-            pagingCounter: response.data.pagingCounter,
-            hasPrevPage: response.data.hasPrevPage,
-            hasNextPage: response.data.hasNextPage,
-            prevPage: response.data.prevPage,
-            nextPage: response.data.nextPage,
-          };
-          
-          return badgeResponse;
+          return response;
         } catch (error) {
           console.error('API Error:', error);
           swalHelper.showToast('Failed to fetch badges', 'error');
@@ -3065,6 +3047,9 @@ export class ParticipationService {
           return response;
         } catch (error: any) {
           console.error('Create Badge Error:', error);
+          if (error && error.error) {
+            return error.error;
+          }
           swalHelper.showToast('Failed to create badge', 'error');
           throw error;
         }
@@ -3114,7 +3099,6 @@ export class ParticipationService {
         }
       }
     }
-
     export interface PointHistory {
       userId: string;
       name: string;
