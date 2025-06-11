@@ -75,17 +75,28 @@ export class SideBarService {
           link: 'badges',
           icon: 'award', // Recognition or achievements
         },
+        
+        {
+          title: 'Fees Record',
+          link: 'fees',
+          icon: 'credit-card', // Financial transactions
+        },
+        {
+          title: 'Attendance Data',
+          link: 'attendanceRecord',
+          icon: 'clipboard-list', // Detailed records
+        },
       
-        {
-          title: 'Referral Points',
-          link: 'referralPoints',
-          icon: 'award', // Recognition or rewards
-        },
-        {
-          title: 'Admin Login',
-          link: 'adminLogin',
-          icon: 'lock', // Security or login
-        },
+        // {
+        //   title: 'Referral Points',
+        //   link: 'referralPoints',
+        //   icon: 'award', // Recognition or rewards
+        // },
+        // {
+        //   title: 'Admin Login',
+        //   link: 'adminLogin',
+        //   icon: 'lock', // Security or login
+        // },
         {
           title: 'LeaderBoard',
           link: 'leaderboard',
@@ -149,7 +160,11 @@ export class SideBarService {
           title: 'Fees Record',
           link: 'fees',
           icon: 'credit-card', // Financial transactions
-        }
+        },{
+          title: 'Badge Management',
+          link: 'badgeManagement',
+          icon: 'cog', // Settings or management
+        },
         
     
         

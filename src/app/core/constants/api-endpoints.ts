@@ -120,6 +120,9 @@ public GET_ALL_BADGES:string=`${this.PATH}/getAllBadges`
 public CREATE_BADGE:string=`${this.PATH}/createBadge`
 public UPDATE_BADGE:string=`${this.PATH}/updateBadges`
 public DELETE_BADGE:string=`${this.PATH}/deleteBadge`
+public GET_ALL_USERS_BADGES= `${this.PATH}/getAllBadgesUsers`
+public ASSIGN_BADGE:string=`${this.PATH}/assignBadge`
+public UNASSIGN_BADGE:string=`${this.PATH}/unassignBadge`
 
 
 

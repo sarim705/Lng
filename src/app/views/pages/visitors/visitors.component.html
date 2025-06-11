@@ -94,6 +94,7 @@
             <th class="py-3">Company Name</th>
             <th class="py-3">Mobile No</th>
             <th class="py-3">Visitor Address</th>
+            <th class="py-3">Refer By</th>
             <th class="py-3">PinCode</th>
             <th class="py-3">Visitor Date</th>
             <th class="py-3">Profession</th>
@@ -106,20 +107,21 @@
           <ng-container *ngFor="let visitor of visitors.docs | paginate: { id: paginationConfig.id, itemsPerPage: visitors.limit, currentPage: visitors.page, totalItems: visitors.totalDocs }; let i = index">
             <tr *ngIf="visitor && visitor._id && visitor.name" class="border-bottom">
               <td class="py-3">{{ (visitors.page - 1) * visitors.limit + i + 1 }}</td>
-              <td class="py-3">{{ visitor.eventId?.name || 'N/A' }}</td>
+              <td class="py-3">{{ visitor.eventId.name || 'N/A' }}</td>
               <td class="py-3">
                 <div class="d-flex align-items-center">
                   <div>
                     <div class="fw-bold text-dark">{{ visitor.name }}</div>
-                    <small class="text-muted d-block">{{ visitor.refUserId?.chapter_name || 'N/A' }}</small>
+                    <small class="text-muted d-block">{{ visitor.refUserId.chapter_name || 'N/A' }}</small>
                   </div>
                 </div>
               </td>
               <td class="py-3">{{ visitor.business_name || 'N/A' }}</td>
               <td class="py-3">{{ visitor.mobile_number || 'N/A' }}</td>
               <td class="py-3">{{ visitor.address || 'N/A' }}</td>
+              <td class="py-3">{{visitor.refUserId.name || 'N/A'}}</td>
               <td class="py-3">{{ visitor.pincode || 'N/A' }}</td>
-              <td class="py-3">{{ visitor.eventId?.date ? formatDate(visitor.eventId.date) : 'N/A' }}</td>
+              <td class="py-3">{{ visitor.eventId.date ? formatDate(visitor.eventId.date) : 'N/A' }}</td>
               <td class="py-3">{{ visitor.business_type || 'N/A' }}</td>
               <td class="py-3">
                 <span 

@@ -2985,6 +2985,30 @@ export class ParticipationService {
       prevPage: number | null;
       nextPage: number | null;
     }
+
+    export interface BadgeUser {
+      _id: string;
+      name: string;
+      chapter_name: string;
+      mobile_number: string;
+    
+      email: string;
+      badges: Array<{ badgeId: string; assignedAt: string; name: string; image: string }> | null;
+    }
+    
+    export interface BadgeUserResponse {
+      docs: BadgeUser[];
+      totalDocs: number;
+      limit: number;
+      page: number;
+      totalPages: number;
+      pagingCounter: number;
+      hasPrevPage: boolean;
+      hasNextPage: boolean;
+      prevPage: number | null;
+      nextPage: number | null;
+    }
+    
     
     @Injectable({
       providedIn: 'root',
@@ -3003,6 +3027,7 @@ export class ParticipationService {
         }
       };
     
+
       async getAllBadges(data: { page: number; limit: number; search: string }): Promise<any> {
         try {
           this.getHeaders();
@@ -3098,6 +3123,68 @@ export class ParticipationService {
           throw error;
         }
       }
+      async getAllBadgesUsers(data: { page: number; limit: number; search: string; chapter_name?: string | null; badge_name?: string | null }): Promise<BadgeUserResponse> {
+        try {
+          this.getHeaders();
+          const response = await this.apiManager.request(
+            {
+             
+              url: `${apiEndpoints.GET_ALL_USERS_BADGES}`,
+              method: 'POST',
+            },
+            data,
+            this.headers
+          );
+          return response.data;
+        } catch (error) {
+          console.error('API Error:', error);
+          swalHelper.showToast('Failed to fetch badge users', 'error');
+          throw error;
+        }
+      }
+    
+      async assignBadge(data: { userId: string; badgeId: string }): Promise<any> {
+        try {
+          this.getHeaders();
+          const response = await this.apiManager.request(
+            {
+              url: `${apiEndpoints.UNASSIGN_BADGE}`,
+             
+             
+              method: 'POST',
+            },
+            data,
+            this.headers
+          );
+          return response;
+        } catch (error) {
+          console.error('Assign Badge Error:', error);
+          swalHelper.showToast('Failed to assign badge', 'error');
+          throw error;
+        }
+      }
+    
+      async unassignBadge(data: { userId: string; badgeId: string }): Promise<any> {
+        try {
+          this.getHeaders();
+          const response = await this.apiManager.request(
+            {
+              url: `${apiEndpoints.ASSIGN_BADGE}`,
+              
+              method: 'POST',
+            },
+            data,
+            this.headers
+          );
+          return response;
+        } catch (error) {
+          console.error('Unassign Badge Error:', error);
+          swalHelper.showToast('Failed to unassign badge', 'error');
+          throw error;
+        }
+      }
+    
+
     }
     export interface PointHistory {
       userId: string;
@@ -3170,5 +3257,7 @@ export class ParticipationService {
           swalHelper.showToast('Failed to fetch point history', 'error');
           throw error;
         }
-      }}
+      }
+    
+    }
 

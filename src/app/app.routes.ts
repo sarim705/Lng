@@ -31,6 +31,7 @@ import { ParticipationComponent } from './views/pages/participation/participatio
 import { ImportUsersComponent } from './views/pages/importUser/import-users.component';
 import {FeesComponent} from './views/pages/feesRecord/fees.component';
 import { BadgesComponent } from './views/pages/badges/badges.component';
+import {BadgeManagementComponent} from './views/pages/usersbadge/usersbadge.component';
 
 
 export const routes: Routes = [
@@ -74,6 +75,10 @@ export const routes: Routes = [
       },
       {path: 'fees', component: FeesComponent},
       {path: 'badges', component: BadgesComponent},
+      {
+        path: 'badgeManagement', component: BadgeManagementComponent,
+        
+      }
       
       
       
