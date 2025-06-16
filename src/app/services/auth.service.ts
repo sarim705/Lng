@@ -239,6 +239,50 @@ export interface UserResponse {
   totalPages: number;
 }
 
+export interface Ask {
+  _id: string;
+  product: string;
+  businessCategory: string;
+  businessSubCategory: string;
+  description: string;
+  timeDuration: string;
+  status: string;
+  createdAt: string;
+  user: {
+    _id: string;
+    name: string;
+    chapter_name: string;
+    mobile_number: string;
+    email: string;
+    profilePic: string;
+  };
+  leads: any[];
+  businessGiven: Array<{
+    partnerId: string;
+    amount: number;
+    givenAt: string;
+    partnerDetails: {
+      _id: string;
+      name: string;
+      chapter_name: string;
+      mobile_number: string;
+    };
+  }>;
+}
+
+export interface AskResponse {
+  docs: Ask[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
 
 @Injectable({
   providedIn: 'root',
@@ -325,6 +369,26 @@ export class AuthService {
       throw error;
     }
   }
+
+  async getAllAsksForAdmin(data: { page: number; limit: number; search: string; chapter_name?: string | null }): Promise<AskResponse> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_ALL_ASK,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      return response.data;
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch asks', 'error');
+      throw error;
+    }
+  }
+
 
   async toggleUserStatus(data: { id: string }): Promise<any> {
     try {
@@ -657,6 +721,8 @@ export class DashboardService {
     }
   }
   }
+
+  
   export interface EventResponse {
     docs: Event[];
     totalDocs: string | number;
@@ -3191,25 +3257,110 @@ export class ParticipationService {
     
 
     }
-    export interface PointHistory {
+    // export interface PointHistory {
+    //   userId: string;
+    //   name: string;
+    //   chapter_name: string;
+    //   profilePic?: string;
+    //   leaderboardPoints: {
+    //     attendance_regular: number;
+    //     tyfcb: number;
+    //     one_to_one: number;
+    //     event_attendance: number;
+    //     referal: number;
+    //     induction: number;
+    //     visitor: number;
+    //   };
+    //   totalPointsSum: number;
+    // }
+    
+    // export interface PointHistoryResponse {
+    //   docs: PointHistory[];
+    //   totalDocs: number;
+    //   limit: number;
+    //   page: number;
+    //   totalPages: number;
+    //   hasPrevPage: boolean;
+    //   hasNextPage: boolean;
+    //   prevPage: number | null;
+    //   nextPage: number | null;
+    // }
+    
+    // @Injectable({
+    //   providedIn: 'root'
+    // })
+    // export class PointHistoryService {
+    //   private headers: any = [];
+    
+    //   constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+    
+    //   private getHeaders = () => {
+    //     this.headers = [];
+    //     let token = this.storage.get(common.TOKEN);
+    //     if (token != null) {
+    //       this.headers.push({ Authorization: `Bearer ${token}` });
+    //     }
+    //   };
+    
+    //   async getPointHistory(params: any): Promise<PointHistoryResponse> {
+    //     try {
+    //       this.getHeaders();
+    
+    //       const queryParams = Object.keys(params)
+    //         .filter(key => params[key] !== undefined && params[key] !== null)
+    //         .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    //         .join('&');
+    
+    //       const url = `${apiEndpoints.GET_POINT_HISTORY}?${queryParams}`;
+    
+    //       const response = await this.apiManager.request(
+    //         {
+    //           url: url,
+    //           method: 'GET'
+    //         },
+    //         null,
+    //         this.headers
+    //       );
+    
+    //       return response.data || response;
+    //     } catch (error) {
+    //       console.error('API Error:', error);
+    //       swalHelper.showToast('Failed to fetch point history', 'error');
+    //       throw error;
+    //     }
+    //   }
+    
+    // }
+
+    export interface PointsHistory {
+      _id: string;
       userId: string;
       name: string;
       chapter_name: string;
-      profilePic?: string;
+      profilePic: string;
+      one_to_one: number;
+      referal: number;
+      attendance_regular: number;
+      induction: number;
+      visitor: number;
+      event_attendance: number;
+      tyfcb: number;
+      testimonial: number;
+      totalPointsSum: number;
       leaderboardPoints: {
-        attendance_regular: number;
-        tyfcb: number;
         one_to_one: number;
-        event_attendance: number;
         referal: number;
+        attendance_regular: number;
         induction: number;
         visitor: number;
+        event_attendance: number;
+        tyfcb: number;
+        testimonial: number;
       };
-      totalPointsSum: number;
     }
     
-    export interface PointHistoryResponse {
-      docs: PointHistory[];
+    export interface PointsHistoryResponse {
+      docs: PointsHistory[];
       totalDocs: number;
       limit: number;
       page: number;
@@ -3221,9 +3372,9 @@ export class ParticipationService {
     }
     
     @Injectable({
-      providedIn: 'root'
+      providedIn: 'root',
     })
-    export class PointHistoryService {
+    export class PointsHistoryService {
       private headers: any = [];
     
       constructor(private apiManager: ApiManager, private storage: AppStorage) {}
@@ -3231,38 +3382,30 @@ export class ParticipationService {
       private getHeaders = () => {
         this.headers = [];
         let token = this.storage.get(common.TOKEN);
+        
         if (token != null) {
           this.headers.push({ Authorization: `Bearer ${token}` });
         }
       };
     
-      async getPointHistory(params: any): Promise<PointHistoryResponse> {
+      async getAllPointsHistory(params: any): Promise<PointsHistoryResponse> {
         try {
           this.getHeaders();
-    
-          const queryParams = Object.keys(params)
-            .filter(key => params[key] !== undefined && params[key] !== null)
-            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-            .join('&');
-    
-          const url = `${apiEndpoints.GET_POINT_HISTORY}?${queryParams}`;
-    
+          
           const response = await this.apiManager.request(
             {
-              url: url,
-              method: 'GET'
+              url: `${apiEndpoints.GET_ALL_POINTS_HISTORY}`,
+              method: 'POST',
             },
-            null,
+            params,
             this.headers
           );
-    
+          
           return response.data || response;
         } catch (error) {
           console.error('API Error:', error);
-          swalHelper.showToast('Failed to fetch point history', 'error');
+          swalHelper.showToast('Failed to fetch points history', 'error');
           throw error;
         }
       }
-    
     }
-

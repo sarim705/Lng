@@ -123,9 +123,10 @@ public DELETE_BADGE:string=`${this.PATH}/deleteBadge`
 public GET_ALL_USERS_BADGES= `${this.PATH}/getAllBadgesUsers`
 public ASSIGN_BADGE:string=`${this.PATH}/assignBadge`
 public UNASSIGN_BADGE:string=`${this.PATH}/unassignBadge`
+public GET_ALL_POINTS_HISTORY:string=`${this.PATH}/getAllPointsHistory`
 
 
-
+public GET_ALL_ASK:string=`${this.PATH1}/mobile/getAllAsksForAdmin`
 
 
 

@@ -88,11 +88,6 @@ export class SideBarService {
         },
       
         // {
-        //   title: 'Referral Points',
-        //   link: 'referralPoints',
-        //   icon: 'award', // Recognition or rewards
-        // },
-        // {
         //   title: 'Admin Login',
         //   link: 'adminLogin',
         //   icon: 'lock', // Security or login
@@ -148,6 +143,16 @@ export class SideBarService {
           title: 'Visitors Report',
          link: 'VisitorsReport',
          icon: 'user', // Individual visitor
+        },
+        {
+          title: 'Ask Management',
+          link: 'askManagement',
+          icon: 'question-circle', // Questions or inquiries
+        },
+        {
+          title: 'Points History',
+          link: 'pointHistory',
+          icon: 'history', // History or timeline
         },
 
        

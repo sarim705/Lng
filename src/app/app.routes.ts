@@ -24,7 +24,7 @@ import { TyfcbComponent } from './views/pages/tyfcb/tyfcb.component';
 import { VisitorsComponent } from './views/pages/visitors/visitors.component';
 import { AttendanceDataComponent } from './views/pages/attendenceRecord/attendenceRecord.component';
 import {RegisterComponent} from './views/pages/userRegisteration/userRegisteration.component';
-import { PointHistoryComponent } from './views/pages/ReferralPoints/referralpoint.component';
+import { PointsHistoryComponent } from './views/pages/pointHistory/pointhistory.component';
 import{AdminLoginComponent} from './views/pages/login/login.component';
 import { SubCategoriesComponent } from './views/pages/subcategory/subcategory.component';
 import { ParticipationComponent } from './views/pages/participation/participation.component';
@@ -32,6 +32,7 @@ import { ImportUsersComponent } from './views/pages/importUser/import-users.comp
 import {FeesComponent} from './views/pages/feesRecord/fees.component';
 import { BadgesComponent } from './views/pages/badges/badges.component';
 import {BadgeManagementComponent} from './views/pages/usersbadge/usersbadge.component';
+import { AskManagementComponent } from './views/pages/ask/ask.component';
 
 
 export const routes: Routes = [
@@ -67,7 +68,7 @@ export const routes: Routes = [
      
       {path: 'attendanceRecord', component: AttendanceDataComponent },
       {path: 'registerComponent', component: RegisterComponent},
-      {path: 'referralPoints', component: PointHistoryComponent},
+      {path: 'pointHistory', component: PointsHistoryComponent },
       {path: 'adminLogin', component: AdminLoginComponent},
       {path: 'participation', component: ParticipationComponent}, 
       {
@@ -78,7 +79,8 @@ export const routes: Routes = [
       {
         path: 'badgeManagement', component: BadgeManagementComponent,
         
-      }
+      },
+    {path: 'askManagement', component: AskManagementComponent},
       
       
       

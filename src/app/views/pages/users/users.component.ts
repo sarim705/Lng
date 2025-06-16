@@ -5,6 +5,7 @@ import { AuthService } from '../../../services/auth.service';
 import { ReferralService1 } from '../../../services/auth.service';
 import { ExportService } from '../../../services/export.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
+
 import { debounceTime, Subject } from 'rxjs';
 import { environment } from 'src/env/env.local';
 import { NgxPaginationModule } from 'ngx-pagination';
@@ -32,6 +33,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
   selectedUser: any = null;
   userDetailsModal: any;
   imageurl = environment.imageUrl;
+pathurl= environment.baseURL;
   activeTab: string = 'profile';
   referralTab: string = 'given';
   referralsGiven: any[] = [];
@@ -303,183 +305,26 @@ export class UsersComponent implements OnInit, AfterViewInit {
     swalHelper.showToast('Generating User PDF, please wait...', 'info');
 
     try {
-      const user = this.selectedUser;
-      const business = user.business && user.business.length > 0 ? user.business[0] : null;
-
-      const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 15;
-      const cardPadding = 8;
-      const blackColor = [0, 0, 0];
-      const primaryColor = [13, 110, 253];
-      const labelWidth = 50;
-      let yPos = margin;
-
-      pdf.setFont('helvetica');
-
-      const addSectionHeader = (text: string, y: number): number => {
-        pdf.setFontSize(14);
-        pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(text, margin, y);
-        pdf.setDrawColor(blackColor[0], blackColor[1], blackColor[2]);
-        pdf.line(margin, y + 3, pageWidth - margin, y + 3);
-        return y + 10;
-      };
-
-      const addCard = (title: string, content: string[][], y: number): number => {
-        pdf.setFontSize(10);
-        const lineHeight = 7;
-        let contentHeight = 0;
-
-        content.forEach(item => {
-          const lines = pdf.splitTextToSize(item[1], pageWidth - 2 * margin - 2 * cardPadding - labelWidth);
-          contentHeight += (lines.length * lineHeight);
-        });
-
-        const cardHeight = contentHeight + 20;
-
-        if (y + cardHeight > pdf.internal.pageSize.getHeight() - margin) {
-          pdf.addPage();
-          y = margin;
-        }
-
-        pdf.setDrawColor(blackColor[0], blackColor[1], blackColor[2]);
-        pdf.setLineWidth(0.5);
-        pdf.rect(margin, y, pageWidth - 2 * margin, cardHeight, 'S');
-
-        pdf.setFontSize(12);
-        pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(title, margin + cardPadding, y + cardPadding + 4);
-
-        pdf.setFontSize(10);
-        pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
-        pdf.setFont('helvetica', 'normal');
-
-        let contentY = y + cardPadding + 10;
-        content.forEach(item => {
-          const [label, value] = item;
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`${label}:`, margin + cardPadding, contentY);
-          pdf.setFont('helvetica', 'normal');
-          const lines = pdf.splitTextToSize(value, pageWidth - 2 * margin - 2 * cardPadding - labelWidth);
-          pdf.text(lines, margin + cardPadding + labelWidth, contentY);
-          contentY += (lines.length * lineHeight);
-        });
-
-        return y + cardHeight + 10;
-      };
-
-      pdf.setFontSize(18);
-      pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('User Profile', margin, yPos);
-
-      pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Generated on: ${new Date().toLocaleString()}`, margin, yPos + 8);
-      yPos += 20;
-
-      yPos = addSectionHeader('Basic Information', yPos);
-
-      const profileContent = [
-        ['Name', user.name || 'N/A'],
-        ['Email', user.email || 'N/A'],
-        ['Mobile', user.mobile_number || 'N/A'],
-        ['Role', user.meeting_role || 'N/A'],
-        ['Chapter', user.chapter_name || 'N/A'],
-        ['Points', user.points?.toString() || 'N/A'],
-        ['Address', user.address || 'N/A'],
-        ['Introduction', user.introduction_details || 'N/A']
-      ];
-      yPos = addCard('Personal Details', profileContent, yPos);
-
-      if (business) {
-        yPos = addSectionHeader('Business Information', yPos);
-        const businessContent = [
-          ['Business Name', business.business_name || 'N/A'],
-          ['Business Type', business.business_type || 'N/A'],
-          ['Category', business.category || 'N/A'],
-          ['Sub-Category', business.sub_category || 'N/A'],
-          ['Product', business.product || 'N/A'],
-          ['Service', business.service || 'N/A'],
-          ['Formation', business.formation || 'N/A'],
-          ['Established', business.establishment ? new Date(business.establishment).toLocaleDateString() : 'N/A'],
-          ['Team Size', business.team_size?.toString() || 'N/A'],
-          ['Business Email', business.email || 'N/A'],
-          ['Business Phone', business.mobile_number || 'N/A'],
-          ['Website', business.website || 'N/A'],
-          ['Address', business.address || 'N/A'],
-          ['Description', business.about_business_details || 'N/A']
-        ];
-        yPos = addCard('Business Details', businessContent, yPos);
+      const userId = this.selectedUser._id;
+      if (!userId) {
+        throw new Error('User ID is not available');
       }
 
-      if (user.bioDetails) {
-        yPos = addSectionHeader('Personal Bio', yPos);
-        const bioContent = [
-          ['Spouse', user.bioDetails.spouse || 'N/A'],
-          ['Children', user.bioDetails.children || 'N/A'],
-          ['Pets', user.bioDetails.pets || 'N/A'],
-          ['City of Residence', user.bioDetails.cityOfResidence || 'N/A'],
-          ['Years in City', user.bioDetails.yearInThatCity || 'N/A'],
-          ['Years in Business', user.bioDetails.yearsInBusiness || 'N/A'],
-          ['Hobbies', user.bioDetails.hobbies || 'N/A'],
-          ['Previous Business', user.bioDetails.previousTypesOfBusiness || 'N/A'],
-          ['Burning Desire', user.bioDetails.myBurningDesire || 'N/A'],
-          ['Key to Success', user.bioDetails.myKeyToSuccess || 'N/A'],
-          ['Something Unique', user.bioDetails.somethingNoOne || 'N/A']
-        ];
-        yPos = addCard('Bio Details', bioContent, yPos);
-      }
+      const pdfUrl = `${this.pathurl}/admin/${userId}/pdf`;
+      console.log('PDF URL:', pdfUrl);
+      
+      // Create a temporary anchor element to trigger the download
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `${this.selectedUser.name || 'user'}_profile.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      if (user.growthSheet) {
-        yPos = addSectionHeader('Professional Growth', yPos);
-        const growthContent = [
-          ['Accomplishment', user.growthSheet.accomplishment || 'N/A'],
-          ['Goals', user.growthSheet.goals || 'N/A'],
-          ['Skills', user.growthSheet.skills || 'N/A'],
-          ['Interests', user.growthSheet.interests || 'N/A'],
-          ['Networks', user.growthSheet.networks || 'N/A']
-        ];
-        yPos = addCard('Growth Sheet', growthContent, yPos);
-      }
-
-      if (user.topProfile) {
-        yPos = addSectionHeader('Professional Highlights', yPos);
-        const topProfileContent = [
-          ['Favorite LGN Story', user.topProfile.favouriteLgnStory || 'N/A'],
-          ['Top Problem Solved', user.topProfile.topProblemSolved || 'N/A'],
-          ['Top Product', user.topProfile.topProduct || 'N/A'],
-          ['Ideal Referral', user.topProfile.idealReferral || 'N/A'],
-          ['Ideal Referral Partner', user.topProfile.idealReferralParter || 'N/A']
-        ];
-        yPos = addCard('Top Profile', topProfileContent, yPos);
-      }
-
-      if (user.weeklyPresentation) {
-        yPos = addSectionHeader('Presentations', yPos);
-        const presentationContent = [
-          ['Presentation 1', user.weeklyPresentation.presentation1 || 'N/A'],
-          ['Presentation 2', user.weeklyPresentation.presentation2 || 'N/A']
-        ];
-        yPos = addCard('Weekly Presentations', presentationContent, yPos);
-      }
-
-      const pageCount = pdf.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 20, pdf.internal.pageSize.getHeight() - 10);
-      }
-
-      pdf.save(`${user.name || 'user'}_profile.pdf`);
-      swalHelper.showToast('PDF generated successfully', 'success');
+      swalHelper.showToast('PDF download initiated successfully', 'success');
     } catch (error) {
-      console.error('Error generating user PDF:', error);
-      swalHelper.showToast('Failed to generate user PDF', 'error');
+      console.error('Error initiating PDF download:', error);
+      swalHelper.showToast('Failed to initiate PDF download', 'error');
     } finally {
       this.pdfLoading = false;
       this.cdr.detectChanges();
