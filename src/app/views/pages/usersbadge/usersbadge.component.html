@@ -93,10 +93,7 @@
                 <span *ngFor="let badge of user.badges" class="badge bg-secondary me-1 mb-1 position-relative">
                   <div class="badge-image-container" style="cursor: pointer;" (click)="openImagePreview(badge)">
                     <img [src]="getBadgeImageUrl(badge)" alt="{{badge.name}}" width="16" height="16" class="me-1 rounded">
-                    <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1"
-                         style="width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; margin: 1px;">
-                      <i class="bi bi-eye text-white" style="font-size: 6px;"></i>
-                    </div>
+                    
                   </div>
                   {{ badge.name }}
                 </span>
@@ -106,10 +103,28 @@
               </ng-template>
             </td>
             <td class="py-3">
-              <button class="btn btn-sm btn-primary" (click)="openBadgeModal(user)" [disabled]="assigning[user._id]">
-                <i class="bi bi-award me-1"></i>Manage Badges
-                <span *ngIf="assigning[user._id]" class="spinner-border spinner-border-sm ms-2" role="status"></span>
-              </button>
+              <div class="d-flex align-items-center gap-2">
+                <ng-select 
+                  [items]="availableBadges"
+                  bindLabel="name"
+                  bindValue="_id"
+                  placeholder="{{ badgesLoading ? 'Loading Badges...' : '--Assign Badge--' }}"
+                  (change)="assignBadgeToUser(user, $event)"
+                  [clearable]="true"
+              
+                  style="min-width: 150px;">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="d-flex align-items-center">
+                      <img [src]="getBadgeImageUrl(item)" alt="{{item.name}}" width="16" height="16" class="me-2 rounded">
+                      {{ item.name }}
+                    </div>
+                  </ng-template>
+                </ng-select>
+                <button class="btn btn-sm btn-primary" (click)="openBadgeModal(user)" [disabled]="assigning[user._id]">
+                  <i class="bi bi-award me-1"></i>Manage
+                  <span *ngIf="assigning[user._id]" class="spinner-border spinner-border-sm ms-2" role="status"></span>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -159,46 +174,14 @@
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
-          <div *ngIf="!badgesLoading && availableBadges.length > 0">
-            <div class="mb-3">
-              <label for="badgeSelect" class="form-label">Available Badges</label>
-              <ng-select 
-                id="badgeSelect"
-                [items]="availableBadges"
-                bindLabel="name"
-                bindValue="_id"
-                placeholder="--Select Badge--"
-                [(ngModel)]="selectedBadgeId"
-                [clearable]="true">
-                <ng-template ng-option-tmp let-item="item">
-                  <div class="d-flex align-items-center">
-                    <div class="badge-image-container" style="cursor: pointer;" (click)="openImagePreview(item)">
-                      <img [src]="getBadgeImageUrl(item)" alt="{{item.name}}" width="24" height="24" class="me-2 rounded">
-                      <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1"
-                           style="width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; margin: 1px;">
-                        <i class="bi bi-eye text-white" style="font-size: 8px;"></i>
-                      </div>
-                    </div>
-                    {{ item.name }}
-                  </div>
-                </ng-template>
-              </ng-select>
-            </div>
-            <button class="btn btn-primary" (click)="assignBadge()" [disabled]="!selectedBadgeId || assigning[selectedUser?._id]">
-              Assign Badge
-              <span *ngIf="assigning[selectedUser?._id]" class="spinner-border spinner-border-sm ms-2" role="status"></span>
-            </button>
-          </div>
+          
           <div class="mt-3" *ngIf="selectedUser?.badges && selectedUser.badges.length > 0">
             <h6>Assigned Badges</h6>
             <div class="d-flex flex-wrap gap-2">
               <div *ngFor="let badge of selectedUser.badges" class="badge bg-secondary p-2 position-relative">
                 <div class="badge-image-container" style="cursor: pointer;" (click)="openImagePreview(badge)">
                   <img [src]="getBadgeImageUrl(badge)" alt="{{badge.name}}" width="24" height="24" class="me-2 rounded">
-                  <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1"
-                       style="width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; margin: 1px;">
-                    <i class="bi bi-eye text-white" style="font-size: 8px;"></i>
-                  </div>
+                
                 </div>
                 {{ badge.name }}
                 <button class="btn btn-sm btn-danger ms-2" (click)="unassignBadge(badge.badgeId)" [disabled]="assigning[selectedUser._id]">

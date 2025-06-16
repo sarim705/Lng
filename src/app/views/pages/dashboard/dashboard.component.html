@@ -4,10 +4,114 @@
     <div class="col-12">
       <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
         <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
-          <h4 class="mb-0 fw-bold  text-white">
+          <h4 class="mb-0 fw-bold text-white">
             <i class="bi bi-speedometer2 me-2"></i>Dashboard Overview
           </h4>
-      </div>
+          <div class="d-flex gap-2">
+            <!-- Advanced Filter Toggle Button -->
+            <button 
+              class="btn btn-light rounded-pill px-4" 
+              (click)="toggleAdvancedFilters()"
+              [class.active]="showAdvancedFilters"
+            >
+              <i class="bi bi-funnel me-2"></i>Advanced Filters
+              <i class="bi" [ngClass]="showAdvancedFilters ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+            </button>
+            <!-- Refresh Button -->
+            <button class="btn btn-light rounded-pill px-4" (click)="loadDashboardCounts()">
+              <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible Advanced Filter Section -->
+        <div class="advanced-filters-container" [class.show]="showAdvancedFilters">
+          <div class="card-body border-bottom bg-light">
+            <div class="row align-items-center">
+              <div class="col-12">
+                <div class="filter-chips-container mb-3" *ngIf="hasActiveFilters()">
+                  <span class="text-muted me-2 small">Active Filters:</span>
+                  <span class="filter-chip" *ngIf="selectedChapter">
+                    <i class="bi bi-building me-1"></i>{{ selectedChapter }}
+                    <button class="btn-close-chip" (click)="clearChapterFilter()">×</button>
+                  </span>
+                  <span class="filter-chip" *ngIf="fromDate">
+                    <i class="bi bi-calendar me-1"></i>From: {{ fromDate }}
+                    <button class="btn-close-chip" (click)="clearFromDate()">×</button>
+                  </span>
+                  <span class="filter-chip" *ngIf="toDate">
+                    <i class="bi bi-calendar me-1"></i>To: {{ toDate }}
+                    <button class="btn-close-chip" (click)="clearToDate()">×</button>
+                  </span>
+                  <button class="btn btn-sm btn-outline-danger ms-2" (click)="resetFilters()">
+                    <i class="bi bi-x-circle me-1"></i>Clear All
+                  </button>
+                </div>
+                
+                <form>
+                  <div class="row g-3 align-items-end">
+                    <!-- Chapter Dropdown -->
+                    <div class="col-lg-3 col-md-6">
+                      <label for="chapter" class="form-label fw-semibold">
+                        <i class="bi bi-building me-1"></i>Chapter
+                      </label>
+                      <select
+                        id="chapter"
+                        class="form-select modern-select"
+                        [(ngModel)]="selectedChapter"
+                        name="chapter"
+                      >
+                        <option value="">All Chapters</option>
+                        <option *ngFor="let chapter of chapters" [value]="chapter.name">{{ chapter.name }}</option>
+                      </select>
+                    </div>
+
+                    <!-- Date Range Container -->
+                    <div class="col-lg-4 col-md-8">
+                      <label class="form-label fw-semibold">
+                        <i class="bi bi-calendar-range me-1"></i>Date Range
+                      </label>
+                      <div class="row g-2">
+                        <div class="col-6">
+                          <input
+                            type="date"
+                            class="form-control modern-input"
+                            [(ngModel)]="fromDate"
+                            name="fromDate"
+                            placeholder="From Date"
+                          />
+                        </div>
+                        <div class="col-6">
+                          <input
+                            type="date"
+                            class="form-control modern-input"
+                            [(ngModel)]="toDate"
+                            name="toDate"
+                            placeholder="To Date"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-lg-2 col-md-4">
+                      <div class="d-flex gap-2">
+                        <button
+                          type="button"
+                          class="btn btn-primary rounded-pill flex-fill"
+                          (click)="applyFilters()"
+                        >
+                          <i class="bi bi-check2 me-1"></i>Apply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Dashboard Cards -->
         <div class="card-body">
           <div *ngIf="loading" class="text-center my-5 py-5">
@@ -51,7 +155,7 @@
             </div>
 
             <!-- Asks Card -->
-            <div class="col-md-6 col-lg-4 col-xl-3">
+            <!-- <div class="col-md-6 col-lg-4 col-xl-3">
               <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
                 <div class="card-body">
                   <div class="d-flex align-items-center mb-3">
@@ -64,7 +168,7 @@
                   <p class="text-muted small text-center mt-2">Total user inquiries</p>
                 </div>
               </div>
-            </div>
+            </div> -->
 
             <!-- Referrals Card -->
             <div class="col-md-6 col-lg-4 col-xl-3">

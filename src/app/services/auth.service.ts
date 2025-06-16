@@ -354,6 +354,7 @@ export class AuthService {
     }
   }
   
+  
   async deleteUser(userId: string): Promise<any> {
     try {
       this.getHeaders();
@@ -674,6 +675,7 @@ export interface Event {
     name: string;
     event_or_meeting: 'event' | 'meeting';
     paid: boolean;
+    amount: number;
     date: string;
     startTime: string;
     endTime: string;
@@ -2910,6 +2912,9 @@ export class ParticipationService {
       mobile_number: string;
       chapter_name: string;
       meeting_role: string;
+      
+        induction_date: string;
+      
       profilePic: string;
       date_of_birth: string;
       city: string;
@@ -3148,7 +3153,7 @@ export class ParticipationService {
           this.getHeaders();
           const response = await this.apiManager.request(
             {
-              url: `${apiEndpoints.UNASSIGN_BADGE}`,
+              url: `${apiEndpoints.ASSIGN_BADGE}`,
              
              
               method: 'POST',
@@ -3169,7 +3174,7 @@ export class ParticipationService {
           this.getHeaders();
           const response = await this.apiManager.request(
             {
-              url: `${apiEndpoints.ASSIGN_BADGE}`,
+              url: `${apiEndpoints.UNASSIGN_BADGE}`,
               
               method: 'POST',
             },

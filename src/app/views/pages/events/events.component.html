@@ -72,6 +72,12 @@
                                     <i class="bi bi-clock me-2 text-success"></i>
                                     <strong>Time:</strong> <span class="ms-1">{{event.startTime}} - {{event.endTime}}</span>
                                 </div>
+                                <div class="d-flex align-items-center mb-1" *ngIf="event.paid">
+                                    <i class="bi bi-currency-rupee me-2 text-success"></i>
+                                    <strong>Amount:</strong>
+                                    <span class="ms-1">{{ event.amount | currency:'INR':'symbol':'1.0-0' }}</span>
+                                  </div>
+                                  
                                 <div class="d-flex align-items-center mb-1">
                                     <i class="bi bi-geo-alt me-2 text-info"></i>
                                     <strong>Location/Link:</strong> <span class="ms-1">{{event.location || 'N/A'}}</span>
@@ -193,6 +199,8 @@
                             </div>
                         </div>
 
+                        
+
                         <div class="mb-3">
                             <label for="eventMode" class="form-label">Mode</label>
                             <div class="input-group">
@@ -276,6 +284,18 @@
                             <label class="form-check-label" for="eventPaid">
                                 {{eventForm.get('paid')?.value ? 'Paid' : 'Free'}} Event
                             </label>
+                        </div>
+                        <div class="mb-3" *ngIf="eventForm.get('paid')?.value">
+                            <label for="eventAmount" class="form-label">Amount </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-currency-rupee"></i></span>
+                                <input type="number" class="form-control" id="eventAmount" placeholder="Enter amount"
+                                       formControlName="amount" [ngClass]="{'is-invalid': eventForm.get('amount')?.invalid && (eventForm.get('amount')?.touched || eventForm.get('amount')?.dirty)}">
+                                <div *ngIf="eventForm.get('amount')?.invalid && (eventForm.get('amount')?.touched || eventForm.get('amount')?.dirty)" class="invalid-feedback">
+                                    <div *ngIf="eventForm.get('amount')?.errors?.['required']">Amount is required for paid events</div>
+                                    <div *ngIf="eventForm.get('amount')?.errors?.['min']">Amount must be greater than 0</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">

@@ -215,6 +215,24 @@
             </div>
           </div>
 
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="induction_date" class="form-label">Induction Date <span class="text-danger">*</span></label>
+              <input 
+                type="date" 
+                class="form-control" 
+                id="induction_date" 
+                [(ngModel)]="registerForm.induction_date" 
+                name="induction_date" 
+                required
+                (blur)="onFieldBlur('induction_date')"
+                [class.is-invalid]="validationErrors.induction_date">
+              <div class="invalid-feedback" *ngIf="validationErrors.induction_date">
+                {{ validationErrors.induction_date }}
+              </div>
+            </div>
+          </div>
+
           <div class="mb-3">
             <label for="sponseredBy" class="form-label">Sponsored By</label>
             <ng-select
@@ -238,7 +256,7 @@
           <i class="bi bi-x-circle me-1"></i>Cancel
         </button>
         <button 
-          type="button" 
+          type="button"  
           class="btn btn-primary rounded-pill" 
           (click)="registerUser()"
           [disabled]="loading || !validateForm()">

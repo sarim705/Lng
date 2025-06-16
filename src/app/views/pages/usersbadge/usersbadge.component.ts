@@ -36,7 +36,7 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
   availableBadges: Badge[] = [];
   selectedUser: any = null;
   selectedBadgeId: string | null = null;
-  selectedBadgeForPreview: any = null; // For image preview
+  selectedBadgeForPreview: any = null;
   loading: boolean = false;
   chaptersLoading: boolean = false;
   badgesLoading: boolean = false;
@@ -44,7 +44,7 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
   Math = Math;
   private filterSubject = new Subject<void>();
   private badgeModal: any = null;
-  private imagePreviewModal: any = null; // For image preview modal
+  private imagePreviewModal: any = null;
 
   filters = {
     page: 1,
@@ -71,10 +71,10 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.fetchChapters();
     this.fetchBadgeUsers();
+    this.fetchAvailableBadges();
   }
 
   ngAfterViewInit(): void {
-    // Initialize modals with a delay to ensure DOM is fully loaded
     setTimeout(() => {
       const badgeModalElement = document.getElementById('badgeModal');
       if (badgeModalElement) {
@@ -117,6 +117,7 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
       swalHelper.showToast('Failed to fetch badge users', 'error');
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -128,7 +129,8 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
         limit: 1000,
         search: ''
       });
-      this.availableBadges = response.docs || [];
+      this.availableBadges = response.data?.docs || response.docs || [];
+      console.log('Fetched badges:', this.availableBadges); // Debug log
     } catch (error) {
       console.error('Error fetching badges:', error);
       swalHelper.showToast('Failed to fetch badges', 'error');
@@ -150,7 +152,7 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
       if (response.success) {
         swalHelper.showToast(response.message, 'success');
         await this.fetchBadgeUsers();
-        this.selectedUser.badges = response.data.badges || [];
+        this.selectedUser.badges = response.data?.badges || [];
         this.selectedBadgeId = null;
       } else {
         swalHelper.showToast(response.message, 'error');
@@ -160,6 +162,30 @@ export class BadgeManagementComponent implements OnInit, AfterViewInit {
       swalHelper.showToast('Failed to assign badge', 'error');
     } finally {
       this.assigning[this.selectedUser._id] = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async assignBadgeToUser(user: any, badgeId: string): Promise<void> {
+    if (!user || !badgeId) return;
+
+    this.assigning[user._id] = true;
+    try {
+      const response = await this.badgeService.assignBadge({
+        userId: user._id,
+        badgeId
+      });
+      if (response.success) {
+        swalHelper.showToast(response.message, 'success');
+        await this.fetchBadgeUsers();
+      } else {
+        swalHelper.showToast(response.message, 'error');
+      }
+    } catch (error) {
+      console.error('Error assigning badge:', error);
+      swalHelper.showToast('Failed to assign badge', 'error');
+    } finally {
+      this.assigning[user._id] = false;
       this.cdr.detectChanges();
     }
   }

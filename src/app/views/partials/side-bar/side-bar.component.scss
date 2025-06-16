@@ -81,6 +81,7 @@ $sidebar-collapsed-width: 70px;
 
 // Main Sidebar
 .sidebar {
+  
   position: fixed;
   top: 0;
   left: 0;
@@ -114,6 +115,7 @@ $sidebar-collapsed-width: 70px;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  //background: rgba(179, 165, 171, 0.955);
 
   &::-webkit-scrollbar {
     width: 4px;

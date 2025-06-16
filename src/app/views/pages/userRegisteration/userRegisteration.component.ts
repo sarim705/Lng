@@ -36,7 +36,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     state: '',
     country: '',
     sponseredBy: '',
-    keywords:''
+    keywords: '',
+    induction_date: ''
   };
 
   countries: Country[] = [];
@@ -66,7 +67,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     country: false,
     state: false,
     city: false,
-    chapter_name: false
+    chapter_name: false,
+    induction_date: false
   };
 
   // Validation error messages
@@ -77,7 +79,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     country: '',
     state: '',
     city: '',
-    chapter_name: ''
+    chapter_name: '',
+    induction_date: ''
   };
 
   // Add meetingRoles array to fix the error
@@ -254,7 +257,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Enhanced validation methods that only show errors for touched fields
   validateName(): boolean {
     if (!this.touchedFields.name) {
       return true; // Don't validate untouched fields
@@ -366,7 +368,28 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     return true;
   }
 
-  // Updated onFieldBlur method
+  validateInductionDate(): boolean {
+    if (!this.touchedFields.induction_date) {
+      return true;
+    }
+
+    const induction_date = this.registerForm.induction_date;
+    if (!induction_date) {
+      this.validationErrors.induction_date = 'Induction date is required';
+      return false;
+    }
+
+    const selectedDate = new Date(induction_date);
+    const today = new Date();
+    if (selectedDate > today) {
+      this.validationErrors.induction_date = 'Induction date cannot be in the future';
+      return false;
+    }
+
+    this.validationErrors.induction_date = '';
+    return true;
+  }
+
   onFieldBlur(fieldName: string): void {
     // Mark field as touched
     this.touchedFields[fieldName] = true;
@@ -394,6 +417,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       case 'chapter_name':
         this.validateChapter();
         break;
+      case 'induction_date':
+        this.validateInductionDate();
+        break;
     }
   }
 
@@ -420,8 +446,13 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       Object.keys(this.registerForm).forEach(key => {
         if (key === 'profilePic' && this.registerForm[key]) {
           formData.append(key, this.registerForm[key]);
-        } else if (this.registerForm[key]) {
-          formData.append(key, this.registerForm[key]);
+        } else if (key === 'induction_date' && this.registerForm[key]) {
+          // Explicitly format induction_date to YYYY-MM-DD
+          const formattedDate = new Date(this.registerForm[key]).toISOString().split('T')[0];
+          formData.append(key, formattedDate);
+        } else {
+          // Append all other fields, including empty ones
+          formData.append(key, this.registerForm[key] || '');
         }
       });
 
@@ -442,7 +473,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Mark all required fields as touched for final validation
   markAllRequiredFieldsAsTouched(): void {
     this.touchedFields.name = true;
     this.touchedFields.email = true;
@@ -451,13 +481,14 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.touchedFields.state = true;
     this.touchedFields.city = true;
     this.touchedFields.chapter_name = true;
+    this.touchedFields.induction_date = true;
   }
 
-  // Validation for form submission (validates all fields regardless of touched state)
   validateFormForSubmission(): boolean {
     const name = this.registerForm.name.trim();
     const email = this.registerForm.email.trim();
     const mobile = this.registerForm.mobile_number;
+    const induction_date = this.registerForm.induction_date;
     
     let isValid = true;
 
@@ -529,15 +560,30 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       this.validationErrors.chapter_name = '';
     }
 
+    // Validate induction date
+    if (!induction_date) {
+      this.validationErrors.induction_date = 'Induction date is required';
+      isValid = false;
+    } else {
+      const selectedDate = new Date(induction_date);
+      const today = new Date();
+      if (selectedDate > today) {
+        this.validationErrors.induction_date = 'Induction date cannot be in the future';
+        isValid = false;
+      } else {
+        this.validationErrors.induction_date = '';
+      }
+    }
+
     return isValid && this.registerForm.meeting_role;
   }
 
   validateForm(): boolean {
-    // For the button disable/enable, check if form is valid without showing errors
     const name = this.registerForm.name.trim();
     const email = this.registerForm.email.trim();
     const mobile = this.registerForm.mobile_number;
-    
+    const induction_date = this.registerForm.induction_date;
+
     return name && name.length >= 2 && /^[a-zA-Z\s]+$/.test(name) &&
            email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
            mobile && /^\d{10}$/.test(mobile) &&
@@ -545,7 +591,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
            this.registerForm.state &&
            this.registerForm.city &&
            this.registerForm.chapter_name &&
-           this.registerForm.meeting_role;
+           this.registerForm.meeting_role &&
+           induction_date && new Date(induction_date) <= new Date();
   }
 
   resetForm(): void {
@@ -561,7 +608,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       state: '',
       country: '',
       sponseredBy: '',
-      keywords: ''
+      keywords: '',
+      induction_date: ''
     };
 
     // Reset validation errors
@@ -572,7 +620,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       country: '',
       state: '',
       city: '',
-      chapter_name: ''
+      chapter_name: '',
+      induction_date: ''
     };
 
     // Reset touched fields
@@ -583,7 +632,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       country: false,
       state: false,
       city: false,
-      chapter_name: false
+      chapter_name: false,
+      induction_date: false
     };
 
     this.chapters = [];
