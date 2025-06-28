@@ -1,9 +1,9 @@
-// visitors.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { VisitorService, Visitor, VisitorResponse } from '../../../services/auth.service';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { VisitorService, Visitor, VisitorResponse, UserRef } from '../../../services/auth.service';
 import { ChapterService, Chapter } from '../../../services/auth.service';
+import { AttendanceService1, Event1 } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
 import { debounceTime, Subject } from 'rxjs';
 import { NgxPaginationModule } from 'ngx-pagination';
@@ -14,8 +14,8 @@ import { environment } from 'src/env/env.local';
 @Component({
   selector: 'app-visitors',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxPaginationModule, NgSelectModule],
-  providers: [VisitorService, ChapterService, ExportService],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule, NgSelectModule],
+  providers: [VisitorService, ChapterService, AttendanceService1, ExportService],
   templateUrl: './visitors.component.html',
   styleUrls: ['./visitors.component.css'],
 })
@@ -33,11 +33,16 @@ export class VisitorsComponent implements OnInit {
   };
   
   chapters: Chapter[] = [];
+  events: Event1[] = [];
+  users: UserRef[] = [];
   loading: boolean = false;
   chaptersLoading: boolean = false;
   exporting: boolean = false;
   updatingVisitorId: string | null = null;
-  toggling: { [key: string]: boolean } = {}; // Add toggling state for attendance
+  toggling: { [key: string]: boolean } = {};
+  showAddVisitorModal: boolean = false;
+  addVisitorForm: FormGroup;
+  modalLoading: boolean = false;
   
   Math = Math;
   
@@ -58,9 +63,26 @@ export class VisitorsComponent implements OnInit {
   constructor(
     private visitorService: VisitorService,
     private chapterService: ChapterService,
+    private attendanceService: AttendanceService1,
     private exportService: ExportService,
+    private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {
+    this.addVisitorForm = this.fb.group({
+      chapterName: ['', Validators.required],
+      eventId: ['', Validators.required],
+      refUserId: ['', Validators.required],
+      name: ['', Validators.required],
+      mobile_number: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+      email: ['', [Validators.email]],
+      business_name: [''],
+      business_type: [''],
+      address: [''],
+      pincode: ['', [Validators.pattern(/^\d{6}$/)]],
+      fees: [0, [Validators.min(0)]],
+      paid: [false]
+    });
+    
     this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       this.fetchVisitors();
     });
@@ -82,29 +104,10 @@ export class VisitorsComponent implements OnInit {
         endDate: this.filters.endDate || undefined
       };
       const response = await this.visitorService.getAllVisitors(requestParams);
-      console.log('Visitors response:', response);
-
-      // Log each visitor object to debug missing fields
-      response.docs.forEach((visitor, index) => {
-        console.log(`Visitor ${index + 1}:`, {
-          name: visitor.name,
-          business_name: visitor.business_name,
-          address: visitor.address,
-          pincode: visitor.pincode,
-          business_type: visitor.business_type,
-          eventId: visitor.eventId,
-          attendanceStatus: visitor.attendanceStatus // Log new field
-        });
-      });
-
-      // Filter out invalid or empty visitor objects
       response.docs = response.docs.filter(visitor => 
         visitor && visitor._id && visitor.name
       );
-
-      // Update totalDocs to reflect the filtered count
       response.totalDocs = response.docs.length;
-
       this.visitors = response;
       this.cdr.detectChanges();
     } catch (error) {
@@ -123,14 +126,117 @@ export class VisitorsComponent implements OnInit {
         limit: 1000,
         search: ''
       });
-      this.chapters = response.docs|| [];
-      console.log('Chapters loaded:', this.chapters);
+      this.chapters = response.docs || [];
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching chapters:', error);
       swalHelper.showToast('Failed to fetch chapters', 'error');
     } finally {
       this.chaptersLoading = false;
+    }
+  }
+
+  async onChapterChange(chapterName: string): Promise<void> {
+    console.log('chapterName:', chapterName, typeof chapterName);
+    console.log('chapterName value:', this.addVisitorForm.get('chapterName')?.value);
+    if (!chapterName) {
+      this.events = [];
+      this.users = [];
+      this.addVisitorForm.patchValue({ eventId: '', refUserId: '' });
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.modalLoading = true;
+    try {
+      // Fetch events
+      const eventResponse = await this.attendanceService.getEventsByChapter(chapterName);
+      this.events = [...(eventResponse.data.events || [])];
+      console.log('events:', this.events);
+
+      // Fetch users
+      const userResponse = await this.visitorService.getUsersByChapter({ chapter_name: chapterName, search: '' });
+      console.log('userResponse:', userResponse);
+      this.users = [...(userResponse.data?.docs || [])];
+      console.log('users:', this.users);
+
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error fetching chapter data:', error);
+      swalHelper.showToast('Failed to fetch chapter data', 'error');
+    } finally {
+      this.modalLoading = false;
+      console.log('modalLoading set to false');
+      this.cdr.detectChanges();
+    }
+  }
+
+  async onUserSearch(event: { term: string; items: any[] }): Promise<void> {
+    const chapterName = this.addVisitorForm.get('chapterName')?.value;
+    console.log('onUserSearch:', { term: event.term, chapterName });
+    if (!chapterName) {
+      this.users = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.modalLoading = true;
+    try {
+      const userResponse = await this.visitorService.getUsersByChapter({
+        chapter_name: chapterName,
+        search: event.term || '',
+      });
+      this.users = [...(userResponse.data?.docs || [])];
+      console.log('search users:', this.users);
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      swalHelper.showToast('Failed to fetch users', 'error');
+    } finally {
+      this.modalLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  openAddVisitorModal(): void {
+    this.showAddVisitorModal = true;
+    this.addVisitorForm.reset({
+      fees: 0,
+      paid: false
+    });
+    this.events = [];
+    this.users = [];
+    this.cdr.detectChanges();
+  }
+
+  closeAddVisitorModal(): void {
+    this.showAddVisitorModal = false;
+    this.addVisitorForm.reset();
+    this.events = [];
+    this.users = [];
+    this.cdr.detectChanges();
+  }
+
+  async submitAddVisitor(): Promise<void> {
+    if (this.addVisitorForm.invalid) {
+      this.addVisitorForm.markAllAsTouched();
+      return;
+    }
+
+    this.modalLoading = true;
+    try {
+      const formValue = this.addVisitorForm.value;
+      const response = await this.visitorService.createVisitor(formValue);
+      if (response.success) {
+        swalHelper.showToast('Visitor added successfully', 'success');
+        this.closeAddVisitorModal();
+        await this.fetchVisitors();
+      }
+    } catch (error) {
+      console.error('Error adding visitor:', error);
+      swalHelper.showToast('Failed to add visitor', 'error');
+    } finally {
+      this.modalLoading = false;
       this.cdr.detectChanges();
     }
   }
@@ -180,8 +286,6 @@ export class VisitorsComponent implements OnInit {
       if (result.success) {
         visitor.paid = !visitor.paid;
         swalHelper.showToast(`Visitor status changed to ${visitor.paid ? 'Paid' : 'Unpaid'}`, 'success');
-      } else {
-        swalHelper.showToast('Failed to update visitor status', 'error');
       }
     } catch (error) {
       console.error('Error updating visitor status:', error);
@@ -199,8 +303,6 @@ export class VisitorsComponent implements OnInit {
         visitor.attendanceStatus = response.data.visitor.attendanceStatus;
         swalHelper.showToast(`Visitor attendance status changed to ${visitor.attendanceStatus}`, 'success');
         this.cdr.detectChanges();
-      } else {
-        swalHelper.showToast('Failed to update attendance status', 'error');
       }
     } catch (error) {
       console.error('Error toggling attendance status:', error);
@@ -236,7 +338,7 @@ export class VisitorsComponent implements OnInit {
           'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
           'Profession': visitor.business_type || 'N/A',
           'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
-          'Attendance Status': visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A', // Add attendanceStatus
+          'Attendance Status': visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A',
           'Fees': visitor.fees || 'N/A'
         };
       });
@@ -274,7 +376,7 @@ export class VisitorsComponent implements OnInit {
         { header: 'Visitor Date', dataKey: 'visitorDate' },
         { header: 'Profession', dataKey: 'profession' },
         { header: 'Visitor Type', dataKey: 'visitorType' },
-        { header: 'Attendance Status', dataKey: 'attendanceStatus' } // Add attendanceStatus
+        { header: 'Attendance Status', dataKey: 'attendanceStatus' }
       ];
       const data = allData.docs.map((visitor, index) => {
         return {
@@ -288,7 +390,7 @@ export class VisitorsComponent implements OnInit {
           visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
           profession: visitor.business_type || 'N/A',
           visitorType: visitor.paid ? 'Paid' : 'Unpaid',
-          attendanceStatus: visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A' // Add attendanceStatus
+          attendanceStatus: visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A'
         };
       });
       const title = 'Visitors Report';

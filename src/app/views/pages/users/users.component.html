@@ -4,19 +4,31 @@
       <h4 class="mb-0 fw-bold text-white">
         <i class="bi bi-people-fill me-2"></i>All Members
       </h4>
-      <!-- <div>
-        <button class="btn btn-dark rounded-pill me-2 bg-transparent"  (click)="exportToExcel()" [disabled]="loading || exporting || !users?.docs?.length">
+      <div>
+        <button class="btn btn-dark rounded-pill me-2 bg-light text-black" (click)="exportToExcel()" [disabled]="loading || exporting || !users?.docs?.length">
           <i class="bi bi-file-earmark-excel-fill me-2"></i>Export to Excel
         </button>
-        <button class="btn btn-light rounded-pill" (click)="exportToPDF()" [disabled]="loading || exporting || !users?.docs?.length">
+        <button class="btn btn-light rounded-pill me-2 bg-light text-black" (click)="exportToPDF()" [disabled]="loading || exporting || !users?.docs?.length">
           <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export to PDF
         </button>
-      </div> -->
+      </div>
     </div>
     <div class="card-body p-0">
       <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
         <div class="flex-grow-1 me-2">
           <input type="text" class="form-control" placeholder="Search..." [(ngModel)]="searchQuery" (input)="onSearch()">
+        </div>
+        <div class="me-2">
+          <ng-select
+            id="chapterSelect"
+            [items]="chapters"
+            bindLabel="name"
+            bindValue="name"
+            [(ngModel)]="selectedChapter"
+            (change)="onChapterChange()"
+            placeholder="Select Chapter"
+            [clearable]="true">
+          </ng-select>
         </div>
         <div class="ms-2">
           <ng-select
@@ -62,8 +74,8 @@
           <tr *ngFor="let user of users?.docs | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: users?.totalDocs }; let i=index" class="border-bottom">
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
-                <img [src]="user.profilePic ? (imageurl + '/' + user.profilePic) : '/assets/images/placeholder-image.png'"
-                     class="rounded-circle me-3 shadow-sm  border-2 border-white"
+                <img [src]="user.profilePic ? (imageurl+user.profilePic) : '/assets/images/placeholder-image.png'"
+                     class="rounded-circle me-3 shadow-sm border-2 border-white"
                      width="48" height="48" alt="User"
                      (error)="handleImageError($event)">
                 <div>
@@ -96,13 +108,11 @@
               </span>
             </td>
             <td class="py-3">
-              <span class="badge rounded-pill" 
-                    [ngClass]="user.isActive
- ? 'badge bg-success' : 'badge bg-danger'"
+              <span class="badge rounded-pill"
+                    [ngClass]="user.isActive ? 'badge bg-success' : 'badge bg-danger'"
                     style="cursor: pointer;"
                     (click)="toggleUserStatus(user)">
-                {{user.isActive
- ? 'Active' : 'Inactive'}}
+                {{user.isActive ? 'Active' : 'Inactive'}}
               </span>
             </td>
             <td class="text-end pe-4 py-3">
@@ -114,6 +124,9 @@
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                   <li><a class="dropdown-item" (click)="viewUserDetails(user)" style="cursor: pointer;">
                     <i class="bi bi-eye-fill me-2 text-primary"></i> View Details
+                  </a></li>
+                  <li><a class="dropdown-item" (click)="openNotificationModal(user)" style="cursor: pointer;">
+                    <i class="bi bi-bell-fill me-2 text-info"></i> Send Notification
                   </a></li>
                   <li><a class="dropdown-item text-danger" (click)="deleteUser(user._id)" style="cursor: pointer;">
                     <i class="bi bi-trash-fill me-2"></i> Delete
@@ -184,8 +197,8 @@
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body text-center">
                   <div class="position-relative d-inline-block">
-                    <img [src]="selectedUser.profilePic ? (imageurl + '/' + selectedUser.profilePic) : '/assets/images/placeholder-image.png'"
-                         class="img-fluid rounded-circle mb-3 shadow-sm  border-3 border-white"
+                    <img [src]="selectedUser.profilePic ? (imageurl+selectedUser.profilePic) : '/assets/images/placeholder-image.png'"
+                         class="img-fluid rounded-circle mb-3 shadow-sm border-3 border-white"
                          style="width: 180px; height: 180px; object-fit: cover;"
                          alt="User Image"
                          (error)="handleImageError($event)">
@@ -630,6 +643,49 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeModal()">
           <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="notificationModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="notificationModalTitle">
+          <i class="bi bi-bell-fill me-2"></i> Send Notification
+        </h5>
+        <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close" (click)="closeNotificationModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <div class="mb-3">
+            <label for="notificationTitle" class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="notificationTitle" [(ngModel)]="notificationForm.title" name="title" placeholder="Enter notification title" required>
+            <div *ngIf="notificationError.title" class="text-danger small mt-1">{{notificationError.title}}</div>
+          </div>
+          <div class="mb-3">
+            <label for="notificationDescription" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="notificationDescription" [(ngModel)]="notificationForm.description" name="description" rows="4" placeholder="Enter notification description" required></textarea>
+            <div *ngIf="notificationError.description" class="text-danger small mt-1">{{notificationError.description}}</div>
+          </div>
+          <div class="mb-3">
+            <label for="notificationMessage" class="form-label">Message (Optional)</label>
+            <textarea class="form-control" id="notificationMessage" [(ngModel)]="notificationForm.message" name="message" rows="3" placeholder="Enter additional message"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeNotificationModal()">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="sendNotification()" [disabled]="notificationLoading">
+          <i class="bi bi-send-fill me-1"></i>
+          <span *ngIf="!notificationLoading">Send Notification</span>
+          <span *ngIf="notificationLoading">Sending...</span>
         </button>
       </div>
     </div>

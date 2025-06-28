@@ -380,11 +380,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
 
     const selectedDate = new Date(induction_date);
-    const today = new Date();
-    if (selectedDate > today) {
-      this.validationErrors.induction_date = 'Induction date cannot be in the future';
-      return false;
-    }
+   
+    
 
     this.validationErrors.induction_date = '';
     return true;
@@ -423,6 +420,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
+
+
   onFileChange(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -457,6 +456,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       });
 
       const response = await this.registerService.registerUser(formData);
+      console.log('Register response:', response);
       
       if (response && response.success) {
         swalHelper.showToast('User registered successfully', 'success');
@@ -668,3 +668,5 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     return new Date(dateString).toLocaleDateString();
   }
 }
+
+

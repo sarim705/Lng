@@ -340,21 +340,43 @@ export class AuthService {
     window.location.href = '/login'; // Redirect to login page
   }
 
-  // User Management Methods
-  async getUsers(data: { page: number; limit: number; search: string }): Promise<any> {
+  async sendNotification(data: { userId: string; title: string; description: string; message: string }): Promise<any> {
     try {
       this.getHeaders();
-      console.log("data",data);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.SEND_NOTIFICATION_T0_USER,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      return response;
+    } catch (error) {
+      console.error('Send Notification Error:', error);
+      swalHelper.showToast('Failed to send notification', 'error');
+      throw error;
+    }
+  }
+
+  // User Management Methods
+  async getUsers(data: { page: number; limit: number; search: string; chapter?: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      console.log("data", data);
       // Create query parameters
       let queryParams = `?page=${data.page}&limit=${data.limit}`;
       if (data.search) {
         queryParams += `&search=${encodeURIComponent(data.search)}`;
       }
+      if (data.chapter) {
+        queryParams += `&chapter=${encodeURIComponent(data.chapter)}`;
+      }
       
       console.log('Sending Request with params:', queryParams);
       const response = await this.apiManager.request(
         {
-            url: apiEndpoints.GET_USERS + queryParams,
+          url: apiEndpoints.GET_USERS + queryParams,
           method: 'GET',
         },
         null,
@@ -368,7 +390,7 @@ export class AuthService {
       swalHelper.showToast('Failed to fetch users', 'error');
       throw error;
     }
-  }
+}
 
   async getAllAsksForAdmin(data: { page: number; limit: number; search: string; chapter_name?: string | null }): Promise<AskResponse> {
     try {
@@ -2234,10 +2256,36 @@ export interface Event1 {
   __v: number;
 }
 
+
+export interface UserRef {
+  _id: string;
+  name: string;
+  chapter_name: string;
+  mobile_number: string;
+  email: string;
+}
+
+export interface UserRefResponse {
+  message: string;
+  data: {
+    docs: UserRef[];
+    totalDocs: number;
+    limit: number;
+    page: number;
+    totalPages: number;
+    pagingCounter: number;
+    hasPrevPage: boolean;
+    hasNextPage: boolean;
+    prevPage: number | null;
+    nextPage: number | null;
+  };
+  status: number;
+  success: boolean;
+}
 export interface Visitor {
   _id: string;
   name: string;
-  refUserId: User;
+  refUserId: UserRef;
   eventId: Event;
   mobile_number: string;
   email: string;
@@ -2263,6 +2311,7 @@ export interface VisitorResponse {
   prevPage: number | null;
   nextPage: number | null;
 }
+
 
 @Injectable({
   providedIn: 'root',
@@ -2309,7 +2358,49 @@ export class VisitorService {
       throw error;
     }
   }
-//
+  async getUsersByChapter(params: { chapter_name: string; search: string }): Promise<UserRefResponse> {
+    try {
+      this.getHeaders();
+      const body = {
+        chapter_name: params.chapter_name,
+        search: params.search
+      };
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.USER_BY_CHAPTER,
+          method: 'POST',
+        },
+        body,
+        this.headers
+      );
+      console.log('getUsersByChapter raw response:', response); // Debug
+      return { ...response, success: true }; // Ensure 'success' property is included
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch users', 'error');
+      throw error;
+    }
+  }
+  async createVisitor(data: any): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.CREATE_VISITOR,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      
+      return response.data || response;
+    } catch (error) {
+      console.error('Create Visitor Error:', error);
+      swalHelper.showToast('Failed to create visitor', 'error');
+      throw error;
+    }
+  }
 
 async toggleVisitorAttendance(body: { visitorId: string }): Promise<any> {
     try {

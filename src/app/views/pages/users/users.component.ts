@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { ReferralService1 } from '../../../services/auth.service';
 import { ExportService } from '../../../services/export.service';
+import { ChapterService } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
 
 import { debounceTime, Subject } from 'rxjs';
@@ -27,13 +28,16 @@ declare var bootstrap: any;
 })
 export class UsersComponent implements OnInit, AfterViewInit {
   users: any = { docs: [], totalDocs: 0, limit: 10, page: 1, totalPages: 0 };
+  chapters: any[] = [];
+  selectedChapter: string | null = null;
   loading: boolean = false;
   exporting: boolean = false;
   searchQuery: string = '';
   selectedUser: any = null;
   userDetailsModal: any;
+  notificationModal: any;
   imageurl = environment.imageUrl;
-pathurl= environment.baseURL;
+  pathurl = environment.baseURL;
   activeTab: string = 'profile';
   referralTab: string = 'given';
   referralsGiven: any[] = [];
@@ -43,6 +47,17 @@ pathurl= environment.baseURL;
   referralLoading: boolean = false;
   pdfLoading: boolean = false;
   Math = Math;
+  notificationForm = {
+    userId: '',
+    title: '',
+    description: '',
+    message: ''
+  };
+  notificationError = {
+    title: '',
+    description: ''
+  };
+  notificationLoading: boolean = false;
 
   paginationConfig = {
     id: 'users-pagination'
@@ -56,7 +71,8 @@ pathurl= environment.baseURL;
   payload = {
     search: '',
     page: 1,
-    limit: 10
+    limit: 10,
+    chapter: ''
   };
 
   referralPayload = {
@@ -71,6 +87,7 @@ pathurl= environment.baseURL;
   constructor(
     private authService: AuthService,
     private referralService: ReferralService1,
+    private chapterService: ChapterService,
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
@@ -80,18 +97,36 @@ pathurl= environment.baseURL;
   }
 
   ngOnInit(): void {
+    this.fetchChapters();
     this.fetchUsers();
   }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      const modalElement = document.getElementById('userDetailsModal');
-      if (modalElement) {
-        this.userDetailsModal = new bootstrap.Modal(modalElement);
+      const userModalElement = document.getElementById('userDetailsModal');
+      if (userModalElement) {
+        this.userDetailsModal = new bootstrap.Modal(userModalElement);
       } else {
-        console.warn('Modal element not found in the DOM');
+        console.warn('User modal element not found in the DOM');
+      }
+      const notificationModalElement = document.getElementById('notificationModal');
+      if (notificationModalElement) {
+        this.notificationModal = new bootstrap.Modal(notificationModalElement);
+      } else {
+        console.warn('Notification modal element not found in the DOM');
       }
     }, 300);
+  }
+
+  async fetchChapters(): Promise<void> {
+    try {
+      const chapters = await this.chapterService.getAllChaptersForDropdown();
+      this.chapters = chapters;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      swalHelper.showToast('Failed to fetch chapters', 'error');
+    }
   }
 
   async fetchUsers(): Promise<void> {
@@ -100,7 +135,8 @@ pathurl= environment.baseURL;
       const requestData = {
         page: this.payload.page,
         limit: this.payload.limit,
-        search: this.payload.search
+        search: this.payload.search,
+        chapter: this.payload.chapter
       };
       const response = await this.authService.getUsers(requestData);
       if (response) {
@@ -121,6 +157,14 @@ pathurl= environment.baseURL;
     this.payload.page = 1;
     this.payload.search = this.searchQuery;
     this.searchSubject.next(this.searchQuery);
+  }
+
+  onChapterChange(): void {
+    this.payload.page = 1;
+    this.payload.chapter = this.selectedChapter || '';
+    this.payload.search = '';
+    this.searchQuery = '';
+    this.fetchUsers();
   }
 
   handleImageError(event: Event): void {
@@ -239,6 +283,83 @@ pathurl= environment.baseURL;
     }
   }
 
+  openNotificationModal(user: any): void {
+    this.selectedUser = user;
+    this.notificationForm = {
+      userId: user._id,
+      title: '',
+      description: '',
+      message: ''
+    };
+    this.notificationError = {
+      title: '',
+      description: ''
+    };
+    if (this.notificationModal) {
+      this.notificationModal.show();
+    } else {
+      try {
+        const modalElement = document.getElementById('notificationModal');
+        if (modalElement) {
+          const modalInstance = new bootstrap.Modal(modalElement);
+          this.notificationModal = modalInstance;
+          modalInstance.show();
+        } else {
+          $('#notificationModal').modal('show');
+        }
+      } catch (error) {
+        console.error('Error showing notification modal:', error);
+        $('#notificationModal').modal('show');
+      }
+    }
+  }
+
+  closeNotificationModal(): void {
+    if (this.notificationModal) {
+      this.notificationModal.hide();
+    } else {
+      $('#notificationModal').modal('hide');
+    }
+  }
+
+  validateNotificationForm(): boolean {
+    let isValid = true;
+    this.notificationError = { title: '', description: '' };
+
+    if (!this.notificationForm.title.trim()) {
+      this.notificationError.title = 'Title is required';
+      isValid = false;
+    }
+    if (!this.notificationForm.description.trim()) {
+      this.notificationError.description = 'Description is required';
+      isValid = false;
+    }
+    return isValid;
+  }
+
+  async sendNotification(): Promise<void> {
+    if (!this.validateNotificationForm()) {
+      return;
+    }
+
+    this.notificationLoading = true;
+    try {
+      const response = await this.authService.sendNotification(this.notificationForm);
+      if (response.success) {
+        swalHelper.showToast('Notification sent successfully', 'success');
+        this.closeNotificationModal();
+      } else {
+        swalHelper.showToast(response.message || 'Failed to send notification', 'error');
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      swalHelper.showToast('Failed to send notification', 'error');
+    } finally {
+      this.notificationLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   closeModal(): void {
     if (this.userDetailsModal) {
       this.userDetailsModal.hide();
@@ -246,6 +367,7 @@ pathurl= environment.baseURL;
       $('#userDetailsModal').modal('hide');
     }
   }
+
 
   async toggleUserStatus(user: any): Promise<void> {
     try {
@@ -338,6 +460,7 @@ pathurl= environment.baseURL;
     const currentPage = this.payload.page;
     const currentLimit = this.payload.limit;
     const currentSearch = this.payload.search;
+    const currentChapter = this.payload.chapter;
 
     const generatePDF = async (allUsers: any[]): Promise<void> => {
       try {
@@ -356,6 +479,9 @@ pathurl= environment.baseURL;
         if (currentSearch) {
           pdf.text(`Search query: "${currentSearch}"`, margin, margin + 24);
         }
+        if (currentChapter) {
+          pdf.text(`Chapter: "${currentChapter}"`, margin, margin + 30);
+        }
 
         interface TableColumn {
           header: string;
@@ -371,7 +497,7 @@ pathurl= environment.baseURL;
           { header: 'Role', dataKey: 'role', width: 0.15 }
         ];
 
-        const tableTop = margin + 30;
+        const tableTop = margin + (currentChapter && currentSearch ? 36 : currentChapter || currentSearch ? 30 : 24);
         const tableWidth = pageWidth - (margin * 2);
         const rowHeight = 12;
 
@@ -472,7 +598,7 @@ pathurl= environment.baseURL;
           pdf.text(`Page ${p} of ${pageNo}`, pageWidth - 30, pageHeight - 10);
         }
 
-        pdf.save('members_list.pdf');
+        pdf.save(`members_list${currentChapter ? `_${currentChapter}` : ''}.pdf`);
         swalHelper.showToast('PDF exported successfully', 'success');
       } catch (error) {
         console.error('Error generating PDF:', error);
@@ -490,7 +616,8 @@ pathurl= environment.baseURL;
           const requestData = {
             page: 1,
             limit: this.users.totalDocs,
-            search: currentSearch
+            search: currentSearch,
+            chapter: currentChapter
           };
           const response = await this.authService.getUsers(requestData);
           if (response && response.docs) {
@@ -515,6 +642,7 @@ pathurl= environment.baseURL;
     const currentPage = this.payload.page;
     const currentLimit = this.payload.limit;
     const currentSearch = this.payload.search;
+    const currentChapter = this.payload.chapter;
 
     const generateExcel = async (allUsers: any[]): Promise<void> => {
       try {
@@ -555,13 +683,14 @@ pathurl= environment.baseURL;
           ['Report', 'Member List Report'],
           ['Generated on', new Date().toLocaleString()],
           ['Search query', currentSearch || 'None'],
+          ['Chapter', currentChapter || 'All'],
           ['Total Members', allUsers.length.toString()]
         ];
         const metadataSheet = XLSX.utils.aoa_to_sheet(metadata);
         metadataSheet['!cols'] = [{ wch: 20 }, { wch: 40 }];
         XLSX.utils.book_append_sheet(workbook, metadataSheet, 'Metadata');
 
-        XLSX.writeFile(workbook, 'members_list.xlsx');
+        XLSX.writeFile(workbook, `members_list${currentChapter ? `_${currentChapter}` : ''}.xlsx`);
         swalHelper.showToast('Excel exported successfully', 'success');
       } catch (error) {
         console.error('Error generating Excel:', error);
@@ -579,7 +708,8 @@ pathurl= environment.baseURL;
           const requestData = {
             page: 1,
             limit: this.users.totalDocs,
-            search: currentSearch
+            search: currentSearch,
+            chapter: currentChapter
           };
           const response = await this.authService.getUsers(requestData);
           if (response && response.docs) {

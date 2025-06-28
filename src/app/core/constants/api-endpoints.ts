@@ -95,7 +95,7 @@ public GET_ALL_USERS_FEE :string=`${this.PATH}/getAllFeesUsers`
 public TOGGLE_USER_STATUS:string=`${this.PATH}/isActiveStatus`
 
 
-public REGISTER_USER:string=`${this.PATH1}/mobile/auth/register`
+public REGISTER_USER:string=`${this.PATH1}/admin/register`
 
 
 public GET_ATTENDANCE_RECORDS:string=`${this.PATH}/getAttendanceRecords`
@@ -127,6 +127,9 @@ public GET_ALL_POINTS_HISTORY:string=`${this.PATH}/getAllPointsHistory`
 
 
 public GET_ALL_ASK:string=`${this.PATH1}/mobile/getAllAsksForAdmin`
+public CREATE_VISITOR:string=`${this.PATH}/createVisitor`
+public USER_BY_CHAPTER:string=`${this.PATH}/userListByParticularChapter`
+public SEND_NOTIFICATION_T0_USER= `${this.PATH}/sendNotificationToUser`
 
 
 

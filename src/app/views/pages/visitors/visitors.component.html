@@ -6,6 +6,9 @@
         <i class="bi bi-people me-2"></i>Visitors Management
       </h4>
       <div class="export-buttons">
+        <button class="btn btn-sm btn-success me-2" (click)="openAddVisitorModal()">
+          <i class="bi bi-plus-circle me-1"></i>Add Visitor
+        </button>
         <button class="btn btn-sm btn-light me-2" [disabled]="loading || exporting || !visitors.docs || visitors.docs.length === 0" (click)="exportToExcel()">
           <i class="bi bi-file-excel me-1"></i>Export Excel
         </button>
@@ -69,6 +72,133 @@
       </div>
     </div>
      
+    <!-- Add Visitor Modal -->
+    <div *ngIf="showAddVisitorModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Visitor</h5>
+            <button type="button" class="btn-close" (click)="closeAddVisitorModal()"></button>
+          </div>
+          <div class="modal-body">
+            <form [formGroup]="addVisitorForm">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Chapter <span class="text-danger">*</span></label>
+                  <ng-select
+                    formControlName="chapterName"
+                    [items]="chapters"
+                    bindLabel="name"
+                    bindValue="name"
+                    placeholder="Select Chapter"
+                    (change)="onChapterChange(addVisitorForm.get('chapterName')?.value)"
+                    [class.is-invalid]="addVisitorForm.get('chapterName')?.touched && addVisitorForm.get('chapterName')?.invalid">
+                  </ng-select>
+                  <div *ngIf="addVisitorForm.get('chapterName')?.touched && addVisitorForm.get('chapterName')?.invalid" class="invalid-feedback">
+                    Chapter is required
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Event <span class="text-danger">*</span></label>
+                  <ng-select
+                    formControlName="eventId"
+                    [items]="events"
+                    bindLabel="name"
+                    bindValue="_id"
+                    placeholder="Select Event"
+                    [disabled]="!addVisitorForm.get('chapterName')?.value || modalLoading"
+                    [class.is-invalid]="addVisitorForm.get('eventId')?.touched && addVisitorForm.get('eventId')?.invalid">
+                  </ng-select>
+                  <div *ngIf="addVisitorForm.get('eventId')?.touched && addVisitorForm.get('eventId')?.invalid" class="invalid-feedback">
+                    Event is required
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Referred By <span class="text-danger">*</span></label>
+                  <ng-select
+                    formControlName="refUserId"
+                    [items]="users"
+                    bindLabel="name"
+                    bindValue="_id"
+                    placeholder="Select User"
+                    [searchable]="true"
+                    [clearable]="true"
+                    (search)="onUserSearch($event)"
+                    [disabled]="!addVisitorForm.get('chapterName')?.value || modalLoading"
+                    [class.is-invalid]="addVisitorForm.get('refUserId')?.touched && addVisitorForm.get('refUserId')?.invalid">
+                  </ng-select>
+                  <div *ngIf="addVisitorForm.get('refUserId')?.touched && addVisitorForm.get('refUserId')?.invalid" class="invalid-feedback">
+                    Reference user is required
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Visitor Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="name" placeholder="Enter visitor name">
+                  <div *ngIf="addVisitorForm.get('name')?.touched && addVisitorForm.get('name')?.invalid" class="invalid-feedback">
+                    Name is required
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="mobile_number" placeholder="Enter mobile number">
+                  <div *ngIf="addVisitorForm.get('mobile_number')?.touched && addVisitorForm.get('mobile_number')?.invalid" class="invalid-feedback">
+                    {{ addVisitorForm.get('mobile_number')?.hasError('required') ? 'Mobile number is required' : 'Invalid mobile number' }}
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" formControlName="email" placeholder="Enter email">
+                  <div *ngIf="addVisitorForm.get('email')?.touched && addVisitorForm.get('email')?.invalid" class="invalid-feedback">
+                    Invalid email format
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Business Name</label>
+                  <input type="text" class="form-control" formControlName="business_name" placeholder="Enter business name">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Business Type</label>
+                  <input type="text" class="form-control" formControlName="business_type" placeholder="Enter business type">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Address</label>
+                  <input type="text" class="form-control" formControlName="address" placeholder="Enter address">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Pincode</label>
+                  <input type="text" class="form-control" formControlName="pincode" placeholder="Enter pincode">
+                  <div *ngIf="addVisitorForm.get('pincode')?.touched && addVisitorForm.get('pincode')?.invalid" class="invalid-feedback">
+                    Invalid pincode format
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Fees</label>
+                  <input type="number" class="form-control" formControlName="fees" placeholder="Enter fees">
+                  <div *ngIf="addVisitorForm.get('fees')?.touched && addVisitorForm.get('fees')?.invalid" class="invalid-feedback">
+                    Fees cannot be negative
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Paid Status</label>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" formControlName="paid">
+                    <label class="form-check-label">{{ addVisitorForm.get('paid')?.value ? 'Paid' : 'Unpaid' }}</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeAddVisitorModal()" [disabled]="modalLoading">Close</button>
+            <button type="button" class="btn btn-primary" (click)="submitAddVisitor()" [disabled]="modalLoading">
+              <span *ngIf="modalLoading" class="spinner-border spinner-border-sm me-2"></span>
+              Save Visitor
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div *ngIf="loading" class="text-center my-5 py-5">
       <div class="spinner-grow text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -99,8 +229,8 @@
             <th class="py-3">Visitor Date</th>
             <th class="py-3">Profession</th>
             <th class="py-3">Visitor Type</th>
-            <th class="py-3">Attendance Status</th> <!-- New Column -->
-            <th class="py-3">Action</th> <!-- New Action Column -->
+            <th class="py-3">Attendance Status</th>
+            <th class="py-3">Action</th>
           </tr>
         </thead>
         <tbody>
