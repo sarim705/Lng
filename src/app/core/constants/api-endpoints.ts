@@ -8,6 +8,7 @@ class ApiEndpoints {
   // User Management
   public GET_USERS: string = `${this.PATH}/users`;
   public UPDATE_USER_STATUS: string = `${this.PATH}/isActiveStatus`;
+  public UPDATE_USER: string = `${this.PATH}/updateUser`;
   public DELETE_USER: string = `${this.PATH}/users/delete`;
   
   public GET_USER_DETAILS: string = `${this.PATH}/details`;

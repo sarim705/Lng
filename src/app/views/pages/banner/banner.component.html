@@ -268,15 +268,14 @@
             <div class="col-md-6 mb-3">
               <label for="bannerImage" class="form-label">Banner Image <span class="text-danger">*</span></label>
               <input type="file" class="form-control" id="bannerImage" accept="image/*"
-                    (change)="onImageSelect($event)" name="bannerImage" #imageInput
-                    [class.is-invalid]="!newBanner.image && !editMode && formSubmitted">
+                     (change)="onImageSelect($event)" name="bannerImage" #imageInput
+                     [class.is-invalid]="!newBanner.image && !editMode && formSubmitted">
               <div class="invalid-feedback" *ngIf="!newBanner.image && !editMode && formSubmitted">
                 Banner image is required.
               </div>
-              <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+              <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 10MB). Required dimensions: 1200x400 pixels.</small>
             </div>
-          </div>
-
+            </div>
           <div class="mb-3">
             <label for="bannerDescription" class="form-label">Description</label>
             <textarea class="form-control" id="bannerDescription" rows="3" placeholder="Enter banner description" 

@@ -125,6 +125,9 @@
                   <li><a class="dropdown-item" (click)="viewUserDetails(user)" style="cursor: pointer;">
                     <i class="bi bi-eye-fill me-2 text-primary"></i> View Details
                   </a></li>
+                  <li><a class="dropdown-item" (click)="editUser(user)" style="cursor: pointer;">
+                    <i class="bi bi-pencil-fill me-2 text-warning"></i> Edit
+                  </a></li>
                   <li><a class="dropdown-item" (click)="openNotificationModal(user)" style="cursor: pointer;">
                     <i class="bi bi-bell-fill me-2 text-info"></i> Send Notification
                   </a></li>
@@ -643,6 +646,66 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeModal()">
           <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="editUserModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="editUserModalTitle">
+          <i class="bi bi-pencil-fill me-2"></i> Edit User
+        </h5>
+        <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close" (click)="closeEditModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <div class="mb-3">
+            <label for="editName" class="form-label">Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="editName" [(ngModel)]="editForm.name" name="name" placeholder="Enter name" required>
+            <div *ngIf="editError.name" class="text-danger small mt-1">{{editError.name}}</div>
+          </div>
+          <div class="mb-3">
+            <label for="editMobile" class="form-label">Mobile Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="editMobile" [(ngModel)]="editForm.mobile_number" name="mobile_number" placeholder="Enter mobile number" required>
+            <div *ngIf="editError.mobile_number" class="text-danger small mt-1">{{editError.mobile_number}}</div>
+          </div>
+          <div class="mb-3">
+            <label for="editEmail" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="editEmail" [(ngModel)]="editForm.email" name="email" placeholder="Enter email" required>
+            <div *ngIf="editError.email" class="text-danger small mt-1">{{editError.email}}</div>
+          </div>
+          <!-- <div class="mb-3">
+            <label for="editDOB" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="editDOB" [(ngModel)]="editForm.date_of_birth" name="date_of_birth" required>
+            <div *ngIf="editError.date_of_birth" class="text-danger small mt-1">{{editError.date_of_birth}}</div>
+          </div> -->
+          <div class="mb-3">
+            <label for="editMeetingRole" class="form-label">Meeting Role <span class="text-danger">*</span></label>
+            <ng-select
+              id="editMeetingRole"
+              [items]="['Leader', 'Member']"
+              [(ngModel)]="editForm.meeting_role"
+              name="meeting_role"
+              placeholder="Select meeting role"
+              required>
+            </ng-select>
+            <div *ngIf="editError.meeting_role" class="text-danger small mt-1">{{editError.meeting_role}}</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeEditModal()">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="updateUser()" [disabled]="editLoading">
+          <i class="bi bi-save-fill me-1"></i>
+          <span *ngIf="!editLoading">Save Changes</span>
+          <span *ngIf="editLoading">Saving...</span>
         </button>
       </div>
     </div>

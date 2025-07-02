@@ -62,6 +62,22 @@ export class UsersComponent implements OnInit, AfterViewInit {
   paginationConfig = {
     id: 'users-pagination'
   };
+  editUserModal: any;
+  editForm = {
+    name: '',
+    mobile_number: '',
+    email: '',
+    
+    meeting_role: ''
+  };
+  editError = {
+    name: '',
+    mobile_number: '',
+    email: '',
+   
+    meeting_role: ''
+  };
+  editLoading: boolean = false;
 
   referralPaginationConfig = {
     givenId: 'referrals-given-pagination',
@@ -109,6 +125,13 @@ export class UsersComponent implements OnInit, AfterViewInit {
       } else {
         console.warn('User modal element not found in the DOM');
       }
+      const editModalElement = document.getElementById('editUserModal');
+      if (editModalElement) {
+        this.editUserModal = new bootstrap.Modal(editModalElement);
+      } else {
+        console.warn('Edit user modal element not found in the DOM');
+      
+  }
       const notificationModalElement = document.getElementById('notificationModal');
       if (notificationModalElement) {
         this.notificationModal = new bootstrap.Modal(notificationModalElement);
@@ -359,6 +382,104 @@ export class UsersComponent implements OnInit, AfterViewInit {
       this.cdr.detectChanges();
     }
   }
+
+  editUser(user: any): void {
+    this.selectedUser = user;
+    // Initialize edit form with user data
+    this.editForm = {
+      name: user.name || '',
+      mobile_number: user.mobile_number || '',
+      email: user.email || '',
+      //date_of_birth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
+      meeting_role: user.meeting_role || ''
+    };
+    this.editError = { name: '', mobile_number: '', email: '',  meeting_role: '' };
+
+    if (this.editUserModal) {
+      this.editUserModal.show();
+    } else {
+      try {
+        const modalElement = document.getElementById('editUserModal');
+        if (modalElement) {
+          const modalInstance = new bootstrap.Modal(modalElement);
+          this.editUserModal = modalInstance;
+          modalInstance.show();
+        } else {
+          $('#editUserModal').modal('show');
+        }
+      } catch (error) {
+        console.error('Error showing edit modal:', error);
+        $('#editUserModal').modal('show');
+      }
+    }
+  }
+
+  closeEditModal(): void {
+    if (this.editUserModal) {
+      this.editUserModal.hide();
+    } else {
+      $('#editUserModal').modal('hide');
+    }
+  }
+
+  validateEditForm(): boolean {
+    let isValid = true;
+    this.editError = { name: '', mobile_number: '', email: '', meeting_role: '' };
+
+    if (!this.editForm.name.trim()) {
+      this.editError.name = 'Name is required';
+      isValid = false;
+    }
+    if (!this.editForm.mobile_number.trim()) {
+      this.editError.mobile_number = 'Mobile number is required';
+      isValid = false;
+    } else if (!/^\d{10}$/.test(this.editForm.mobile_number)) {
+      this.editError.mobile_number = 'Mobile number must be 10 digits';
+      isValid = false;
+    }
+    if (!this.editForm.email.trim()) {
+      this.editError.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.editForm.email)) {
+      this.editError.email = 'Invalid email format';
+      isValid = false;
+    }
+    // if (!this.editForm.date_of_birth) {
+    //   this.editError.date_of_birth = 'Date of birth is required';
+    //   isValid = false;
+    // }
+    if (!this.editForm.meeting_role) {
+      this.editError.meeting_role = 'Meeting role is required';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  async updateUser(): Promise<void> {
+    if (!this.validateEditForm()) {
+      return;
+    }
+
+    this.editLoading = true;
+    try {
+      const response = await this.authService.updateUser(this.selectedUser._id, this.editForm);
+      if (response.success) {
+        swalHelper.showToast('User updated successfully', 'success');
+        this.closeEditModal();
+        this.fetchUsers(); // Refresh user list
+      } else {
+        swalHelper.showToast(response.message || 'Failed to update user', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      swalHelper.showToast('Failed to update user', 'error');
+    } finally {
+      this.editLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
 
   closeModal(): void {
     if (this.userDetailsModal) {

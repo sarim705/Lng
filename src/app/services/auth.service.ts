@@ -392,6 +392,25 @@ export class AuthService {
     }
 }
 
+async updateUser(userId: string, data: { name: string; mobile_number: string; email: string; meeting_role: string }): Promise<any> {
+  try {
+    this.getHeaders();
+    const response = await this.apiManager.request(
+      {
+        url: `${apiEndpoints.UPDATE_USER}/${userId}`,
+        method: 'PUT',
+      },
+      data,
+      this.headers
+    );
+    return response;
+  } catch (error) {
+    console.error('Update User Error:', error);
+    swalHelper.showToast('Failed to update user', 'error');
+    throw error;
+  }
+}
+
   async getAllAsksForAdmin(data: { page: number; limit: number; search: string; chapter_name?: string | null }): Promise<AskResponse> {
     try {
       this.getHeaders();
