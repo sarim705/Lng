@@ -45,15 +45,15 @@
     </div>
 
     <!-- Sidebar Navigation -->
-    <div class="sidebar-nav  ">
+    <div class="sidebar-nav">
       <div class="nav-section">
-        
-        
         <ul class="nav-list">
           <ng-container *ngFor="let module of sideBarService.list">
             <li class="nav-item" 
                 *ngFor="let item of module.menus; let i = index">
-              <ng-container *ngIf="!item.menu">
+              
+              <!-- Items without submenu -->
+              <ng-container *ngIf="!item.hasSubmenu">
                 <a class="nav-link" 
                    [routerLink]="item.link" 
                    [queryParams]="item.query || {}"
@@ -65,6 +65,40 @@
                   <span class="nav-text">{{ item.title }}</span>
                   <div class="nav-indicator"></div>
                 </a>
+              </ng-container>
+
+              <!-- Items with submenu (like Reports) -->
+              <ng-container *ngIf="item.hasSubmenu">
+                <a class="nav-link submenu-toggle" 
+                   (click)="sideBarService.toggleSubMenu(i)"
+                   [class.active]="sideBarService.activeSubMenuIndex === i">
+                  <div class="nav-icon">
+                    <i class="align-middle" [attr.data-feather]="item?.icon"></i>
+                  </div>
+                  <span class="nav-text">{{ item.title }}</span>
+                  <div class="nav-arrow">
+                    <i class="align-middle" 
+                       [attr.data-feather]="sideBarService.activeSubMenuIndex === i ? 'chevron-up' : 'chevron-down'"></i>
+                  </div>
+                </a>
+                
+                <!-- Submenu items -->
+                <ul class="submenu-list" 
+                    [class.show]="sideBarService.activeSubMenuIndex === i">
+                  <li class="submenu-item" 
+                      *ngFor="let subItem of item.menu">
+                    <a class="submenu-link" 
+                       [routerLink]="subItem.link" 
+                       [queryParams]="subItem.query || {}"
+                       routerLinkActive="active"
+                       (click)="closeSidebar()">
+                      <div class="submenu-icon">
+                        <i class="align-middle" [attr.data-feather]="subItem?.icon"></i>
+                      </div>
+                      <span class="submenu-text">{{ subItem.title }}</span>
+                    </a>
+                  </li>
+                </ul>
               </ng-container>
             </li>
           </ng-container>

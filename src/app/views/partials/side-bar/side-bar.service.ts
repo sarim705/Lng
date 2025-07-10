@@ -15,169 +15,165 @@ export class SideBarService {
         {
           title: 'Dashboard',
           link: 'dashboard',
-          icon: 'home', // Dashboard
+          icon: 'home',
         },
         {
           title: 'Registeration',
           link: 'registerComponent',
-          icon: 'user-plus', // User registration
+          icon: 'user-plus',
         },
         {
           title: 'All Members',
           link: 'users',
-          icon: 'users', // Members list
+          icon: 'users',
         },
+        // {
+        //   title: 'Import Users',
+        //   link: 'importUsers',
+        //   icon: 'file-import',
+        // },
+        // Master Component Section with Submenu
         {
-          title: 'Import Users',
-          link: 'importUsers',
-          icon: 'file-import', // File import
-        },
-     
-        {
-          title: 'Countries',
-          link: 'country',
-          icon: 'globe', // Global map
-        },
-        {
-          title: 'States',
-          link: 'states',
-          icon: 'map', // Geographic divisions
-        },
-        {
-          title: 'Cities',
-          link: 'city',
-          icon: 'map-pin', // Location point
-        },
-       
-        {
-          title: 'Chapter',
-          link: 'chapter',
-          icon: 'layers', // Groupings or levels
-        },
-        {
-          title: 'Categories',
-          link: 'category',
-          icon: 'tag', // Categories or labels
-        },
-        {
-          title: 'subCategories',
-          link: 'subcategory',
-          icon: 'list', 
-          // Detailed records
+          title: 'Master Section',
+          icon: 'settings',
+          hasSubmenu: true,
+          menu: [
+            {
+              title: 'Countries',
+              link: 'country',
+              icon: 'globe',
+            },
+            {
+              title: 'States',
+              link: 'states',
+              icon: 'map',
+            },
+            {
+              title: 'Cities',
+              link: 'city',
+              icon: 'map-pin',
+            },
+            {
+              title: 'Chapter',
+              link: 'chapter',
+              icon: 'layers',
+            },
+            {
+              title: 'Industries',
+              link: 'category',
+              icon: 'tag',
+            },
+            {
+              title: 'Categories',
+              link: 'subcategory',
+              icon: 'list',
+            },
+            
+          ],
         },
         {
           title: 'Banner',
           link: 'banners',
-          icon: 'banner', // History or timeline
+          icon: 'banner',
         },
         {
           title: 'Badges',
           link: 'badges',
-          icon: 'award', // Recognition or achievements
+          icon: 'award',
         },
-        
-        {
-          title: 'Fees Record',
-          link: 'fees',
-          icon: 'credit-card', // Financial transactions
-        },
-        {
-          title: 'Attendance Data',
-          link: 'attendanceRecord',
-          icon: 'clipboard-list', // Detailed records
-        },
-      
-        // {
-        //   title: 'Admin Login',
-        //   link: 'adminLogin',
-        //   icon: 'lock', // Security or login
-        // },
         {
           title: 'LeaderBoard',
           link: 'leaderboard',
-          icon: 'award', // Recognition
+          icon: 'award',
         },
-       
         {
           title: 'Events',
           link: 'events',
-          icon: 'calendar', // Event planning
+          icon: 'calendar',
         },
         {
-          title: 'Participation',
+          title: 'Pre Participation',
           link: 'participation',
-          icon: 'check-circle', // Participation tracking
+          icon: 'check-circle',
         },
-       
         {
           title: 'Attendence',
           link: 'attendence',
-          icon: 'check-square', // Checkbox tracking
+          icon: 'check-square',
         },
         {
-          title: 'Referral Given Report',
-          link: 'referralReport',
-          icon: 'corner-up-right', // Giving referrals
-        },
-        {
-          title: 'Referral Recieved Report',
-          link: 'referralReportRecieved',
-          icon: 'corner-down-left', // Receiving referrals
-        },
-        {
-          title: 'Testimonial Report',
-          link: 'testimonialReport',
-          icon: 'message-square', // Comments or feedback
-        },
-        {
-          title: 'One To one Report',
-          link: 'oneTooneReport',
-          icon: 'user-check', // 1-to-1 interactions
-        },
-        {
-          title: 'Tyfcb Report',
-          link: 'tyfcb',
-          icon: 'trending-up', // Business metrics
-        },
-         {
-          title: 'Visitors Report',
-         link: 'VisitorsReport',
-         icon: 'user', // Individual visitor
-        },
-        {
-          title: 'Ask Management',
-          link: 'askManagement',
-          icon: 'question-circle', // Questions or inquiries
-        },
-        {
-          title: 'Points History',
-          link: 'pointHistory',
-          icon: 'history', // History or timeline
-        },
-
-       
-        {
-          title: 'Attendance Record',
-          link: 'attendanceRecord',
-          icon: 'clipboard', // Detailed records
-        },
-        {
-          title: 'Fees Record',
-          link: 'fees',
-          icon: 'credit-card', // Financial transactions
-        },{
           title: 'Badge Management',
           link: 'badgeManagement',
-          icon: 'cog', // Settings or management
+          icon: 'cog',
         },
-        
-    
-        
+        // Reports Section with Submenu (with proper icon and hasSubmenu flag)
+        {
+          title: 'Reports Section',
+          icon: 'file-text',
+          hasSubmenu: true,
+          menu: [
+            
+            {
+              title: 'Referral Given Report',
+              link: 'referralReport',
+              icon: 'corner-up-right',
+            },
+            {
+              title: 'Testimonial Report',
+              link: 'testimonialReport',
+              icon: 'message-square',
+            },
+            {
+              title: 'One To One Report',
+              link: 'oneTooneReport',
+              icon: 'user-check',
+            },
+            {
+              title: 'Tyfcb Report',
+              link: 'tyfcb',
+              icon: 'trending-up',
+            },
+            {
+              title: 'Visitors Report',
+              link: 'VisitorsReport',
+              icon: 'user',
+            },
+            {
+              title: 'Ask Management',
+              link: 'askManagement',
+              icon: 'question-circle',
+            },
+            {
+              title: 'Points History',
+              link: 'pointHistory',
+              icon: 'history',
+            },
+            {
+              title: 'Attendance Record',
+              link: 'attendanceRecord',
+              icon: 'clipboard',
+            },
+            {
+              title: 'Fees Record',
+              link: 'fees',
+              icon: 'credit-card',
+            },
+          ],
+        },
+        // Complaints and Suggestions moved to bottom
+        {
+          title: 'Complaints',
+          link: 'complaints',
+          icon: 'exclamation-triangle',
+        },
+        {
+          title: 'Suggestions',
+          link: 'suggestions',
+          icon: 'lightbulb',
+        },
       ],
     },
   ];
-  
-    
 
   isMobile: boolean = false;
   activeSubMenuIndex: number | null = null;

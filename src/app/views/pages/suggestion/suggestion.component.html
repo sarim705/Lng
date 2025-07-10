@@ -1,0 +1,151 @@
+<div class="container-fluid">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0 fw-bold text-white">
+          <i class="bi bi-lightbulb me-2"></i>Suggestion Management
+        </h4>
+      </div>
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <div class="d-flex w-100 align-items-center">
+            <div class="flex-grow-1 me-2">
+              <input type="text" class="form-control"
+                    placeholder="Search suggestions by title or details"
+                    [(ngModel)]="searchQuery"
+                    (input)="onSearch()">
+            </div>
+            <div>
+              <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+       
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div class="table-responsive" *ngIf="!loading && suggestions.docs && suggestions.docs.length > 0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4 py-3">User</th>
+              <th class="py-3">Title</th>
+              <th class="py-3">Details</th>
+              <th class="py-3">Category</th>
+              <th class="py-3">Status</th>
+              <th class="py-3">Created At</th>
+              <th class="text-end pe-4 py-3">Action</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr *ngFor="let suggestion of suggestions.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: suggestions.totalDocs}; let i=index" class="border-bottom">
+              <td class="ps-4 py-3">
+                <div>
+                  <div class="fw-bold text-dark">{{suggestion.userId.name}}</div>
+                  <small class="text-muted d-block">{{suggestion.userId.email}}</small>
+                  <small class="text-muted d-block">{{suggestion.userId.chapter_name}}</small>
+                </div>
+              </td>
+              <td class="py-3">
+                <div class="fw-bold text-dark">{{suggestion.title || 'Untitled'}}</div>
+              </td>
+              <td class="py-3">
+                <small class="text-muted d-block" *ngIf="suggestion.details">{{suggestion.details}}</small>
+              </td>
+              <td class="py-3">
+                <span class="text-muted">{{suggestion.category | titlecase}}</span>
+              </td>
+              <td class="py-3">
+                <span class="badge rounded-pill" 
+                      [ngClass]="getStatusBadgeClass(suggestion.status)"
+                      style="cursor: pointer;">
+                  {{suggestion.status | titlecase}}
+                </span>
+              </td>
+              <td class="py-3">
+                {{formatDate(suggestion.createdAt)}}
+              </td>
+              <td class="text-end pe-4 py-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                    <li><a class="dropdown-item" (click)="openUpdateSuggestionModal(suggestion)" style="cursor: pointer;">
+                      <i class="bi bi-pencil-fill me-2 text-primary"></i> Update Status
+                    </a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="d-flex justify-content-end p-3">
+          <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+        </div>
+      </div>
+  
+      <div *ngIf="!loading && (!suggestions.docs || suggestions.docs.length === 0)" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-lightbulb fs-1 text-muted mb-3"></i>
+          <h5>No Suggestions Found</h5>
+          <p class="text-muted">No suggestions available at the moment.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal fade" id="suggestionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+    aria-labelledby="suggestionModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="suggestionModalTitle">
+            <i class="bi bi-lightbulb me-2"></i>Update Suggestion Status
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form #suggestionForm="ngForm">
+            <div class="mb-3">
+              <label for="suggestionStatus" class="form-label">Status <span class="text-danger">*</span></label>
+              <ng-select [items]="statusOptions"
+                        bindLabel="status"
+                        bindValue="status"
+                        placeholder="Select status"
+                        [(ngModel)]="newSuggestion.status"
+                        name="suggestionStatus"
+                        required
+                        #statusInput="ngModel"
+                        [class.is-invalid]="statusInput.invalid && (statusInput.dirty || statusInput.touched || formSubmitted)">
+              </ng-select>
+              <div class="invalid-feedback" *ngIf="statusInput.invalid && (statusInput.dirty || statusInput.touched || formSubmitted)">
+                Status is required.
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="adminResponse" class="form-label">Admin Response</label>
+              <textarea class="form-control" id="adminResponse" rows="4" placeholder="Enter admin response" 
+                       [(ngModel)]="newSuggestion.adminResponse" name="adminResponse"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+          </button>
+          <button type="button" class="btn btn-primary rounded-pill" (click)="saveSuggestion(suggestionForm)" 
+                  [disabled]="loading">
+            <i class="bi bi-save me-1"></i> Update
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

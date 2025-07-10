@@ -284,6 +284,38 @@ export interface AskResponse {
 }
 
 
+export interface Complaint {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    chapter_name: string;
+    email: string;
+  };
+  title: string;
+  details: string;
+  image: string;
+  status: string;
+  category: string;
+  adminResponse: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface ComplaintResponse {
+  docs: Complaint[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
 @Injectable({
   providedIn: 'root',
 })
@@ -520,6 +552,169 @@ async updateUser(userId: string, data: { name: string; mobile_number: string; em
     } catch (error) {
       console.error('Get User Details Error:', error);
       swalHelper.showToast('Failed to fetch user details', 'error');
+      throw error;
+    }
+  }
+}
+
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ComplaintService {
+  private headers: any = [];
+  
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+  
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getComplaints(data: { page: number; limit: number; search: string }): Promise<ComplaintResponse> {
+    try {
+      this.getHeaders();
+      
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_COMPLAINTS + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response.data || response;
+    } catch (error) {
+      console.error('Get Complaints Error:', error);
+      swalHelper.showToast('Failed to fetch complaints', 'error');
+      throw error;
+    }
+  }
+
+  async updateComplaintStatus(id: string, data: { adminResponse: string; status: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.UPDATE_COMPLAINT_STATUS}/${id}`,
+          method: 'PUT',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Update Complaint Status Error:', error);
+      swalHelper.showToast('Failed to update complaint status', 'error');
+      throw error;
+    }
+  }
+}
+
+export interface Suggestion {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    chapter_name: string;
+    email: string;
+  };
+  title: string;
+  details: string;
+  category: string;
+  status: string;
+  adminResponse: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface SuggestionResponse {
+  docs: Suggestion[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SuggestionService {
+  private headers: any = [];
+  
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+  
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getSuggestions(data: { page: number; limit: number; search: string }): Promise<SuggestionResponse> {
+    try {
+      this.getHeaders();
+      
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      
+      const response = await this.apiManager.request(
+        {
+          url: 'http://localhost:2027/mobile/getSuggestions' + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response.data || response;
+    } catch (error) {
+      console.error('Get Suggestions Error:', error);
+      swalHelper.showToast('Failed to fetch suggestions', 'error');
+      throw error;
+    }
+  }
+
+  async updateSuggestionStatus(id: string, data: { adminResponse: string; status: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `http://localhost:2027/mobile/updateSuggestionStatus/${id}`,
+          method: 'PUT',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Update Suggestion Status Error:', error);
+      swalHelper.showToast('Failed to update suggestion status', 'error');
       throw error;
     }
   }

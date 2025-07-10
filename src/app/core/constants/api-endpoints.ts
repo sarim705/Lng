@@ -90,6 +90,8 @@ public CREATE_SUBCATEGORY:string=`${this.PATH}/createSubCategory`
 public UPDATE_SUBCATEGORY:string=`${this.PATH}/updateSubCategory`
 public UPDATE_FEE:string=`${this.PATH}/Feeupdate`
 public GET_ALL_USERS_FEE :string=`${this.PATH}/getAllFeesUsers`
+public UPDATE_COMPLAINT_STATUS:string=`${this.PATH1}/mobile/updateComplaintStatus`
+public GET_COMPLAINTS:string=`${this.PATH1}/mobile/getComplaints`
 
 
 

@@ -1,6 +1,6 @@
 // side-bar.component.ts
 import { AppWorker } from './../../../core/workers/app.worker';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { SideBarService } from './side-bar.service';
 import { CommonModule } from '@angular/common';
@@ -15,7 +15,7 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: './side-bar.component.html',
   styleUrls: ['./side-bar.component.scss'],
 })
-export class SideBarComponent {
+export class SideBarComponent implements OnInit {
   constructor(
     private router: Router,
     private storage: AppStorage,
@@ -29,6 +29,11 @@ export class SideBarComponent {
 
   ngOnInit() {
     this.checkScreenSize();
+    
+    // Ensure sidebar is closed on mobile by default
+    if (this.isMobile) {
+      this.isSidebarOpen = false;
+    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -37,8 +42,16 @@ export class SideBarComponent {
   }
 
   checkScreenSize() {
+    const previousIsMobile = this.isMobile;
     this.isMobile = window.innerWidth < 992;
-    if (!this.isMobile) {
+    
+    // Close sidebar when switching to mobile
+    if (this.isMobile && !previousIsMobile) {
+      this.isSidebarOpen = false;
+    }
+    
+    // Auto-close sidebar when switching from mobile to desktop
+    if (!this.isMobile && previousIsMobile) {
       this.isSidebarOpen = false;
     }
   }

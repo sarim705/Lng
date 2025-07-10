@@ -33,6 +33,8 @@ import {FeesComponent} from './views/pages/feesRecord/fees.component';
 import { BadgesComponent } from './views/pages/badges/badges.component';
 import {BadgeManagementComponent} from './views/pages/usersbadge/usersbadge.component';
 import { AskManagementComponent } from './views/pages/ask/ask.component';
+import { ComplaintsComponent } from './views/pages/complaints/complaints.component';
+import { SuggestionsComponent } from './views/pages/suggestion/suggestion.component';
 
 
 export const routes: Routes = [
@@ -51,11 +53,13 @@ export const routes: Routes = [
       { path: 'country', component: CountriesComponent },
       { path: 'states', component: StatesComponent },
       { path: 'dashboard', component: DashboardComponent },
+      {path: 'suggestions', component: SuggestionsComponent},
       { path: 'events', component:  EventsComponent },
       { path: 'attendence', component:   AttendanceComponent },
       { path: 'chapter', component:   ChaptersComponent },
       { path: 'category', component:   CategoriesComponent},
       {path: 'subcategory', component: SubCategoriesComponent},
+      {path: 'complaints', component: ComplaintsComponent },
      
       { path: 'city', component:    CitiesComponent},
       { path: 'leaderboard', component:    LeaderboardComponent},

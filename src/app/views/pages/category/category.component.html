@@ -2,10 +2,10 @@
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
       <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
         <h4 class="mb-0 fw-bold text-white">
-          <i class="bi bi-tag me-2"></i>Categories Management
+          <i class="bi bi-tag me-2"></i>Industry Management
         </h4>
         <button class="btn btn-light rounded-pill px-4" (click)="openAddCategoryModal()">
-          <i class="bi bi-plus-circle me-2"></i>Add Category
+          <i class="bi bi-plus-circle me-2"></i>Add Industries
         </button>
       </div>
       <div class="card-body p-0">
@@ -13,7 +13,7 @@
           <div class="d-flex w-100 align-items-center">
             <div class="flex-grow-1 me-2">
               <input type="text" class="form-control"
-                    placeholder="Search categories..."
+                    placeholder="Search Industries..."
                     [(ngModel)]="searchQuery"
                     (input)="onSearch()">
             </div>
@@ -34,7 +34,7 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light">
             <tr>
-              <th class="ps-4 py-3">Category Name</th>
+              <th class="ps-4 py-3">Industries Name</th>
               <th class="py-3">Status</th>
               <th class="py-3">Created At</th>
               <th class="text-end pe-4 py-3">Action</th>
@@ -114,14 +114,14 @@
       <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
         <div class="modal-header bg-light">
           <h5 class="modal-title" id="categoryModalTitle">
-            <i class="bi bi-tag me-2"></i> {{editMode ? 'Edit Category' : 'Add New Category'}}
+            <i class="bi bi-tag me-2"></i> {{editMode ? 'Edit Industry' : 'Add New Category'}}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-4">
           <form>
             <div class="mb-3">
-              <label for="categoryName" class="form-label">Category Name</label>
+              <label for="categoryName" class="form-label">Industry Name</label>
               <input type="text" class="form-control" id="categoryName" placeholder="Enter category name" 
                     [(ngModel)]="newCategory.name" name="categoryName" required>
             </div>

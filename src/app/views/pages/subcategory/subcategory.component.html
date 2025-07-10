@@ -2,10 +2,10 @@
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
       <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
         <h4 class="mb-0 fw-bold text-white">
-          <i class="bi bi-tags me-2"></i>SubCategories Management
+          <i class="bi bi-tags me-2"></i>Categories Management
         </h4>
         <button class="btn btn-light rounded-pill px-4" (click)="openAddSubCategoryModal()" [disabled]="!categoriesLoaded">
-          <i class="bi bi-plus-circle me-2"></i>Add SubCategory
+          <i class="bi bi-plus-circle me-2"></i>Add Categories
         </button>
       </div>
       <div class="card-body p-0">
@@ -15,7 +15,7 @@
               <input
                 type="text"
                 class="form-control"
-                placeholder="Search subcategories..."
+                placeholder="Search Categories..."
                 [(ngModel)]="searchQuery"
                 (input)="onSearch()"
               />
@@ -42,8 +42,8 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light">
             <tr>
-              <th class="ps-4 py-3">SubCategory Name</th>
-              <th class="py-3">Category</th>
+              <th class="ps-4 py-3">Categories Name</th>
+              <th class="py-3">Industry</th>
               <th class="py-3">Status</th>
               <th class="py-3">Created At</th>
               <th class="text-end pe-4 py-3">Action</th>
@@ -125,7 +125,7 @@
           <h5>No SubCategories Found</h5>
           <p class="text-muted">Try adding some subcategories or adjusting your search criteria.</p>
           <button class="btn btn-primary rounded-pill mt-3" (click)="openAddSubCategoryModal()" [disabled]="!categoriesLoaded">
-            <i class="bi bi-plus-circle me-2"></i>Add SubCategory
+            <i class="bi bi-plus-circle me-2"></i>Add Categories
           </button>
         </div>
       </div>
@@ -147,14 +147,14 @@
       <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
         <div class="modal-header bg-light">
           <h5 class="modal-title" id="subCategoryModalTitle">
-            <i class="bi bi-tags me-2"></i> {{ editMode ? 'Edit SubCategory' : 'Add New SubCategory' }}
+            <i class="bi bi-tags me-2"></i> {{ editMode ? 'Edit Category' : 'Add New Category' }}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-4">
           <form>
             <div class="mb-3">
-              <label for="categorySelect" class="form-label">Category</label>
+              <label for="categorySelect" class="form-label">Industry</label>
               <ng-select
                 id="categorySelect"
                 [items]="categories"
@@ -171,16 +171,16 @@
               ></ng-select>
               <div *ngIf="categoriesLoading" class="text-muted mt-1 small">Loading categories...</div>
               <div *ngIf="!categoriesLoading && categoriesLoaded && categories.length === 0" class="text-danger mt-1 small">
-                No categories available. Please add categories first.
+                No categories available. Please add Industry first.
               </div>
             </div>
             <div class="mb-3">
-              <label for="subCategoryName" class="form-label">SubCategory Name</label>
+              <label for="subCategoryName" class="form-label">Category Name</label>
               <input
                 type="text"
                 class="form-control"
                 id="subCategoryName"
-                placeholder="Enter subcategory name"
+                placeholder="Enter category name"
                 [(ngModel)]="newSubCategory.name"
                 name="subCategoryName"
                 required
