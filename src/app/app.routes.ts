@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { HomeLayoutComponent } from './views/partials/home-layout/home-layout.component';
 import { BannersComponent } from './views/pages/banner/banner.component';
-
+import { ContactUsComponent } from './views/pages/contactUs/contactUs.component';
 
 
 import { UsersComponent } from './views/pages/users/users.component';
@@ -60,6 +60,7 @@ export const routes: Routes = [
       { path: 'category', component:   CategoriesComponent},
       {path: 'subcategory', component: SubCategoriesComponent},
       {path: 'complaints', component: ComplaintsComponent },
+      {path: 'contactUs', component: ContactUsComponent},
      
       { path: 'city', component:    CitiesComponent},
       { path: 'leaderboard', component:    LeaderboardComponent},

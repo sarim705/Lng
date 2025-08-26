@@ -96,6 +96,9 @@ public GET_COMPLAINTS:string=`${this.PATH1}/mobile/getComplaints`
 
 
 public TOGGLE_USER_STATUS:string=`${this.PATH}/isActiveStatus`
+public GET_All_CONTACTUS:string=`${this.PATH}/getAllContactUs`
+public CREATE_CONTACTUS:string=`${this.PATH}/createContactUs`
+public UPDATE_CONTACTUS:string=`${this.PATH}/updateContactUs`
 
 
 public REGISTER_USER:string=`${this.PATH1}/admin/register`
@@ -127,6 +130,8 @@ public GET_ALL_USERS_BADGES= `${this.PATH}/getAllBadgesUsers`
 public ASSIGN_BADGE:string=`${this.PATH}/assignBadge`
 public UNASSIGN_BADGE:string=`${this.PATH}/unassignBadge`
 public GET_ALL_POINTS_HISTORY:string=`${this.PATH}/getAllPointsHistory`
+public UPDATE_SUGGESTION_STATUS:string=`${this.PATH1}mobile/updateSuggestionStatus`
+public GET_SUGGESTION:string=`${this.PATH1}/mobile/getSuggestions`
 
 
 public GET_ALL_ASK:string=`${this.PATH1}/mobile/getAllAsksForAdmin`

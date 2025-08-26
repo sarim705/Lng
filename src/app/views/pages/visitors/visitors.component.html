@@ -1,4 +1,3 @@
-<!-- visitors.component.html -->
 <div class="container-fluid">
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
     <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
@@ -190,7 +189,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="closeAddVisitorModal()" [disabled]="modalLoading">Close</button>
-            <button type="button" class="btn btn-primary" (click)="submitAddVisitor()" [disabled]="modalLoading">
+            <button type="button" class="btn btn-primary" (click)="submitAddVisitor()" [disabled]="modalLoading || addVisitorForm.invalid">
               <span *ngIf="modalLoading" class="spinner-border spinner-border-sm me-2"></span>
               Save Visitor
             </button>
@@ -242,14 +241,23 @@
                 <div class="d-flex align-items-center">
                   <div>
                     <div class="fw-bold text-dark">{{ visitor.name }}</div>
-                    <small class="text-muted d-block">{{ visitor.refUserId.chapter_name || 'N/A' }}</small>
+                    <!-- <small class="text-muted d-block">{{ visitor.refUserId.chapter_name || 'N/A' }}</small> -->
                   </div>
                 </div>
               </td>
               <td class="py-3">{{ visitor.business_name || 'N/A' }}</td>
               <td class="py-3">{{ visitor.mobile_number || 'N/A' }}</td>
               <td class="py-3">{{ visitor.address || 'N/A' }}</td>
-              <td class="py-3">{{visitor.refUserId.name || 'N/A'}}</td>
+              <td class="py-3">
+              <div class="d-flex align-items-center">
+                <div>
+                  <div class="fw-bold text-dark">{{ visitor.refUserId.name || 'N/A'}}</div>
+                  <small class="text-muted d-block">{{ visitor.refUserId.chapter_name || 'N/A' }}</small>
+                  </div>
+
+              </div>
+              </td>
+             
               <td class="py-3">{{ visitor.pincode || 'N/A' }}</td>
               <td class="py-3">{{ visitor.eventId.date ? formatDate(visitor.eventId.date) : 'N/A' }}</td>
               <td class="py-3">{{ visitor.business_type || 'N/A' }}</td>
@@ -271,7 +279,7 @@
               </td>
               <td class="py-3">
                 <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" role="switch" [checked]="visitor.attendanceStatus === 'present'"
+                  <input class="form-characteristics-input" type="checkbox" role="switch" [checked]="visitor.attendanceStatus === 'present'"
                     (change)="toggleVisitorAttendanceStatus(visitor)" [disabled]="toggling[visitor._id]">
                   <span *ngIf="toggling[visitor._id]" class="spinner-border spinner-border-sm ms-2" role="status"></span>
                 </div>

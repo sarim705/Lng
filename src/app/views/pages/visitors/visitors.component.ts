@@ -29,9 +29,9 @@ export class VisitorsComponent implements OnInit {
     hasPrevPage: false,
     hasNextPage: false,
     prevPage: null,
-    nextPage: null
+    nextPage: null,
   };
-  
+
   chapters: Chapter[] = [];
   events: Event1[] = [];
   users: UserRef[] = [];
@@ -43,23 +43,23 @@ export class VisitorsComponent implements OnInit {
   showAddVisitorModal: boolean = false;
   addVisitorForm: FormGroup;
   modalLoading: boolean = false;
-  
+
   Math = Math;
-  
+
   filters = {
     page: 1,
     limit: 10,
     chapterName: null,
     startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
-    endDate: this.formatDateForInput(new Date())
+    endDate: this.formatDateForInput(new Date()),
   };
-  
+
   paginationConfig = {
-    id: 'visitor-pagination'
+    id: 'visitor-pagination',
   };
-  
+
   private filterSubject = new Subject<void>();
-  
+
   constructor(
     private visitorService: VisitorService,
     private chapterService: ChapterService,
@@ -80,9 +80,9 @@ export class VisitorsComponent implements OnInit {
       address: [''],
       pincode: ['', [Validators.pattern(/^\d{6}$/)]],
       fees: [0, [Validators.min(0)]],
-      paid: [false]
+      paid: [false],
     });
-    
+
     this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       this.fetchVisitors();
     });
@@ -90,7 +90,7 @@ export class VisitorsComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchChapters();
-    this.fetchVisitors();
+    this.filterSubject.next();
   }
 
   async fetchVisitors(): Promise<void> {
@@ -101,20 +101,24 @@ export class VisitorsComponent implements OnInit {
         limit: this.filters.limit,
         chapter_name: this.filters.chapterName || undefined,
         startDate: this.filters.startDate || undefined,
-        endDate: this.filters.endDate || undefined
+        endDate: this.filters.endDate || undefined,
       };
       const response = await this.visitorService.getAllVisitors(requestParams);
-      response.docs = response.docs.filter(visitor => 
-        visitor && visitor._id && visitor.name
-      );
-      response.totalDocs = response.docs.length;
-      this.visitors = response;
+      this.visitors = {
+        ...response,
+        docs: response.docs.filter((visitor) => visitor && visitor._id && visitor.name),
+      };
+      // Sync filters with server response
+      this.filters.page = this.visitors.page;
+      this.filters.limit = this.visitors.limit;
+      console.log('Visitors response:', this.visitors); // Debug log
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching visitors:', error);
       swalHelper.showToast('Failed to fetch visitors', 'error');
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -124,7 +128,7 @@ export class VisitorsComponent implements OnInit {
       const response = await this.chapterService.getAllChapters({
         page: 1,
         limit: 1000,
-        search: ''
+        search: '',
       });
       this.chapters = response.docs || [];
       this.cdr.detectChanges();
@@ -133,12 +137,11 @@ export class VisitorsComponent implements OnInit {
       swalHelper.showToast('Failed to fetch chapters', 'error');
     } finally {
       this.chaptersLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
   async onChapterChange(chapterName: string): Promise<void> {
-    console.log('chapterName:', chapterName, typeof chapterName);
-    console.log('chapterName value:', this.addVisitorForm.get('chapterName')?.value);
     if (!chapterName) {
       this.events = [];
       this.users = [];
@@ -149,31 +152,25 @@ export class VisitorsComponent implements OnInit {
 
     this.modalLoading = true;
     try {
-      // Fetch events
       const eventResponse = await this.attendanceService.getEventsByChapter(chapterName);
       this.events = [...(eventResponse.data.events || [])];
-      console.log('events:', this.events);
-
-      // Fetch users
-      const userResponse = await this.visitorService.getUsersByChapter({ chapter_name: chapterName, search: '' });
-      console.log('userResponse:', userResponse);
+      const userResponse = await this.visitorService.getUsersByChapter({
+        chapter_name: chapterName,
+        search: '',
+      });
       this.users = [...(userResponse.data?.docs || [])];
-      console.log('users:', this.users);
-
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching chapter data:', error);
       swalHelper.showToast('Failed to fetch chapter data', 'error');
     } finally {
       this.modalLoading = false;
-      console.log('modalLoading set to false');
       this.cdr.detectChanges();
     }
   }
 
   async onUserSearch(event: { term: string; items: any[] }): Promise<void> {
     const chapterName = this.addVisitorForm.get('chapterName')?.value;
-    console.log('onUserSearch:', { term: event.term, chapterName });
     if (!chapterName) {
       this.users = [];
       this.cdr.detectChanges();
@@ -187,7 +184,6 @@ export class VisitorsComponent implements OnInit {
         search: event.term || '',
       });
       this.users = [...(userResponse.data?.docs || [])];
-      console.log('search users:', this.users);
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -202,7 +198,7 @@ export class VisitorsComponent implements OnInit {
     this.showAddVisitorModal = true;
     this.addVisitorForm.reset({
       fees: 0,
-      paid: false
+      paid: false,
     });
     this.events = [];
     this.users = [];
@@ -220,35 +216,51 @@ export class VisitorsComponent implements OnInit {
   async submitAddVisitor(): Promise<void> {
     if (this.addVisitorForm.invalid) {
       this.addVisitorForm.markAllAsTouched();
+      this.logFormErrors(); // Debug form errors
+      swalHelper.showToast('Please fill all required fields correctly', 'error');
       return;
     }
 
     this.modalLoading = true;
     try {
       const formValue = this.addVisitorForm.value;
+      console.log('Form Value:', formValue); // Debug form value
       const response = await this.visitorService.createVisitor(formValue);
+      console.log('Submit Visitor Response:', response); // Debug response
+
       if (response.success) {
-        swalHelper.showToast('Visitor added successfully', 'success');
+        swalHelper.showToast(response.message || 'Visitor added successfully', 'success');
         this.closeAddVisitorModal();
         await this.fetchVisitors();
+      } else {
+        swalHelper.showToast(response.message || 'Failed to add visitor', 'error');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding visitor:', error);
-      swalHelper.showToast('Failed to add visitor', 'error');
+      swalHelper.showToast(error.message || 'Failed to add visitor', 'error');
     } finally {
       this.modalLoading = false;
       this.cdr.detectChanges();
     }
   }
 
+  private logFormErrors(): void {
+    Object.keys(this.addVisitorForm.controls).forEach((key) => {
+      const controlErrors = this.addVisitorForm.get(key)?.errors;
+      if (controlErrors) {
+        console.log(`Field: ${key}, Errors:`, controlErrors);
+      }
+    });
+  }
+
   onFilterChange(): void {
     this.filters.page = 1;
-    this.fetchVisitors();
+    this.filterSubject.next();
   }
 
   onPageChange(page: number): void {
     this.filters.page = page;
-    this.fetchVisitors();
+    this.filterSubject.next();
   }
 
   resetFilters(): void {
@@ -257,9 +269,9 @@ export class VisitorsComponent implements OnInit {
       limit: 10,
       chapterName: null,
       startDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
-      endDate: this.formatDateForInput(new Date())
+      endDate: this.formatDateForInput(new Date()),
     };
-    this.fetchVisitors();
+    this.filterSubject.next();
   }
 
   formatDate(dateString: string): string {
@@ -268,7 +280,7 @@ export class VisitorsComponent implements OnInit {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   }
 
@@ -292,6 +304,7 @@ export class VisitorsComponent implements OnInit {
       swalHelper.showToast('Error updating visitor status', 'error');
     } finally {
       this.updatingVisitorId = null;
+      this.cdr.detectChanges();
     }
   }
 
@@ -321,25 +334,25 @@ export class VisitorsComponent implements OnInit {
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
         limit: 10000,
-        page: 1
+        page: 1,
       };
       const allData = await this.visitorService.getAllVisitors(exportParams);
       const exportData = allData.docs.map((visitor, index) => {
         return {
           'Sr No': index + 1,
-          'Title': visitor.eventId?.name || 'N/A',
+          Title: visitor.eventId?.name || 'N/A',
           'Visitor Name': visitor.name || 'N/A',
-          'Chapter': visitor.refUserId?.chapter_name || 'N/A',
+          Chapter: visitor.refUserId?.chapter_name || 'N/A',
           'Company Name': visitor.business_name || 'N/A',
           'Mobile No': visitor.mobile_number || 'N/A',
-          'Email': visitor.email || 'N/A',
+          Email: visitor.email || 'N/A',
           'Visitor Address': visitor.address || 'N/A',
-          'PinCode': visitor.pincode || 'N/A',
+          PinCode: visitor.pincode || 'N/A',
           'Visitor Date': visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
-          'Profession': visitor.business_type || 'N/A',
+          Profession: visitor.business_type || 'N/A',
           'Visitor Type': visitor.paid ? 'Paid' : 'Unpaid',
           'Attendance Status': visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A',
-          'Fees': visitor.fees || 'N/A'
+          Fees: visitor.fees || 'N/A',
         };
       });
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
@@ -361,7 +374,7 @@ export class VisitorsComponent implements OnInit {
         startDate: this.filters.startDate || undefined,
         endDate: this.filters.endDate || undefined,
         limit: 10000,
-        page: 1
+        page: 1,
       };
       const allData = await this.visitorService.getAllVisitors(exportParams);
       const fileName = `Visitors_Report_${this.formatDateForFileName(new Date())}`;
@@ -376,7 +389,7 @@ export class VisitorsComponent implements OnInit {
         { header: 'Visitor Date', dataKey: 'visitorDate' },
         { header: 'Profession', dataKey: 'profession' },
         { header: 'Visitor Type', dataKey: 'visitorType' },
-        { header: 'Attendance Status', dataKey: 'attendanceStatus' }
+        { header: 'Attendance Status', dataKey: 'attendanceStatus' },
       ];
       const data = allData.docs.map((visitor, index) => {
         return {
@@ -390,7 +403,7 @@ export class VisitorsComponent implements OnInit {
           visitorDate: visitor.eventId?.date ? this.formatDate(visitor.eventId.date) : 'N/A',
           profession: visitor.business_type || 'N/A',
           visitorType: visitor.paid ? 'Paid' : 'Unpaid',
-          attendanceStatus: visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A'
+          attendanceStatus: visitor.attendanceStatus ? visitor.attendanceStatus : 'N/A',
         };
       });
       const title = 'Visitors Report';

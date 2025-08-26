@@ -160,7 +160,7 @@ export class SideBarService {
             },
           ],
         },
-        // Complaints and Suggestions moved to bottom
+        
         {
           title: 'Complaints',
           link: 'complaints',
@@ -170,6 +170,11 @@ export class SideBarService {
           title: 'Suggestions',
           link: 'suggestions',
           icon: 'lightbulb',
+        },
+        {
+          title: 'Contact Us',
+          link: 'contactUs',
+          icon: 'envelope',
         },
       ],
     },

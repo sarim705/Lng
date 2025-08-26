@@ -683,13 +683,13 @@ export class SuggestionService {
       
       const response = await this.apiManager.request(
         {
-          url: 'http://localhost:2027/mobile/getSuggestions' + queryParams,
+          url: apiEndpoints.GET_SUGGESTION + queryParams,
           method: 'GET',
         },
         null,
         this.headers
       );
-      
+      //getSuggestions updateSuggestionStatus
       return response.data || response;
     } catch (error) {
       console.error('Get Suggestions Error:', error);
@@ -704,7 +704,8 @@ export class SuggestionService {
       
       const response = await this.apiManager.request(
         {
-          url: `http://localhost:2027/mobile/updateSuggestionStatus/${id}`,
+ 
+          url: `${apiEndpoints.UPDATE_SUGGESTION_STATUS}/${id}`,
           method: 'PUT',
         },
         data,
@@ -2598,7 +2599,6 @@ export class VisitorService {
   async createVisitor(data: any): Promise<any> {
     try {
       this.getHeaders();
-      
       const response = await this.apiManager.request(
         {
           url: apiEndpoints.CREATE_VISITOR,
@@ -2607,14 +2607,25 @@ export class VisitorService {
         data,
         this.headers
       );
-      
-      return response.data || response;
-    } catch (error) {
+      console.log('Create Visitor Response:', response); // Debug
+      return {
+        success: true,
+        data: response.data || response,
+        status: response.status || 201,
+        message: response.message || 'Visitor added successfully',
+      };
+    } catch (error: any) {
       console.error('Create Visitor Error:', error);
-      swalHelper.showToast('Failed to create visitor', 'error');
-      throw error;
+      const errorResponse = {
+        success: false,
+        message: error.message || 'Failed to create visitor',
+        error,
+      };
+      swalHelper.showToast(errorResponse.message, 'error');
+      throw errorResponse;
     }
   }
+
 
 async toggleVisitorAttendance(body: { visitorId: string }): Promise<any> {
     try {
@@ -3006,7 +3017,103 @@ export class FeeService {
       }
   }
 }
+  // Add this interface to your auth.service.ts file
+  export interface ContactUs {
+    _id: string;
+    Entityname: string;
+    email: string;
+    mobile_number: string;
+    address: string;
+    pic: string;
+    message: string;
+    __v: number;
+  }
+
+// export interface ContactUsResponse {
+//   success: boolean;
+//   message: string;
+//   data: ContactUs[];
+// }
+
+// Add this service class to your auth.service.ts file
+@Injectable({
+  providedIn: 'root',
+})
+export class ContactUsService {
+  private headers: any = [];
   
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+  
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getAllContactUs(): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_All_CONTACTUS,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch contact us data', 'error');
+      throw error;
+    }
+  }
+
+  async updateContactUs(id: string, data: any): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      // Check if data is FormData (for file uploads) or regular object
+      const isFormData = data instanceof FormData;
+      
+      if (isFormData) {
+        // For file uploads, don't set Content-Type header, let browser set it
+        const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+        
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.UPDATE_CONTACTUS}/${id}`, // Update this endpoint as per your API
+            method: 'PUT',
+          },
+          data,
+          fileHeaders
+        );
+        
+        return response;
+      } else {
+        // For regular JSON updates
+        const response = await this.apiManager.request(
+          {
+            url: `${apiEndpoints.UPDATE_CONTACTUS}/${id}`,  // Update this endpoint as per your API
+            method: 'PUT',
+          },
+          data,
+          this.headers
+        );
+        
+        return response;
+      }
+    } catch (error) {
+      console.error('Update Contact Us Error:', error);
+      swalHelper.showToast('Failed to update contact information', 'error');
+      throw error;
+    }
+  }}
   export interface Event1 {
     _id: string;
     name: string;
