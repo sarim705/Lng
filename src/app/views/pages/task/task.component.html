@@ -1,0 +1,419 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-list-check me-2"></i>Task Management
+      </h4>
+      <button class="btn btn-light rounded-pill" (click)="openCreateTaskModal()">
+        <i class="bi bi-plus-circle me-1"></i>Create New Task
+      </button>
+    </div>
+
+    <div class="card-body p-0">
+      <!-- Filters -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+          <div class="me-2" style="min-width: 200px;" *ngIf="!chaptersLoading">
+            <label for="chapterSelect" class="form-label mb-1">Chapter</label>
+            <ng-select 
+              id="chapterSelect"
+              [items]="chapters"
+              bindLabel="name"
+              bindValue="name"
+              placeholder="--All Chapters--"
+              [(ngModel)]="filters.chapter_name"
+              (change)="onFilterChange()"
+              [disabled]="chaptersLoading"
+              [clearable]="true">
+            </ng-select>
+          </div>
+
+          <!-- <div class="me-2" style="min-width: 150px;">
+            <label for="statusSelect" class="form-label mb-1">Status</label>
+            <ng-select 
+              id="statusSelect"
+              [items]="statusOptions"
+              bindLabel="label"
+              bindValue="value"
+              placeholder="--All Status--"
+              [(ngModel)]="filters.status"
+              (change)="onFilterChange()"
+              [clearable]="true">
+            </ng-select>
+          </div> -->
+
+          <div class="me-2" style="min-width: 200px;">
+            <label for="searchInput" class="form-label mb-1">Search</label>
+            <input 
+              id="searchInput"
+              type="text" 
+              class="form-control" 
+              placeholder="Search by title" 
+              [(ngModel)]="filters.search"
+              (ngModelChange)="onFilterChange()">
+          </div>
+
+          <div class="mt-4">
+            <button class="btn btn-outline-secondary" (click)="resetFilters()" [disabled]="loading">
+              <i class="bi bi-x-circle me-1"></i>Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center">
+          <div class="ms-2">
+            <ng-select 
+              id="limitSelect"
+              [items]="[10, 25, 50, 100]"
+              [(ngModel)]="filters.limit"
+              (change)="onFilterChange()"
+              placeholder="Items per page">
+            </ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="table-responsive" *ngIf="!loading && (taskList?.docs ?? []).length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="py-3">Sr No</th>
+            <th class="py-3">Task Title</th>
+            <th class="py-3">Chapter</th>
+            <th class="py-3">Duration</th>
+            <th class="py-3">Tasks Count</th>
+            <!-- <th class="py-3">Status</th> -->
+            <th class="py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+         <tbody>
+  <tr *ngFor="let task of taskList.docs | paginate: {id: paginationConfig.id, itemsPerPage: taskList.limit, currentPage: taskList.page, totalItems: taskList.totalDocs}; let i = index">
+    <td class="py-3">{{ (taskList.page - 1) * taskList.limit + i + 1 }}</td>
+    <td class="py-3">
+      <div>
+        <div class="fw-bold text-dark">{{ task.title }}</div>
+        <!-- <small class="text-muted">{{ task.description | slice:0:50 }}{{ task.description.length > 50 ? '...' : '' }}</small> -->
+      </div>
+    </td>
+    <td class="py-3">
+      <span class="badge bg-info">{{ task.chapter_name }}</span>
+    </td>
+    <td class="py-3">
+      <div>
+        <small class="d-block"><strong>Start:</strong> {{ formatDate(task.startDate) }}</small>
+        <small class="d-block"><strong>End:</strong> {{ formatDate(task.endDate) }}</small>
+      </div>
+    </td>
+    <td class="py-3">
+      <span class="badge bg-secondary">{{ task.tasks.length }} Tasks</span>
+    </td>
+    <!-- <td class="py-3">
+      <span [class]="'badge ' + getStatusClass(task.status)">
+        {{ task.status | uppercase }}
+      </span>
+    </td> -->
+    <td class="py-3">
+      <div class="btn-group" role="group">
+        <button class="btn btn-sm btn-outline-primary" (click)="viewTaskDetails(task)" title="View Details">
+          <i class="bi bi-eye"></i>
+        </button>
+        <button class="btn  btn-sm btn-outline-warning" (click)="editTask(task)" title="Edit">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(task._id)" title="Delete">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </td>
+  </tr>
+</tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div class="text-muted">
+          Showing {{ (taskList.page - 1) * taskList.limit + 1 }} to
+          {{ Math.min(taskList.page * taskList.limit, taskList.totalDocs) }}
+          of {{ taskList.totalDocs }} entries
+        </div>
+        <pagination-controls 
+          [id]="paginationConfig.id"
+          [maxSize]="5"
+          [responsive]="true"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true">
+        </pagination-controls>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && ((taskList?.docs ?? []).length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-list-check fs-1 text-muted mb-3"></i>
+        <h5>No Tasks Found</h5>
+        <p class="text-muted">Create your first task to get started.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openCreateTaskModal()">
+          <i class="bi bi-plus-circle me-2"></i>Create Task
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Task Modal -->
+  <div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskModalLabel">
+            {{ isEditMode ? 'Edit Task' : 'Create New Task' }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="taskTitle" class="form-label">Task Title <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="taskTitle"
+                  [(ngModel)]="taskForm.title"
+                  name="title"
+                  placeholder="Enter task title"
+                  required>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="chapterName" class="form-label">Chapter <span class="text-danger">*</span></label>
+                <ng-select 
+                  id="chapterName"
+                  [items]="chapterOptions"
+                  bindLabel="label"
+                  bindValue="value"
+                  [(ngModel)]="taskForm.chapter_name"
+                  name="chapter_name"
+                  placeholder="--Select Chapter--"
+                  [clearable]="false"
+                  required>
+                </ng-select>
+              </div>
+
+              <!-- <div class="col-12 mb-3">
+                <label for="taskDescription" class="form-label">Description</label>
+                <textarea 
+                  class="form-control" 
+                  id="taskDescription"
+                  [(ngModel)]="taskForm.description"
+                  name="description"
+                  rows="3"
+                  placeholder="Enter task description"></textarea>
+              </div> -->
+
+              <div class="col-md-6 mb-3">
+                <label for="startDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                <input 
+                  type="datetime-local" 
+                  class="form-control" 
+                  id="startDate"
+                  [(ngModel)]="taskForm.startDate"
+                  name="startDate"
+                  required>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="endDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                <input 
+                  type="datetime-local" 
+                  class="form-control" 
+                  id="endDate"
+                  [(ngModel)]="taskForm.endDate"
+                  name="endDate"
+                  required>
+              </div>
+            </div>
+
+            <!-- Individual Tasks Section -->
+            <div class="border-top pt-3 mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Sub Tasks</h6>
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="addTask()">
+                  <i class="bi bi-plus-circle me-1"></i>Add Task
+                </button>
+              </div>
+
+              <div *ngFor="let task of taskForm.tasks; let i = index" class="card mb-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-2">
+                      <label class="form-label">Task Title <span class="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        [(ngModel)]="task.taskTitle"
+                        [name]="'taskTitle_' + i"
+                        placeholder="Enter task title"
+                        required>
+                    </div>
+
+                    <div class="col-md-6 mb-2">
+                      <label class="form-label">Deadline <span class="text-danger">*</span></label>
+                      <input 
+                        type="datetime-local" 
+                        class="form-control" 
+                        [(ngModel)]="task.deadline"
+                        [name]="'deadline_' + i"
+                        required>
+                    </div>
+
+                    <div class="col-md-10 mb-2">
+                      <label class="form-label">Task Description</label>
+                      <textarea 
+                        class="form-control" 
+                        [(ngModel)]="task.taskDescription"
+                        [name]="'taskDescription_' + i"
+                        rows="2"
+                        placeholder="Enter task description"></textarea>
+                    </div>
+
+                    <!-- <div class="col-md-2 mb-2">
+                      <label class="form-label">Mandatory</label>
+                      <div class="form-check form-switch">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          [(ngModel)]="task.isMandatory"
+                          [name]="'isMandatory_' + i"
+                          [id]="'isMandatory_' + i">
+                        <label class="form-check-label" [for]="'isMandatory_' + i">
+                          {{ task.isMandatory ? 'Yes' : 'No' }}
+                        </label>
+                      </div>
+                    </div> -->
+
+                    <!-- <div class="col-12">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm btn-danger" 
+                        (click)="removeTask(i)"
+                        [disabled]="taskForm.tasks.length === 1">
+                        <i class="bi bi-trash me-1"></i>Remove Task
+                      </button>
+                    </div> -->
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="taskForm.tasks.length === 0" class="text-center text-muted py-3">
+                <p>No tasks added yet. Click "Add Task" to create individual tasks.</p>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="saveTask()"
+            [disabled]="submitting || !isFormValid()">
+            <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            {{ isEditMode ? 'Update Task' : 'Create Task' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Task Details Modal -->
+  <div class="modal fade" id="viewTaskModal" tabindex="-1" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewTaskModalLabel">Task Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedTask">
+          <div class="row">
+            <div class="col-12 mb-3">
+              <h6 class="text-muted">Title</h6>
+              <p class="fw-bold">{{ selectedTask.title }}</p>
+            </div>
+
+            <div class="col-12 mb-3">
+              <h6 class="text-muted">Description</h6>
+              <p>{{ selectedTask.description }}</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <h6 class="text-muted">Chapter</h6>
+              <span class="badge bg-info">{{ selectedTask.chapter_name }}</span>
+            </div>
+
+            <!-- <div class="col-md-6 mb-3">
+              <h6 class="text-muted">Status</h6>
+              <span [class]="'badge ' + getStatusClass(selectedTask.status)">
+                {{ selectedTask.status | uppercase }}
+              </span>
+            </div> -->
+
+            <div class="col-md-6 mb-3">
+              <h6 class="text-muted">Start Date</h6>
+              <p>{{ formatDate(selectedTask.startDate) }}</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <h6 class="text-muted">End Date</h6>
+              <p>{{ formatDate(selectedTask.endDate) }}</p>
+            </div>
+
+            <div class="col-12 mb-3">
+              <h6 class="text-muted">Sub task ({{ selectedTask.tasks.length }})</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Task Title</th>
+                      <th>Description</th>
+                      <th>Deadline</th>
+                      <!-- <th>Mandatory</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let task of selectedTask.tasks; let i = index">
+                      <td>{{ i + 1 }}</td>
+                      <td>{{ task.taskTitle }}</td>
+                      <td>{{ task.taskDescription }}</td>
+                      <td>{{ formatDate(task.deadline) }}</td>
+                      <!-- <td>
+                        <span [class]="task.isMandatory ? 'badge bg-danger' : 'badge bg-secondary'">
+                          {{ task.isMandatory ? 'Yes' : 'No' }}
+                        </span>
+                      </td> -->
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

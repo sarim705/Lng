@@ -35,6 +35,7 @@ import {BadgeManagementComponent} from './views/pages/usersbadge/usersbadge.comp
 import { AskManagementComponent } from './views/pages/ask/ask.component';
 import { ComplaintsComponent } from './views/pages/complaints/complaints.component';
 import { SuggestionsComponent } from './views/pages/suggestion/suggestion.component';
+import { TaskManagementComponent } from './views/pages/task/task.component';
 
 
 export const routes: Routes = [
@@ -86,6 +87,7 @@ export const routes: Routes = [
         
       },
     {path: 'askManagement', component: AskManagementComponent},
+    {path : 'taskManagement', component: TaskManagementComponent}
       
       
       

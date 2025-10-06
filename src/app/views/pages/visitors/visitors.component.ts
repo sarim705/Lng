@@ -315,7 +315,7 @@ export class VisitorsComponent implements OnInit {
       if (response.success) {
         visitor.attendanceStatus = response.data.visitor.attendanceStatus;
         swalHelper.showToast(`Visitor attendance status changed to ${visitor.attendanceStatus}`, 'success');
-        this.cdr.detectChanges();
+        this.cdr.detectChanges();                   
       }
     } catch (error) {
       console.error('Error toggling attendance status:', error);
@@ -345,6 +345,7 @@ export class VisitorsComponent implements OnInit {
           Chapter: visitor.refUserId?.chapter_name || 'N/A',
           'Company Name': visitor.business_name || 'N/A',
           'Mobile No': visitor.mobile_number || 'N/A',
+        'Referred By':visitor.refUserId.name|| 'N/A',
           Email: visitor.email || 'N/A',
           'Visitor Address': visitor.address || 'N/A',
           PinCode: visitor.pincode || 'N/A',
@@ -362,7 +363,7 @@ export class VisitorsComponent implements OnInit {
       console.error('Error exporting to Excel:', error);
       swalHelper.showToast('Failed to export to Excel', 'error');
     } finally {
-      this.exporting = false;
+      this.exporting = false; 
     }
   }
 
@@ -383,6 +384,7 @@ export class VisitorsComponent implements OnInit {
         { header: 'Title', dataKey: 'title' },
         { header: 'Visitor Name', dataKey: 'visitorName' },
         { header: 'Company Name', dataKey: 'companyName' },
+        {header:'Referred By', dataKey:'referredBy'},
         { header: 'Mobile No', dataKey: 'mobileNo' },
         { header: 'Address', dataKey: 'address' },
         { header: 'PinCode', dataKey: 'pincode' },
@@ -397,6 +399,7 @@ export class VisitorsComponent implements OnInit {
           title: visitor.eventId?.name || 'N/A',
           visitorName: `${visitor.name || 'N/A'}\n(${visitor.refUserId?.chapter_name || 'N/A'})`,
           companyName: visitor.business_name || 'N/A',
+          referredBy:visitor.refUserId.name || 'N/A',
           mobileNo: visitor.mobile_number || 'N/A',
           address: visitor.address || 'N/A',
           pincode: visitor.pincode || 'N/A',

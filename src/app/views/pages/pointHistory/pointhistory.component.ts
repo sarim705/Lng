@@ -42,7 +42,7 @@ export class PointsHistoryComponent implements OnInit {
     page: 1,
     limit: 10,
     chapter_name: null,
-    fromDate: this.formatDateForInput(new Date(new Date().setDate(new Date().getDate() - 30))),
+    fromDate: this.formatDateForInput(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
     toDate: this.formatDateForInput(new Date())
   };
 
@@ -188,6 +188,7 @@ export class PointsHistoryComponent implements OnInit {
           'Event Attendance': point.event_attendance || 0,
           'TYFCB': point.tyfcb || 0,
           'Testimonial': point.testimonial || 0,
+          'taskpoint': point.taskpoint || 0,
           'Total Points': point.totalPointsSum || 0
         };
       });

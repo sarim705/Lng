@@ -140,6 +140,13 @@ public USER_BY_CHAPTER:string=`${this.PATH}/userListByParticularChapter`
 public SEND_NOTIFICATION_T0_USER= `${this.PATH}/sendNotificationToUser`
 
 
+ public CREATE_TASK: string=`${this.PATH}/createTask`
+  public GET_ALL_TASKS: string=`${this.PATH}/getAllTasks`
+  public GET_TASK_BY_ID:string=`${this.PATH}/getTaskById`
+  UPDATE_TASK:string=`${this.PATH}/updateTask`
+  DELETE_TASK:string=`${this.PATH}/deleteTask`
+
+
 
 
 

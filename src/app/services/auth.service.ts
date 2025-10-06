@@ -3744,6 +3744,209 @@ export class ParticipationService {
     
     // }
 
+    export interface Task {
+  taskTitle: string;
+  taskDescription: string;
+  deadline: string;
+  isMandatory: boolean;
+  order?: number;
+  _id?: string;
+}
+
+export interface TaskModule {
+  _id: string;
+  title: string;
+  description: string;
+  chapter_name: string;
+  tasks: Task[];
+  startDate: string;
+  endDate: string;
+  status: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTaskRequest {
+  title: string;
+  description: string;
+  chapter_name: string;
+  startDate: string;
+  endDate: string;
+  tasks: Task[];
+}
+
+export interface CreateTaskResponse {
+  message: string;
+  data: {
+    task: TaskModule;
+    stats: {
+      usersAssigned: number;
+      assignmentsFailed: number;
+      totalUsers: number;
+      chapterScope: string;
+    };
+  };
+  status: number;
+  success: boolean;
+}
+
+export interface TaskListResponse {
+  docs: TaskModule[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TaskService {
+  private headers: any = [];
+
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async createTask(data: CreateTaskRequest): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.CREATE_TASK,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error: any) {
+      console.error('Create Task Error:', error);
+      if (error && error.error) {
+        return error.error;
+      }
+      swalHelper.showToast('Failed to create task', 'error');
+      throw error;
+    }
+  }
+
+  async getAllTasks(data: { 
+    page: number; 
+    limit: number; 
+    search?: string; 
+    chapter_name?: string | null;
+    status?: string | null;
+  }): Promise<TaskListResponse> {
+    try {
+      this.getHeaders();
+      
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      if (data.chapter_name) {
+        queryParams += `&chapter_name=${encodeURIComponent(data.chapter_name)}`;
+      }
+      if (data.status) {
+        queryParams += `&status=${encodeURIComponent(data.status)}`;
+      }
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_ALL_TASKS + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch tasks', 'error');
+      throw error;
+    }
+  }
+
+  async updateTask(id: string, data: Partial<CreateTaskRequest>): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.UPDATE_TASK}/${id}`,
+          method: 'PUT',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Update Task Error:', error);
+      swalHelper.showToast('Failed to update task', 'error');
+      throw error;
+    }
+  }
+
+  async deleteTask(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.DELETE_TASK}/${id}`,
+          method: 'DELETE',
+        },
+        null,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Delete Task Error:', error);
+      swalHelper.showToast('Failed to delete task', 'error');
+      throw error;
+    }
+  }
+
+  async getTaskById(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.GET_TASK_BY_ID}/${id}`,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Get Task Error:', error);
+      swalHelper.showToast('Failed to fetch task details', 'error');
+      throw error;
+    }
+  }
+}
+
     export interface PointsHistory {
       _id: string;
       userId: string;
@@ -3757,6 +3960,7 @@ export class ParticipationService {
       visitor: number;
       event_attendance: number;
       tyfcb: number;
+      taskpoint:number;
       testimonial: number;
       totalPointsSum: number;
       leaderboardPoints: {

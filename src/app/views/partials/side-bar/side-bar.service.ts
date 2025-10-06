@@ -95,12 +95,12 @@ export class SideBarService {
           title: 'Pre Participation',
           link: 'participation',
           icon: 'check-circle',
+        },{
+        title:'task Management',
+        link:'taskManagement',
+        icon:'check-square'
         },
-        {
-          title: 'Attendence',
-          link: 'attendence',
-          icon: 'check-square',
-        },
+       
         {
           title: 'Badge Management',
           link: 'badgeManagement',
