@@ -35,7 +35,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     city: '',
     state: '',
     country: '',
-    sponseredBy: '',
+    sponseredBy: null, // Use null instead of empty string for optional ObjectId field
     keywords: '',
     induction_date: ''
   };
@@ -449,6 +449,14 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           // Explicitly format induction_date to YYYY-MM-DD
           const formattedDate = new Date(this.registerForm[key]).toISOString().split('T')[0];
           formData.append(key, formattedDate);
+        } else if (key === 'sponseredBy') {
+          // Only append sponseredBy if it has a valid value, otherwise skip it (don't send empty string)
+          // ng-select returns null/undefined when nothing is selected, or empty string
+          const sponseredByValue = this.registerForm[key];
+          if (sponseredByValue && sponseredByValue !== '' && sponseredByValue !== null && sponseredByValue !== undefined) {
+            formData.append(key, sponseredByValue);
+          }
+          // If empty/null/undefined, don't append it at all - backend will treat it as undefined/null
         } else {
           // Append all other fields, including empty ones
           formData.append(key, this.registerForm[key] || '');
@@ -607,7 +615,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       city: '',
       state: '',
       country: '',
-      sponseredBy: '',
+      sponseredBy: null, // Use null instead of empty string for optional ObjectId field
       keywords: '',
       induction_date: ''
     };

@@ -278,7 +278,7 @@
                         required>
                     </div>
 
-                    <div class="col-md-10 mb-2">
+                    <!-- <div class="col-md-10 mb-2">
                       <label class="form-label">Task Description</label>
                       <textarea 
                         class="form-control" 
@@ -286,7 +286,7 @@
                         [name]="'taskDescription_' + i"
                         rows="2"
                         placeholder="Enter task description"></textarea>
-                    </div>
+                    </div> -->
 
                     <!-- <div class="col-md-2 mb-2">
                       <label class="form-label">Mandatory</label>
@@ -352,10 +352,10 @@
               <p class="fw-bold">{{ selectedTask.title }}</p>
             </div>
 
-            <div class="col-12 mb-3">
+            <!-- <div class="col-12 mb-3">
               <h6 class="text-muted">Description</h6>
               <p>{{ selectedTask.description }}</p>
-            </div>
+            </div> -->
 
             <div class="col-md-6 mb-3">
               <h6 class="text-muted">Chapter</h6>
@@ -387,7 +387,7 @@
                     <tr>
                       <th>#</th>
                       <th>Task Title</th>
-                      <th>Description</th>
+                      <!-- <th>Description</th> -->
                       <th>Deadline</th>
                       <!-- <th>Mandatory</th> -->
                     </tr>
@@ -396,7 +396,7 @@
                     <tr *ngFor="let task of selectedTask.tasks; let i = index">
                       <td>{{ i + 1 }}</td>
                       <td>{{ task.taskTitle }}</td>
-                      <td>{{ task.taskDescription }}</td>
+                      <!-- <td>{{ task.taskDescription }}</td> -->
                       <td>{{ formatDate(task.deadline) }}</td>
                       <!-- <td>
                         <span [class]="task.isMandatory ? 'badge bg-danger' : 'badge bg-secondary'">

@@ -79,6 +79,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
   };
   editLoading: boolean = false;
 
+  addChapterModal: any;
+  allChapters: any[] = [];
+  selectedChapterForAdd: string | null = null;
+  addChapterLoading: boolean = false;
+  chaptersLoadingForAdd: boolean = false;
+
   referralPaginationConfig = {
     givenId: 'referrals-given-pagination',
     receivedId: 'referrals-received-pagination'
@@ -138,6 +144,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
       } else {
         console.warn('Notification modal element not found in the DOM');
       }
+      const addChapterModalElement = document.getElementById('addChapterModal');
+      if (addChapterModalElement) {
+        this.addChapterModal = new bootstrap.Modal(addChapterModalElement);
+      } else {
+        console.warn('Add chapter modal element not found in the DOM');
+      }
     }, 300);
   }
 
@@ -149,6 +161,88 @@ export class UsersComponent implements OnInit, AfterViewInit {
     } catch (error) {
       console.error('Error fetching chapters:', error);
       swalHelper.showToast('Failed to fetch chapters', 'error');
+    }
+  }
+
+  async fetchAllChaptersForAdd(): Promise<void> {
+    this.chaptersLoadingForAdd = true;
+    try {
+      const response = await this.chapterService.getAllChapters({
+        page: 1,
+        limit: 1000,
+        search: ''
+      });
+      this.allChapters = response.docs || [];
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      swalHelper.showToast('Failed to fetch chapters', 'error');
+    } finally {
+      this.chaptersLoadingForAdd = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  openAddChapterModal(user: any): void {
+    this.selectedUser = user;
+    this.selectedChapterForAdd = null;
+    this.fetchAllChaptersForAdd();
+    
+    if (this.addChapterModal) {
+      this.addChapterModal.show();
+    } else {
+      try {
+        const modalElement = document.getElementById('addChapterModal');
+        if (modalElement) {
+          const modalInstance = new bootstrap.Modal(modalElement);
+          this.addChapterModal = modalInstance;
+          modalInstance.show();
+        } else {
+          $('#addChapterModal').modal('show');
+        }
+      } catch (error) {
+        console.error('Error showing add chapter modal:', error);
+        $('#addChapterModal').modal('show');
+      }
+    }
+  }
+
+  closeAddChapterModal(): void {
+    if (this.addChapterModal) {
+      this.addChapterModal.hide();
+    } else {
+      $('#addChapterModal').modal('hide');
+    }
+  }
+
+  async joinChapter(): Promise<void> {
+    if (!this.selectedUser || !this.selectedChapterForAdd) {
+      swalHelper.showToast('Please select a chapter', 'warning');
+      return;
+    }
+
+    this.addChapterLoading = true;
+    try {
+      const response = await this.authService.joinAdditionalChapter({
+        userId: this.selectedUser._id,
+        chapter_name: this.selectedChapterForAdd
+      });
+      
+      if (response && response.success) {
+        swalHelper.showToast(response.message || 'Successfully joined additional chapter', 'success');
+        this.closeAddChapterModal();
+        this.fetchUsers(); // Refresh user list
+      } else {
+        const errorMessage = response?.error || response?.message || 'Failed to join chapter';
+        swalHelper.showToast(errorMessage, 'error');
+      }
+    } catch (error: any) {
+      console.error('Error joining chapter:', error);
+      const errorMessage = error?.error?.error || error?.error?.message || error?.message || 'Failed to join chapter';
+      swalHelper.showToast(errorMessage, 'error');
+    } finally {
+      this.addChapterLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -541,6 +635,46 @@ export class UsersComponent implements OnInit, AfterViewInit {
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
+  }
+
+  getChapterNames(user: any): string {
+    if (!user) return 'N/A';
+    
+    // Check if chapter_memberships exists and has items
+    if (user.chapter_memberships && Array.isArray(user.chapter_memberships) && user.chapter_memberships.length > 0) {
+      // Get all chapter names from memberships
+      const chapterNames = user.chapter_memberships
+        .map((membership: any) => membership.chapter_name)
+        .filter((name: string) => name); // Filter out any null/undefined values
+      
+      if (chapterNames.length > 0) {
+        // If multiple chapters, show them all separated by comma
+        return chapterNames.join(', ');
+      }
+    }
+    
+    // Fallback to legacy chapter_name field for backward compatibility
+    return user.chapter_name || 'N/A';
+  }
+
+  getPrimaryChapter(user: any): string {
+    if (!user) return 'N/A';
+    
+    // Check if chapter_memberships exists
+    if (user.chapter_memberships && Array.isArray(user.chapter_memberships) && user.chapter_memberships.length > 0) {
+      // Find primary chapter
+      const primaryMembership = user.chapter_memberships.find((m: any) => m.is_primary === true);
+      if (primaryMembership && primaryMembership.chapter_name) {
+        return primaryMembership.chapter_name;
+      }
+      // If no primary found, return first one
+      if (user.chapter_memberships[0] && user.chapter_memberships[0].chapter_name) {
+        return user.chapter_memberships[0].chapter_name;
+      }
+    }
+    
+    // Fallback to legacy chapter_name field
+    return user.chapter_name || 'N/A';
   }
 
   async generateUserPDF(): Promise<void> {

@@ -131,6 +131,9 @@
                   <li><a class="dropdown-item" (click)="openNotificationModal(user)" style="cursor: pointer;">
                     <i class="bi bi-bell-fill me-2 text-info"></i> Send Notification
                   </a></li>
+                  <li><a class="dropdown-item" (click)="openAddChapterModal(user)" style="cursor: pointer;">
+                    <i class="bi bi-building-add me-2 text-success"></i> Add Chapter
+                  </a></li>
                   <li><a class="dropdown-item text-danger" (click)="deleteUser(user._id)" style="cursor: pointer;">
                     <i class="bi bi-trash-fill me-2"></i> Delete
                   </a></li>
@@ -209,7 +212,23 @@
                   <h4 class="mb-1 mt-2">{{selectedUser.name || 'Unknown User'}}</h4>
                   <p class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{selectedUser.meeting_role || 'N/A'}}</p>
                   <div class="mt-2">
-                    <span class="badge bg-light text-dark px-3 py-2">Chapter: {{selectedUser.chapter_name || 'N/A'}}</span>
+                    <span class="badge bg-light text-dark px-3 py-2" [title]="getChapterNames(selectedUser)">
+                      Chapter: {{getPrimaryChapter(selectedUser)}}
+                      <span *ngIf="selectedUser.chapter_memberships && selectedUser.chapter_memberships.length > 1" class="badge bg-primary ms-1">
+                        +{{selectedUser.chapter_memberships.length - 1}}
+                      </span>
+                    </span>
+                  </div>
+                  <div class="mt-3" *ngIf="selectedUser.chapter_memberships && selectedUser.chapter_memberships.length > 1">
+                    <div class="d-flex flex-wrap gap-1 justify-content-center">
+                      <span *ngFor="let membership of selectedUser.chapter_memberships" 
+                            class="badge" 
+                            [ngClass]="membership.is_primary ? 'bg-primary' : 'bg-secondary'"
+                            [title]="membership.is_primary ? 'Primary Chapter' : 'Additional Chapter'">
+                        {{membership.chapter_name}}
+                        <i *ngIf="membership.is_primary" class="bi bi-star-fill ms-1"></i>
+                      </span>
+                    </div>
                   </div>
                   <div class="mt-3" *ngIf="selectedUser.points !== undefined">
                     <span class="badge bg-light text-dark px-3 py-2">Points: {{selectedUser.points}}</span>
@@ -241,6 +260,50 @@
                   <div class="mb-3" *ngIf="selectedUser.address">
                     <p class="mb-1 text-muted small"><i class="bi bi-geo-alt-fill me-2"></i>Address:</p>
                     <p class="fw-bold">{{selectedUser.address || 'N/A'}}</p>
+                  </div>
+                </div>
+              </div>
+              <!-- Chapter Memberships Card -->
+              <div class="card border-0 shadow-sm rounded-4 mb-4" *ngIf="selectedUser.chapter_memberships && selectedUser.chapter_memberships.length > 0">
+                <div class="card-header bg-light py-3">
+                  <h6 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i> Chapter Memberships</h6>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Chapter Name</th>
+                          <th>Status</th>
+                          <th>Type</th>
+                          <th>Join Date</th>
+                          <th>Fees Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let membership of selectedUser.chapter_memberships">
+                          <td>
+                            <strong>{{membership.chapter_name}}</strong>
+                            <i *ngIf="membership.is_primary" class="bi bi-star-fill text-warning ms-1" title="Primary Chapter"></i>
+                          </td>
+                          <td>
+                            <span class="badge" [ngClass]="membership.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                              {{membership.status || 'N/A'}}
+                            </span>
+                          </td>
+                          <td>
+                            <span class="badge" [ngClass]="membership.is_primary ? 'bg-primary' : 'bg-info'">
+                              {{membership.is_primary ? 'Primary' : 'Additional'}}
+                            </span>
+                          </td>
+                          <td>{{membership.join_date | date:'shortDate'}}</td>
+                          <td>
+                            <small class="d-block">Paid: ₹{{membership.fees?.paid_fee || 0}}</small>
+                            <small class="d-block text-danger">Pending: ₹{{membership.fees?.pending_fee || 0}}</small>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -749,6 +812,56 @@
           <i class="bi bi-send-fill me-1"></i>
           <span *ngIf="!notificationLoading">Send Notification</span>
           <span *ngIf="notificationLoading">Sending...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Chapter Modal -->
+<div class="modal fade" id="addChapterModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="addChapterModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="addChapterModalTitle">
+          <i class="bi bi-building-add me-2"></i> Add Chapter
+        </h5>
+        <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close" (click)="closeAddChapterModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div *ngIf="selectedUser" class="mb-3">
+          <p class="text-muted mb-2">User: <strong>{{selectedUser.name}}</strong></p>
+          <p class="text-muted small">Select a chapter to add to this user's memberships.</p>
+        </div>
+        <form>
+          <div class="mb-3">
+            <label for="chapterSelectForAdd" class="form-label">Chapter <span class="text-danger">*</span></label>
+            <ng-select
+              id="chapterSelectForAdd"
+              [items]="allChapters"
+              bindLabel="name"
+              bindValue="name"
+              placeholder="Select a chapter"
+              [(ngModel)]="selectedChapterForAdd"
+              name="chapterSelectForAdd"
+              [loading]="chaptersLoadingForAdd"
+              [searchable]="true"
+              required>
+            </ng-select>
+            <div *ngIf="chaptersLoadingForAdd" class="text-muted mt-1 small">Loading chapters...</div>
+            <small class="text-muted">Search and select a chapter to add</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeAddChapterModal()">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="joinChapter()" [disabled]="addChapterLoading || !selectedChapterForAdd">
+          <i class="bi bi-check-circle me-1"></i>
+          <span *ngIf="!addChapterLoading">Add Chapter</span>
+          <span *ngIf="addChapterLoading">Adding...</span>
         </button>
       </div>
     </div>

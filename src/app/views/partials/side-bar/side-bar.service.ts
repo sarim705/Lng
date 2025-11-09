@@ -154,6 +154,11 @@ export class SideBarService {
               icon: 'clipboard',
             },
             {
+              title: 'task History',
+              link: 'taskHistory',
+              icon: 'clipboard',
+            },
+            {
               title: 'Fees Record',
               link: 'fees',
               icon: 'credit-card',

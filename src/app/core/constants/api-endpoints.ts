@@ -145,6 +145,7 @@ public SEND_NOTIFICATION_T0_USER= `${this.PATH}/sendNotificationToUser`
   public GET_TASK_BY_ID:string=`${this.PATH}/getTaskById`
   UPDATE_TASK:string=`${this.PATH}/updateTask`
   DELETE_TASK:string=`${this.PATH}/deleteTask`
+  public JOIN_ADDITIONAL_CHAPTER:string=`${this.PATH}/joinAdditionalChapter`
 
 
 

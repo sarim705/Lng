@@ -244,7 +244,8 @@
               [(ngModel)]="registerForm.sponseredBy"
               name="sponseredBy"
               [loading]="usersLoading"
-              [searchable]="true">
+              [searchable]="true"
+              [clearable]="true">
             </ng-select>
             <div *ngIf="usersLoading" class="text-muted mt-1 small">Loading sponsors...</div>
             <small class="text-muted">Optional: Select a sponsor</small>

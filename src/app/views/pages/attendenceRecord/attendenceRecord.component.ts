@@ -124,6 +124,7 @@ export class AttendanceDataComponent implements OnInit {
         page: this.filters.page,
         limit: this.filters.limit
       });
+      console.log(response);
       this.attendanceRecords = response.attendanceRecords;
       this.eventDetails = response.eventDetails;
       this.cdr.detectChanges();

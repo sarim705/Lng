@@ -510,6 +510,25 @@ async updateUser(userId: string, data: { name: string; mobile_number: string; em
       throw error;
     }
   }
+
+  async joinAdditionalChapter(data: { userId: string; chapter_name: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.JOIN_ADDITIONAL_CHAPTER,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      return response;
+    } catch (error) {
+      console.error('Join Additional Chapter Error:', error);
+      swalHelper.showToast('Failed to join additional chapter', 'error');
+      throw error;
+    }
+  }
   async uploadExcelFile(formData: FormData): Promise<any> {
     try {
       this.getHeaders();
